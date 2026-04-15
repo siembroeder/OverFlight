@@ -3,6 +3,7 @@ from opensky_api import OpenSkyApi, TokenManager, OpenSkyStates, OpenSkyApi, Sta
 
 import sys
 import json
+import signal
 import requests
 from requests.models import Response
 import subprocess
@@ -104,10 +105,15 @@ async def spawnWindow(state:StateVector, bboxAtLocation:tuple, windows:dict, scr
     """Use spawns a window titled f\"qtApp_{icao24}\" using hyprctl and qt, also stores the new window in the windows dict with icao24 as key"""
     icao24 = state.icao24
     subprocess.run(['hyprctl', 'keyword', 'windowrule', f'match:title qtApp_{icao24}, monitor {screenName}, float on'], capture_output=True)
-    duck = MainWindow(bboxAtLocation, (state.longitude, state.latitude), icao24, state.callsign, showOnScreenName = screenName)
-    duck.show()  # triggers showEvent 
-    windows[icao24] = duck
+    window = MainWindow(bboxAtLocation, (state.longitude, state.latitude), icao24, state.callsign, showOnScreenName = screenName)
+    window.show()  # triggers showEvent 
+    windows[icao24] = window
     await asyncio.sleep(0.5)
+
+def windowIsOpen(icao24:str) -> bool:
+    title = f"qtApp_{icao24}"
+    # return any(w.windowTitle() == title for w in QApplication.topLevelWidgets())
+    return any(w.windowTitle() == title and w.isVisible() for w in QApplication.topLevelWidgets())
 
 async def fetchAndUpdateLocationsLoop(api:OpenSkyApi, bboxAtLocation:tuple, windows:dict, maxWindows:int, screenName:str="eDP-1") -> None: 
     """keep track of icao24 codes, spawn one window per code in bbox, close window if aircraft flies out of bbox"""
@@ -123,10 +129,12 @@ async def fetchAndUpdateLocationsLoop(api:OpenSkyApi, bboxAtLocation:tuple, wind
         
         for state in newStates.states:
             if state.icao24 in windows:
-                windows[state.icao24].moveToPlaneLoc((state.longitude, state.latitude))
-                
+                if windowIsOpen(state.icao24):
+                    windows[state.icao24].moveToPlaneLoc((state.longitude, state.latitude))
+                else:
+                    await spawnWindow(state, bboxAtLocation, windows, screenName)
+
             elif len(windows) < maxWindows: # if allowed spawn another window
-                
                 await spawnWindow(state, bboxAtLocation, windows, screenName=screenName) 
                 
         # Remove planes that have moved out of the bbox
@@ -138,19 +146,32 @@ async def fetchAndUpdateLocationsLoop(api:OpenSkyApi, bboxAtLocation:tuple, wind
 def renderAndUpdateStates(states:list[StateVector], bboxAtLocation:tuple, api:OpenSkyApi, maxWindows:int=3, screenName:str="eDP-1"):
     """ spawn the windows asynchronously, wait for 10 seconds before api call, update locations asynchronously."""
     app:QApplication = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
+    
     loop:QEventLoop  = QEventLoop(app)
     asyncio.set_event_loop(loop)
+    loop.add_signal_handler(signal.SIGINT, QApplication.quit) # quit with CTRL+C from terminal
 
     windows:dict[str, MainWindow] = {}
        
+       
+       
     async def runApp():
+        # spawn all windows for planes in bbox
         for index, state in enumerate(states[:maxWindows], start=1):
             await spawnWindow(state, bboxAtLocation, windows, screenName)
             
+        # update te location of the windows / check for new/removed planes / check if windows were closed manually.
         await fetchAndUpdateLocationsLoop(api, bboxAtLocation, windows, maxWindows, screenName)   
     
+    
+    # Ensure the program doesn't exit when all windows are closed:
+    app.aboutToQuit.connect(loop.stop)
     with loop:
-        loop.run_until_complete(runApp())
+        asyncio.ensure_future(runApp())
+        loop.run_forever()
+    
+    
                  
     return app, windows # keep reference to prevent them from being garbage collected
     
@@ -169,7 +190,7 @@ def main():
 
 
     # Set location, can be anything from jfk international airport to hilversum.
-    locationName:str = "utrecht"
+    locationName:str = "hilversum"
     
     # Define a small or large bboxsize, for dutch standards anyway.
     bboxAtLocation:tuple[float, float, float, float] = getBbox(locationName, BboxSize="small")            # print(f"{bboxAtLocation=})
