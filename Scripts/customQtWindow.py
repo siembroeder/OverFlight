@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel
 
         
 class MainWindow(QMainWindow):
-    def __init__(self, bbox:tuple, initPlaneCoords:tuple, icao24:str, callsign:str, showOnScreenName:str="eDP-1"):
+    def __init__(self, bbox:tuple, initPlaneCoords:tuple, icao24:str, callsign:str|None, showOnScreenName:str="eDP-1"):
         super().__init__()
         
         self.icao24 = icao24
@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
 
         label = QLabel(self)
-        pixmap = QPixmap('duck-left.gif')
+        pixmap = QPixmap("Assets/duck-left.gif")
         label.setPixmap(pixmap)
         self.setCentralWidget(label)
         self.resize(pixmap.width(), pixmap.height())  
