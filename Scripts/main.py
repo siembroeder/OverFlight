@@ -3,6 +3,7 @@ from opensky_api import OpenSkyApi, TokenManager, OpenSkyStates, OpenSkyApi, Sta
 
 from handlingOpenSkyStates import getBbox, fetchStatesInBbox
 from managingWindows import renderAndUpdateWindows
+from Mover import Mover
 
 
 
@@ -19,6 +20,8 @@ def main():
     # Define a small or large bboxsize, for dutch standards anyway.
     bboxAtLocation:tuple[float, float, float, float] = getBbox(locationName, BboxSize="small")            # print(f"{bboxAtLocation=})
 
+    # Define the mover for the users operating system/session
+    mover:Mover = Mover()
 
     # Fetch initial states
     statesAtLocationWTimestamp:OpenSkyStates|None = fetchStatesInBbox(api, bboxAtLocation)       # timestamp = statesAtLocation.time        # print(f"Planes in bbox:\n {statesAtLocationWTimestamp}")
@@ -26,7 +29,7 @@ def main():
         statesAtLocation:list[StateVector] = statesAtLocationWTimestamp.states
     
         # Start the app
-        app, windows = renderAndUpdateWindows(statesAtLocation, bboxAtLocation, api, maxWindows=10)
+        app, windows = renderAndUpdateWindows(statesAtLocation, bboxAtLocation, api, mover, maxWindows=10)
     
     
     

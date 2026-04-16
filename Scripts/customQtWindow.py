@@ -1,24 +1,24 @@
 
 
-import subprocess
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel
 
+from Mover import Mover
 
 
 
 
         
 class MainWindow(QMainWindow):
-    def __init__(self, bbox:tuple, initPlaneCoords:tuple, icao24:str, callsign:str|None, showOnScreenName:str="eDP-1"):
+    def __init__(self, bbox:tuple, initPlaneCoords:tuple, icao24:str, callsign:str|None, mover:Mover, showOnScreenName:str="eDP-1"):
         super().__init__()
         
+        self.mover = mover
         self.icao24 = icao24
         self.callsign = callsign
         self.initPlaneCoords = initPlaneCoords
         self.minLat, self.maxLat, self.minLong, self.maxLong = bbox
-        
         
         screens = QApplication.screens()
         
@@ -53,7 +53,7 @@ class MainWindow(QMainWindow):
         pixely = int(((lat - self.minLat)  / (self.maxLat - self.minLat)   ) * self.Nypixels) # print(f"{[pixelx,pixely]=}")
         
         # since on hyprland y axis inverted:
-        pixely = abs(864 - pixely)              
+        pixely = self.Nypixels - pixely
         
         return pixelx, pixely
         
@@ -67,11 +67,15 @@ class MainWindow(QMainWindow):
         pixelx = int(pixelx - (self.width() / 2))       # update such that image is rendered at the center rather than top left
         pixely = int(pixely - (self.height()/ 2))
         
-        self.moveOnHyprland(pixelx, pixely)             
+        # self.moveOnHyprland(pixelx, pixely)  
+        self.customMove(pixelx, pixely)  
         print(f"Moving {self.callsign} to {pixelx}, {pixely}")
     
-    def moveOnHyprland(self, x, y):
-        subprocess.run(['hyprctl', 'dispatch', 'movewindowpixel', f'exact {x} {y},title:{self.windowTitle()}'], capture_output=True) # ^(qtApp)$
+    def customMove(self, x, y):
+        self.mover.move(x, y, self.windowTitle())
+    
+    # def moveOnHyprland(self, x, y):
+    #     subprocess.run(['hyprctl', 'dispatch', 'movewindowpixel', f'exact {x} {y},title:{self.windowTitle()}'], capture_output=True) # ^(qtApp)$
 
 
 
