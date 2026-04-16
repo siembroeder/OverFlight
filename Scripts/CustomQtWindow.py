@@ -4,14 +4,16 @@ from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel
 
-from Mover import Mover
+from typing import TYPE_CHECKING        # to prevent circular dependency 
+if TYPE_CHECKING:
+    from Mover import Mover
 
 
 
 
         
 class MainWindow(QMainWindow):
-    def __init__(self, bbox:tuple, initPlaneCoords:tuple, icao24:str, callsign:str|None, mover:Mover, showOnScreenName:str="eDP-1"):
+    def __init__(self, bbox:tuple, initPlaneCoords:tuple, icao24:str, callsign:str|None, mover: "Mover", showOnScreenName:str="eDP-1"):
         super().__init__()
         
         self.mover = mover
@@ -72,7 +74,7 @@ class MainWindow(QMainWindow):
         print(f"Moving {self.callsign} to {pixelx}, {pixely}")
     
     def customMove(self, x, y):
-        self.mover.move(x, y, self.windowTitle())
+        self.mover.move(x, y, self)
     
     # def moveOnHyprland(self, x, y):
     #     subprocess.run(['hyprctl', 'dispatch', 'movewindowpixel', f'exact {x} {y},title:{self.windowTitle()}'], capture_output=True) # ^(qtApp)$
