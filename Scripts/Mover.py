@@ -11,7 +11,6 @@ class Mover():
     def __init__(self):
         
         self.userPlatform = getPlatform()
-        self.userSession  = getSessionType() 
         
         self.systemDependentMover = self.determineMover()
         
@@ -20,6 +19,7 @@ class Mover():
             return WindowsMover()
             
         elif "linux" in self.userPlatform:
+            self.userSession  = getSessionType() 
             if self.userSession == "x11":
                 return X11Mover()
             
