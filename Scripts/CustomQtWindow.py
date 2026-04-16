@@ -1,19 +1,16 @@
 
 
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QMovie
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel
+from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel, QWidget, QToolTip
 
 from typing import TYPE_CHECKING        # to prevent circular dependency 
 if TYPE_CHECKING:
     from Mover import Mover
 
-
-
-
         
-class MainWindow(QMainWindow):
-    def __init__(self, bbox:tuple, initPlaneCoords:tuple, icao24:str, callsign:str|None, mover: "Mover", showOnScreenName:str="eDP-1"):
+class MainWindow(QWidget): # QMainWindow
+    def __init__(self, bbox:tuple, initPlaneCoords:tuple, icao24:str, callsign:str|None, mover: "Mover", showOnScreenName:str=None):
         super().__init__()
         
         self.mover = mover
@@ -24,29 +21,57 @@ class MainWindow(QMainWindow):
         
         screens = QApplication.screens()
         
-        if showOnScreenName == 'all':
+        if showOnScreenName == 'all': 
             self.primaryScreen = QApplication.primaryScreen()
             if self.primaryScreen is not None:
                 self.virtual_geom = self.primaryScreen.virtualGeometry()
                 self.Nxpixels = self.virtual_geom.getCoords()[2] + 1
                 self.Nypixels = self.virtual_geom.getCoords()[3] + 1            #print(f"{self.virtual_geom=}")
         else:
+                
             for screen in screens:
-                if screen.name() == showOnScreenName:
+                if showOnScreenName==None: # set dimensions to first screen
+                    self.availableGeometry = screen.availableGeometry()
+                    self.Nxpixels, self.Nypixels = self.availableGeometry.width(), self.availableGeometry.height()
+                    continue 
+                    
+                elif screen.name() == showOnScreenName:
                     self.availableGeometry = screen.availableGeometry()
                     self.Nxpixels, self.Nypixels = self.availableGeometry.width(), self.availableGeometry.height() 
         
-        self.setToolTip(callsign)
+        # self.setToolTip(callsign)
         self.setWindowTitle(f"qtApp_{icao24}")
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+        self.setStyleSheet("background: transparent;")
+
+        self.setMouseTracking(True)
 
         label = QLabel(self)
+        label.setStyleSheet("background: transparent; border: none;")
+        label.setMouseTracking(True)
+
+        # pixmap = QPixmap("Assets/duck-left.gif")
+        # label.setPixmap(pixmap)
+        # self.setCentralWidget(label)
+        # self.resize(pixmap.width(), pixmap.height())
+
+        movie = QMovie("Assets/duck-left.gif")
+        label.setMovie(movie)
+        movie.start()
+
         pixmap = QPixmap("Assets/duck-left.gif")
-        label.setPixmap(pixmap)
-        self.setCentralWidget(label)
-        self.resize(pixmap.width(), pixmap.height())  
-    
+        self.resize(pixmap.width(), pixmap.height())
+
+    def mouseMoveEvent(self, event):
+        QToolTip.showText(event.globalPosition().toPoint(), self.callsign, self)
+        super().mouseMoveEvent(event)
+
+    def leaveEvent(self, event):
+        QToolTip.hideText()
+        super().leaveEvent(event)
+
+
     def coordsToPixels(self, planeCoords:tuple) -> tuple[int, int]: 
         lon, lat = planeCoords
 

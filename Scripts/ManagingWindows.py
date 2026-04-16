@@ -3,6 +3,7 @@ from opensky_api import OpenSkyApi, OpenSkyApi, StateVector, OpenSkyStates
 
 import sys
 import signal
+import platform
 from datetime import datetime
 
 import asyncio
@@ -17,7 +18,7 @@ from HandlingOpenSkyStates import fetchStatesInBbox
 
 
 # window functions   
-async def spawnWindow(state:StateVector, bboxAtLocation:tuple, windows:dict, mover:Mover, screenName:str="eDP-1") -> None:
+async def spawnWindow(state:StateVector, bboxAtLocation:tuple, windows:dict, mover:Mover, screenName:str=None) -> None:
     """Use spawns a window titled f\"qtApp_{icao24}\" using hyprctl and qt, also stores the new window in the windows dict with icao24 as key"""
     icao24 = state.icao24
     window = MainWindow(bboxAtLocation, (state.longitude, state.latitude), icao24, state.callsign, mover, showOnScreenName = screenName)
@@ -30,7 +31,7 @@ def windowIsOpen(icao24:str) -> bool:
     # return any(w.windowTitle() == title for w in QApplication.topLevelWidgets())
     return any(w.windowTitle() == title and w.isVisible() for w in QApplication.topLevelWidgets())
 
-async def fetchAndUpdateLocationsLoop(api:OpenSkyApi, bboxAtLocation:tuple, windows:dict, mover:Mover, maxWindows:int=3, screenName:str="eDP-1") -> None: 
+async def fetchAndUpdateLocationsLoop(api:OpenSkyApi, bboxAtLocation:tuple, windows:dict, mover:Mover, maxWindows:int=3, screenName:str=None) -> None: 
     """keep track of icao24 codes, spawn one window per code in bbox, close window if aircraft flies out of bbox"""
     while True:
         await asyncio.sleep(10) # wait for 10 seconds so not ratelimited by OpenSkyApi
@@ -59,14 +60,19 @@ async def fetchAndUpdateLocationsLoop(api:OpenSkyApi, bboxAtLocation:tuple, wind
                 windows[icao24].close()
                 del windows[icao24]
     
-def renderAndUpdateWindows(states:list[StateVector], bboxAtLocation:tuple, api:OpenSkyApi, mover:Mover, maxWindows:int=3, screenName:str="eDP-1"):
+def renderAndUpdateWindows(states:list[StateVector], bboxAtLocation:tuple, api:OpenSkyApi, mover:Mover, maxWindows:int=3, screenName:str=None):
     """ spawn the windows asynchronously, wait for 10 seconds before api call, update locations asynchronously."""
     app:QApplication = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
     
     loop:QEventLoop  = QEventLoop(app)
     asyncio.set_event_loop(loop)
-    loop.add_signal_handler(signal.SIGINT, QApplication.quit) # quit with CTRL+C from terminal
+
+
+
+    if platform.system().lower() != "windows": #
+        loop.add_signal_handler(signal.SIGINT, QApplication.quit)
+    # loop.add_signal_handler(signal.SIGINT, QApplication.quit) # quit with CTRL+C from terminal
 
     windows:dict[str, MainWindow] = {}
        
