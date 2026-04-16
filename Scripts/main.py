@@ -1,8 +1,8 @@
 
 from opensky_api import OpenSkyApi, TokenManager, OpenSkyStates, OpenSkyApi, StateVector
 
-from handlingOpenSkyStates import getBbox, fetchStatesInBbox
-from managingWindows import renderAndUpdateWindows
+from HandlingOpenSkyStates import getBbox, fetchStatesInBbox
+from ManagingWindows import renderAndUpdateWindows
 from Mover import Mover
 
 

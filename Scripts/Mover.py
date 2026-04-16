@@ -1,7 +1,7 @@
 
 import subprocess
 
-from platformOs import getPlatform, getSessionType, getWindowManager
+from PlatformOs import getPlatform, getSessionType, getWindowManager
 
 
 

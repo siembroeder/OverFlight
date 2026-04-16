@@ -11,8 +11,8 @@ from qasync import QEventLoop
 from PyQt6.QtWidgets import QApplication
 
 from Mover import Mover
-from customQtWindow import MainWindow
-from handlingOpenSkyStates import fetchStatesInBbox
+from CustomQtWindow import MainWindow
+from HandlingOpenSkyStates import fetchStatesInBbox
 
 
 
