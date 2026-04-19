@@ -35,7 +35,7 @@ class MainWindow(QMainWindow): # QMainWindow
                 if showOnScreenName==None: # set dimensions to first screen
                     self.availableGeometry = screen.availableGeometry()
                     self.Nxpixels, self.Nypixels = self.availableGeometry.width(), self.availableGeometry.height()
-                    continue 
+                    break 
                     
                 elif screen.name() == showOnScreenName:
                     self.availableGeometry = screen.availableGeometry()
@@ -82,8 +82,7 @@ class MainWindow(QMainWindow): # QMainWindow
         pixely = int(((lat - self.minLat)  / (self.maxLat - self.minLat)   ) * self.Nypixels) # print(f"{[pixelx,pixely]=}")
         
         # since on hyprland y axis inverted:
-        pixely = self.Nypixels - pixely
-        
+        pixely = self.Nypixels - pixely        
         return pixelx, pixely
         
     def showEvent(self, a0) -> None: #a0 == event but qtwidgets complains
