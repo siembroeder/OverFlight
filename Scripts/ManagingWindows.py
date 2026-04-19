@@ -1,5 +1,5 @@
 
-from opensky_api import OpenSkyApi, OpenSkyApi, StateVector, OpenSkyStates
+from opensky_api import OpenSkyApi, StateVector, OpenSkyStates
 
 import sys
 import signal
@@ -16,51 +16,69 @@ from CustomQtWindow import MainWindow
 from HandlingOpenSkyStates import fetchStatesInBbox
 
 
-
-# window functions   
-async def spawnWindow(state:StateVector, bboxAtLocation:tuple, windows:dict, mover:Mover, screenName:str|None=None) -> None:
-    """Use spawns a window titled f\"qtApp_{icao24}\" using hyprctl and qt, also stores the new window in the windows dict with icao24 as key"""
-    icao24 = state.icao24
-    window = MainWindow(bboxAtLocation, (state.longitude, state.latitude), icao24, state.callsign, mover, showOnScreenName = screenName)
-    window.show()  # triggers QMainWindow.showEvent() 
-    windows[icao24] = window
-    await asyncio.sleep(0.5)
-
 def windowIsOpen(icao24:str) -> bool:
     title = f"qtApp_{icao24}"
-    # return any(w.windowTitle() == title for w in QApplication.topLevelWidgets())
     return any(w.windowTitle() == title and w.isVisible() for w in QApplication.topLevelWidgets())
 
-async def fetchAndUpdateLocationsLoop(api:OpenSkyApi, bboxAtLocation:tuple, windows:dict, mover:Mover, maxWindows:int=3, screenName:str|None=None) -> None: 
-    """keep track of icao24 codes, spawn one window per code in bbox, close window if aircraft flies out of bbox"""
-    while True:
-        await asyncio.sleep(10) # wait for 10 seconds so not ratelimited by OpenSkyApi
-        
-        newStates:OpenSkyStates|None = fetchStatesInBbox(api, bboxAtLocation) 
-               
-        if not newStates or not newStates.states:
-            continue # skip to next api call, else process exits.
-        
-        print(f"\nNew states at {datetime.fromtimestamp(newStates.time).strftime("%Y-%m-%d %H:%M:%S")}")
-        newIcaos = {state.icao24 for state in newStates.states}
-        
-        for state in newStates.states:
-            if state.icao24 in windows:
-                if windowIsOpen(state.icao24):
-                    windows[state.icao24].moveToPlaneLoc((state.longitude, state.latitude))
-                else:
-                    await spawnWindow(state, bboxAtLocation, windows, mover, screenName)
 
-            elif len(windows) < maxWindows: # if allowed spawn another window
-                await spawnWindow(state, bboxAtLocation, windows, mover, screenName=screenName) 
-                
-        # Remove planes that have moved out of the bbox
-        for icao24 in list(windows.keys()):
+
+class Tracker():
+    def __init__(self, api:OpenSkyApi, bboxAtLocation:tuple, mover:Mover, maxWindows:int=3, screenName:str|None=None):
+        self.api = api
+        self.bboxAtLocation = bboxAtLocation
+        self.mover = mover
+        self.maxWindows = maxWindows
+        self.screenName = screenName
+        self.windows:dict[str, MainWindow] = {}
+
+    async def spawnWindow(self, state:StateVector):
+        """Use spawns a window titled f\"qtApp_{icao24}\" using hyprctl and qt, also stores the new window in the windows dict with icao24 as key"""
+        icao24 = state.icao24
+        callsign=state.callsign
+        
+        window = MainWindow(self.bboxAtLocation, (state.longitude, state.latitude), icao24, callsign, self.mover, showOnScreenName = self.screenName)
+        window.show()  # triggers QMainWindow.showEvent() 
+        self.windows[icao24] = window
+        await asyncio.sleep(0.5)
+
+    async def updateWindows(self, newStates:OpenSkyStates) -> None:
+        """Spawn, update, or close windows based on current aircraft states."""
+        newIcaos = {state.icao24 for state in newStates.states}
+
+        for state in newStates.states:
+            if state.icao24 in self.windows and windowIsOpen(state.icao24):
+                self.windows[state.icao24].moveToPlaneLoc((state.longitude, state.latitude))
+            elif len(self.windows) < self.maxWindows:
+                await self.spawnWindow(state)
+
+        for icao24 in list(self.windows.keys()):
             if icao24 not in newIcaos:
-                windows[icao24].close()
-                del windows[icao24]
-    
-def renderAndUpdateWindows(states:list[StateVector], bboxAtLocation:tuple, api:OpenSkyApi, mover:Mover, maxWindows:int=3, screenName:str|None=None):
+                self.windows[icao24].close()
+                del self.windows[icao24]
+
+    async def fetchAndUpdateLocationsLoop(self) -> None: 
+        """keep track of icao24 codes, spawn one window per code in bbox, close window if aircraft flies out of bbox"""
+        while True:
+            await asyncio.sleep(10) # wait for 10 seconds so not ratelimited by OpenSkyApi
+            
+            newStates:OpenSkyStates|None = fetchStatesInBbox(self.api, self.bboxAtLocation)  
+            if not newStates or not newStates.states:
+                continue # skip to next api call, else process exits.
+            
+            print(f"\nNew states at {datetime.fromtimestamp(newStates.time).strftime("%Y-%m-%d %H:%M:%S")}")
+            await self.updateWindows(newStates)
+     
+    async def runTracker(self, initialStates:list[StateVector]) -> None:
+        # spawn all windows for planes in bbox
+        for state in initialStates[:self.maxWindows]:
+            await self.spawnWindow(state)
+            
+        # update te location of the windows / check for new/removed planes / check if windows were closed manually.        
+        await self.fetchAndUpdateLocationsLoop()   
+
+
+      
+def renderAndUpdateWindows(initialStates:list[StateVector], bboxAtLocation:tuple, api:OpenSkyApi, mover:Mover, maxWindows:int=3, screenName:str|None=None):
     """ spawn the windows asynchronously, wait for 10 seconds before api call, update locations asynchronously."""
     app:QApplication = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
@@ -68,32 +86,19 @@ def renderAndUpdateWindows(states:list[StateVector], bboxAtLocation:tuple, api:O
     loop:QEventLoop  = QEventLoop(app)
     asyncio.set_event_loop(loop)
 
-
-
     if platform.system().lower() != "windows": #
         loop.add_signal_handler(signal.SIGINT, QApplication.quit)
-    # loop.add_signal_handler(signal.SIGINT, QApplication.quit) # quit with CTRL+C from terminal
 
     windows:dict[str, MainWindow] = {}
        
        
-       
-    async def runApp():
-        # spawn all windows for planes in bbox
-        for index, state in enumerate(states[:maxWindows], start=1):
-            await spawnWindow(state, bboxAtLocation, windows, mover, screenName)
-            
-        # update te location of the windows / check for new/removed planes / check if windows were closed manually.
-        await fetchAndUpdateLocationsLoop(api, bboxAtLocation, windows, mover, maxWindows, screenName)   
-    
-    
+    tracker = Tracker(api, bboxAtLocation, mover, maxWindows, screenName)
     # Ensure the program doesn't exit when all windows are closed:
     app.aboutToQuit.connect(loop.stop)
     with loop:
-        asyncio.ensure_future(runApp())
+        # asyncio.ensure_future(runApp(states, bboxAtLocation, api, windows, mover, maxWindows, screenName))
+        asyncio.ensure_future(tracker.runTracker(initialStates))
         loop.run_forever()
-    
-    
-                 
+ 
     return app, windows # keep reference to prevent them from being garbage collected
     
