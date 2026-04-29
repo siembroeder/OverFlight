@@ -59,6 +59,7 @@ def main():
 
     # Fetch initial states
     statesAtLocationWTimestamp:OpenSkyStates|None = fetchStatesInBbox(api, bboxAtLocation)       # timestamp = statesAtLocation.time        # print(f"Planes in bbox:\n {statesAtLocationWTimestamp}")
+    
     if statesAtLocationWTimestamp:
         timestamp = statesAtLocationWTimestamp.time
         print(f"\nNew states at {datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")}")
@@ -67,7 +68,7 @@ def main():
         statesAtLocation:list[StateVector] = statesAtLocationWTimestamp.states
     
         # Start the app
-        trackerConfig = WindowTrackerConfig(api=api, bboxAtLocation=bboxAtLocation, mover=mover)
+        trackerConfig = WindowTrackerConfig.loadSettings(api, bboxAtLocation, mover, optionalSettingsPath="Settings/userDefinedTrackerSettings.json")
         tracker       = WindowTracker(trackerConfig)
         
         app = startOverflightApplication(statesAtLocation, tracker)

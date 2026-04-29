@@ -1,0 +1,13 @@
+
+{
+    "maxWindows": 10,
+    "apiCallDelay": 10,
+    "screenName": "eDP-1",
+    "minVelocity": 2,
+    "departureAirport": "",
+    "arrivalAirport": "",
+    "originCountry": "",
+    "callsign": "",
+    "airline": "",
+    "icao24": ""
+}
