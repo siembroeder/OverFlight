@@ -1,12 +1,45 @@
 
 from opensky_api import OpenSkyApi, TokenManager, OpenSkyStates, OpenSkyApi, StateVector
 
-from HandlingOpenSkyStates import getBbox, fetchStatesInBbox
-from ManagingWindows import renderAndUpdateWindows
-from Mover import Mover
 
+# Core Python imports
+import sys
+import signal
+import platform
 from datetime import datetime
 
+import asyncio
+from qasync import QEventLoop
+
+# PyQt imports
+from PyQt6.QtWidgets import QApplication
+
+# Custom import
+from Mover import Mover
+from CustomQtWindow import MainWindow
+from WindowTracker import WindowTracker, WindowTrackerConfig
+from HandlingOpenSkyStates import getBbox, fetchStatesInBbox
+
+
+      
+def startOverflightApplication(initialStates:list[StateVector], tracker:WindowTracker) ->QApplication:
+    """ spawn the windows asynchronously, wait for 10 seconds before api call, update locations asynchronously."""
+    app:QApplication = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
+    
+    loop:QEventLoop  = QEventLoop(app)
+    asyncio.set_event_loop(loop)
+
+    if platform.system().lower() != "windows":
+        loop.add_signal_handler(signal.SIGINT, QApplication.quit)
+       
+    # Ensure the program doesn't exit when all windows are closed:
+    app.aboutToQuit.connect(loop.stop)
+    with loop:
+        asyncio.ensure_future(tracker.runTracker(initialStates))
+        loop.run_forever()
+ 
+    return app # keep reference to prevent them from being garbage collected
 
 
 
@@ -34,7 +67,10 @@ def main():
         statesAtLocation:list[StateVector] = statesAtLocationWTimestamp.states
     
         # Start the app
-        app, windows = renderAndUpdateWindows(statesAtLocation, bboxAtLocation, api, mover, maxWindows=10)
+        trackerConfig = WindowTrackerConfig(api=api, bboxAtLocation=bboxAtLocation, mover=mover)
+        tracker       = WindowTracker(trackerConfig)
+        
+        app = startOverflightApplication(statesAtLocation, tracker)
     
     
     

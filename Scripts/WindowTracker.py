@@ -1,35 +1,41 @@
 
 from opensky_api import OpenSkyApi, StateVector, OpenSkyStates
 
-import sys
+# Core Python imports
 import time
-import signal
-import platform
-from datetime import datetime
-
 import asyncio
-from qasync import QEventLoop
+from datetime import datetime
+from dataclasses import dataclass
 
-from PyQt6.QtWidgets import QApplication
-
+# Custom imports
 from Mover import Mover
 from CustomQtWindow import MainWindow
 from HandlingOpenSkyStates import fetchStatesInBbox
-
-
-def windowIsOpen(icao24:str) -> bool:
-    title = f"qtApp_{icao24}"
-    return any(w.windowTitle() == title and w.isVisible() for w in QApplication.topLevelWidgets())
+from Utils.Helpers import windowIsOpen
 
 
 
-class Tracker():
-    def __init__(self, api:OpenSkyApi, bboxAtLocation:tuple, mover:Mover, maxWindows:int=3, screenName:str|None=None):
-        self.api = api
-        self.bboxAtLocation = bboxAtLocation
-        self.mover = mover
-        self.maxWindows = maxWindows
-        self.screenName = screenName
+@dataclass
+class WindowTrackerConfig:
+    api: OpenSkyApi
+    bboxAtLocation:tuple
+    mover:Mover
+    apiCallDelay:float = 10
+    maxWindows:int = 3
+    screenName:str|None = None
+          
+
+
+class WindowTracker():
+    # def __init__(self, api:OpenSkyApi, bboxAtLocation:tuple, mover:Mover, apiCallDelay:float=10, maxWindows:int=3, screenName:str|None=None):
+    def __init__(self, config:WindowTrackerConfig):
+        self.api            = config.api
+        self.bboxAtLocation = config.bboxAtLocation
+        self.mover          = config.mover
+        self.maxWindows     = config.maxWindows
+        self.screenName     = config.screenName
+        self.apiCallDelay   = config.apiCallDelay
+        
         self.windows:dict[str, MainWindow] = {}
         self.numApiCallsSkipped = 0.0
         self.newestApiUpdateTime = 0.0
@@ -58,10 +64,10 @@ class Tracker():
                 self.windows[icao24].close()
                 del self.windows[icao24]
 
-    async def fetchLocationsLoop(self, apiCallDelay:float=10.0) -> None: 
+    async def fetchLocationsLoop(self,) -> None: 
         """keep track of icao24 codes, spawn one window per code in bbox, close window if aircraft flies out of bbox"""
         while True:
-            await asyncio.sleep(apiCallDelay) # wait for 10 seconds so not ratelimited by OpenSkyApi
+            await asyncio.sleep(self.apiCallDelay) # wait for 10 seconds so not ratelimited by OpenSkyApi
             
             newStates:OpenSkyStates|None = fetchStatesInBbox(self.api, self.bboxAtLocation)  
             
@@ -75,7 +81,7 @@ class Tracker():
                 self.numApiCallsSkipped += 1
                 continue    # skip if new timestamp older than previous timestamp
             
-            if newStates.time - self.newestApiUpdateTime <= 0.95*(self.numApiCallsSkipped + 1)*apiCallDelay: # TODO: this filter shouldn't apply to new aircraft appearing in bbox
+            if newStates.time - self.newestApiUpdateTime <= 0.95*(self.numApiCallsSkipped + 1)*self.apiCallDelay: # TODO: this filter shouldn't apply to new aircraft appearing in bbox
                 print(f"New api call spacing too short, continuing\n")
                 self.numApiCallsSkipped += 1
                 continue    # skip if difference between timestamps is less than the elapsed real time
@@ -96,38 +102,19 @@ class Tracker():
                 if windowIsOpen(icao24):
                     window.deadReckonPosition(dt)
      
+     
+     
     async def runTracker(self, initialStates:list[StateVector]) -> None:
         # spawn all windows for planes in bbox
         for state in initialStates[:self.maxWindows]:
             await self.spawnWindow(state)
             
-        # update te location of the windows / check for new/removed planes / check if windows were closed manually.        
-        # await self.fetchLocationsLoop()   
+        # update the location of the windows / check for new/removed planes / check if windows were closed manually.        
         await asyncio.gather(self.fetchLocationsLoop(), self.deadReckonLoop())
 
 
-      
-def renderAndUpdateWindows(initialStates:list[StateVector], bboxAtLocation:tuple, api:OpenSkyApi, mover:Mover, maxWindows:int=3, screenName:str|None=None) ->tuple[QApplication,dict[str,MainWindow]]:
-    """ spawn the windows asynchronously, wait for 10 seconds before api call, update locations asynchronously."""
-    app:QApplication = QApplication(sys.argv)
-    app.setQuitOnLastWindowClosed(False)
-    
-    loop:QEventLoop  = QEventLoop(app)
-    asyncio.set_event_loop(loop)
 
-    if platform.system().lower() != "windows": #
-        loop.add_signal_handler(signal.SIGINT, QApplication.quit)
 
-    windows:dict[str, MainWindow] = {}
-       
-       
-    tracker = Tracker(api, bboxAtLocation, mover, maxWindows, screenName)
-    # Ensure the program doesn't exit when all windows are closed:
-    app.aboutToQuit.connect(loop.stop)
-    with loop:
-        # asyncio.ensure_future(runApp(states, bboxAtLocation, api, windows, mover, maxWindows, screenName))
-        asyncio.ensure_future(tracker.runTracker(initialStates))
-        loop.run_forever()
- 
-    return app, windows # keep reference to prevent them from being garbage collected
+
+
     

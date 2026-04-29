@@ -1,28 +1,22 @@
 from opensky_api import StateVector
 
+# Core Python imports
 import math
 import time
-from datetime import datetime
 
+# PyQt imports
 from PyQt6.QtGui import QPixmap, QMovie
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel, QWidget, QToolTip
 
+# Custom imports
 from typing import TYPE_CHECKING        # to prevent circular dependency 
 if TYPE_CHECKING:
     from Mover import Mover
    
 
-# class MainWindow(QWidget): # QMainWindow
-class MainWindow(QMainWindow): # QMainWindow
+class MainWindow(QMainWindow):
     
-    total_staleness=0
-    total_points=0
-    
-    @classmethod
-    def avg_staleness(cls) -> float:
-        return cls.total_staleness / cls.total_points if cls.total_points else 0.0
-
     def __init__(self, bbox:tuple, state:StateVector, mover: "Mover", showOnScreenName:str|None=None):
         super().__init__()
         
@@ -110,11 +104,14 @@ class MainWindow(QMainWindow): # QMainWindow
         super().showEvent(a0)             
         QTimer.singleShot(150, lambda:self.moveToPlaneLoc(self.longitude, self.latitude)) # wait for window to spawn, then move. TODO: move first, then show.
 
+    def centerImage(self):
+        self.pixelx = int(self.pixelx - (self.width() / 2))       # update such that image is rendered at the center rather than top left
+        self.pixely = int(self.pixely - (self.height()/ 2))
+
     def moveToPlaneLoc(self, longitude:float, latitude:float) -> None:
-        pixelx, pixely = self.coordsToPixels(longitude, latitude)
-        self.pixelx = int(pixelx - (self.width() / 2))       # update such that image is rendered at the center rather than top left
-        self.pixely = int(pixely - (self.height()/ 2))
+        self.pixelx, self.pixely = self.coordsToPixels(longitude, latitude)
         
+        self.centerImage()
         self.customMove(self.pixelx, self.pixely)  
         # print(f"Moving {self.callsign} to {self.pixelx}, {self.pixely}")
     
