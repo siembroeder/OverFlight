@@ -1,5 +1,5 @@
 
-from opensky_api import OpenSkyApi, StateVector, OpenSkyStates
+from opensky_api import OpenSkyApi, StateVector, OpenSkyStates, FlightData
 
 # Core Python imports
 import time
@@ -27,7 +27,7 @@ class WindowTrackerConfig:
     minVelocity:float = 0
     departureAirport: str = ""
     arrivalAirport: str = ""
-    originCountry: str = ""
+    registrationCountry: str = ""
     callsign: str = ""
     airline: str = ""
     icao24: str = ""
@@ -49,7 +49,6 @@ class WindowTrackerConfig:
 
 
 class WindowTracker():
-    # def __init__(self, api:OpenSkyApi, bboxAtLocation:tuple, mover:Mover, apiCallDelay:float=10, maxWindows:int=3, screenName:str|None=None):
     def __init__(self, config:WindowTrackerConfig):
         self.config = config
         self.api            = config.api
@@ -65,14 +64,14 @@ class WindowTracker():
         self.newestApiUpdateTime = 0.0
 
     async def spawnWindow(self, state:StateVector) -> None:
-        """Use spawns a window titled f\"qtApp_{state.icao24}\", also stores the new window in the windows dict with icao24 as key"""
+        """Use spawns a window titled f\"qtApp_{state.icao24}\", also stores the  window in the windows dict with icao24 as key"""
         icao24 = state.icao24
         
         window = MainWindow(self.bboxAtLocation, state, self.mover, showOnScreenName = self.screenName)
         window.show()  # triggers QMainWindow.showEvent() 
         self.windows[icao24] = window
-        print(f"Now tracking {state.callsign}")
-        await asyncio.sleep(0.5)
+        # print(f"Now tracking {state.callsign}, {icao24=}")
+        # await asyncio.sleep(0.2) #Delay between spawning windows
 
     async def updateWindows(self, newStates:list[StateVector]) -> None:
         """Spawn, update, or close windows based on current aircraft states."""
@@ -118,7 +117,7 @@ class WindowTracker():
             self.newestApiUpdateTime = newStates.time
             self.numApiCallsSkipped  = 0.0  # reset
             
-            print(f"New states at {datetime.fromtimestamp(newStates.time)}\n")
+            print(f"\n\nNew states at {datetime.fromtimestamp(newStates.time)}\n")
             filteredNewStates = self.filterStates(newStates.states)
             await self.updateWindows(filteredNewStates)
   
@@ -132,50 +131,97 @@ class WindowTracker():
                 if windowIsOpen(icao24):
                     window.deadReckonPosition(dt)
      
+    def filterStates(self, states:list[StateVector]):
+        
+        print(f"Unfiltered states: {states}")
+        
+        states = self.applyLocalFilters(states)
+        
+        if self.config.departureAirport or self.config.arrivalAirport:
+            states = self.applyApiFilters(states)
+        
+        return states    
+         
+    def applyLocalFilters(self, states:list[StateVector]):
+        if self.config.minVelocity:
+            print(f"Filtering for minVelocity: {self.config.minVelocity}")
+            states = self.filterStatesMinVelocity(states, debugPrintFlag=True)
+            
+        if self.config.registrationCountry:
+            print(f"Filtering for registration country: {self.config.registrationCountry}")
+            filteredStates = []
+            
+            for state in states:
+                if not state.origin_country:
+                    continue
+                
+                if state.origin_country.lower().strip() == self.config.registrationCountry.lower().strip():
+                    filteredStates.append(state)
+                    
+            states = filteredStates
+        
+        if self.config.callsign:
+            print(f"Filtering for callsign {self.config.callsign}")
+            states = [state for state in states if state.callsign and state.callsign.strip() == self.config.callsign]
+            
+        if self.config.airline:
+            print(f"Filtering for airline: {self.config.airline}")
+            states = [state for state in states if state.callsign is not None and state.callsign.lower().startswith(self.config.airline.lower())]
+            
+        if self.config.icao24:
+            print(f"Filtering for icao24: {self.config.icao24}")
+            states = [state for state in states if state.icao24.lower() == self.config.icao24.lower()]
+        
+        if self.config.maxWindows and len(states) >= self.config.maxWindows:
+            print(f"Restricting number of windows to: {self.config.maxWindows}")
+            states = states[:self.config.maxWindows]
+        
+        return states        
+        
     def filterStatesMinVelocity(self, states:list[StateVector], debugPrintFlag:bool = False):
         filteredStates = []
         for state in states:
             if state.velocity is not None:
                 
                 if not state.velocity >= self.minVelocity:
-                    if state.on_ground == True:
-                        if debugPrintFlag: print(f"Filtered Callsign {state.callsign} because velocity on ground too slow")
-                    
+                        if debugPrintFlag: print(f"Filtered Callsign {state.callsign} because velocity too slow")
                 else:
-                    if debugPrintFlag: print(f"Callsign {state.callsign} passed velocity filter")
+                    if debugPrintFlag: print(f"Callsign {state.callsign} passed velocity filter: {state.velocity}")
                     filteredStates.append(state)
                 
         return filteredStates
-    
-    def filterStates(self, states:list[StateVector]):
         
-        if self.config.minVelocity:
-            print(f"Filtering for minVelocity: {self.config.minVelocity}")
-            states = self.filterStatesMinVelocity(states)
+    def applyApiFilters(self, states:list[StateVector]):
+        print(f"Applying API filters")
+        filteredStates = []
+        t1 = int(time.time())
+        t0 = t1 - 1*3600 # fetch flights in past x hours
             
-        if self.config.departureAirport:
-            pass
-        if self.config.arrivalAirport:
-            pass
-        if self.config.originCountry:
-            pass
+        recentFlights:list[FlightData]|None = self.api.get_flights_from_interval(t0, t1)
+        if not recentFlights:
+            return states # failed request, don't apply filters
         
-        if self.config.callsign:
-            print(f"Filtering for callsign {self.config.callsign}")
-            states = [state for state in states if state.callsign == self.config.callsign]
-            
-        if self.config.airline:
-            print(f"Filtering for airline: {self.config.airline}")
-            states = [state for state in states if state.callsign is not None and state.callsign.startswith(self.config.airline)]
-            
-        if self.config.icao24:
-            print(f"Filtering for icao24: {self.config.icao24}")
-            states = [state for state in states if state.icao24 == self.config.icao24]
+        icaos = [state.icao24 for state in states if state.icao24]
+        stateMap = {state.icao24:state for state in states}
         
-        if self.config.maxWindows:
-            print(f"Restricting number of windows to: {self.config.maxWindows}")
-            states = states[:self.config.maxWindows]
-        return states    
+        for flight in recentFlights:
+            state = stateMap.get(flight.icao24)
+            
+            if not state:
+                continue # flight not in states
+            
+            estDepAirport = flight.estDepartureAirport
+            estArrAirport = flight.estArrivalAirport
+            
+            if estDepAirport == self.config.departureAirport:
+                    filteredStates.append(state)
+                    
+            if estArrAirport == self.config.arrivalAirport:
+                if not state in filteredStates: # prevent dupes
+                    filteredStates.append(state)
+            
+        states = filteredStates  
+        return states        
         
     async def runTracker(self, initialStates:list[StateVector]) -> None:
         # spawn all windows for planes in bbox and matching filter criteria
