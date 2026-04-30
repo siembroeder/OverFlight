@@ -25,15 +25,24 @@ class WindowTrackerConfig:
     maxWindows:int = 3
     screenName:str|None = None
     minVelocity:float = 0
+    departureAirport: str = ""
+    arrivalAirport: str = ""
+    originCountry: str = ""
+    callsign: str = ""
+    airline: str = ""
+    icao24: str = ""
     
     @classmethod
     def loadSettings(cls, api, bboxAtLocation, mover, optionalSettingsPath:str|None = None):
         optionalSettings = {}
-        validKeys = {f.name for f in fields(cls)}
+        validKeys = {field.name for field in fields(cls)}
         
         if optionalSettingsPath:
             with open(optionalSettingsPath) as f:
-                optionalSettings = json.load(f)
+                groupedSettings = json.load(f)
+    
+            for group in groupedSettings.values():      # Flatten all groups into one dict, groups are merely for userfriendliness
+                optionalSettings.update(group)
                 
         filteredSettings = {key: value for key,value in optionalSettings.items() if key in validKeys}
         return cls(api, bboxAtLocation, mover, **filteredSettings)          
@@ -42,6 +51,7 @@ class WindowTrackerConfig:
 class WindowTracker():
     # def __init__(self, api:OpenSkyApi, bboxAtLocation:tuple, mover:Mover, apiCallDelay:float=10, maxWindows:int=3, screenName:str|None=None):
     def __init__(self, config:WindowTrackerConfig):
+        self.config = config
         self.api            = config.api
         self.bboxAtLocation = config.bboxAtLocation
         self.mover          = config.mover
@@ -82,8 +92,11 @@ class WindowTracker():
 
     async def fetchLocationsLoop(self) -> None: 
         """keep track of icao24 codes, spawn one window per code in bbox, close window if aircraft flies out of bbox"""
+        
+        assert self.apiCallDelay >= 10.0, "Please select an apiCallDelay of at least 10 seconds."
+        
         while True:
-            await asyncio.sleep(self.apiCallDelay) # wait for 10 seconds so not ratelimited by OpenSkyApi
+            await asyncio.sleep(self.apiCallDelay) # wait for at least 10 seconds so not ratelimited by OpenSkyApi
             
             newStates:OpenSkyStates|None = fetchStatesInBbox(self.api, self.bboxAtLocation)  
             
@@ -106,16 +119,16 @@ class WindowTracker():
             self.numApiCallsSkipped  = 0.0  # reset
             
             print(f"New states at {datetime.fromtimestamp(newStates.time)}\n")
-            filteredNewStates = self.filterStatesMinVelocity(newStates.states)
+            filteredNewStates = self.filterStates(newStates.states)
             await self.updateWindows(filteredNewStates)
   
-    async def deadReckonLoop(self, dt:float=0.1) ->None:
+    async def deadReckonLoop(self, dt:float=1.0) ->None:
         "Move windows in direction of true track with correct velocity every dt seconds"
         while True:
             t0 = time.monotonic()
             await asyncio.sleep(dt)
             dt = time.monotonic() - t0 # actual elapsed time
-            for icao24,window in self.windows.items():
+            for icao24, window in self.windows.items():
                 if windowIsOpen(icao24):
                     window.deadReckonPosition(dt)
      
@@ -133,10 +146,40 @@ class WindowTracker():
                     filteredStates.append(state)
                 
         return filteredStates
-     
+    
+    def filterStates(self, states:list[StateVector]):
+        
+        if self.config.minVelocity:
+            print(f"Filtering for minVelocity: {self.config.minVelocity}")
+            states = self.filterStatesMinVelocity(states)
+            
+        if self.config.departureAirport:
+            pass
+        if self.config.arrivalAirport:
+            pass
+        if self.config.originCountry:
+            pass
+        
+        if self.config.callsign:
+            print(f"Filtering for callsign {self.config.callsign}")
+            states = [state for state in states if state.callsign == self.config.callsign]
+            
+        if self.config.airline:
+            print(f"Filtering for airline: {self.config.airline}")
+            states = [state for state in states if state.callsign is not None and state.callsign.startswith(self.config.airline)]
+            
+        if self.config.icao24:
+            print(f"Filtering for icao24: {self.config.icao24}")
+            states = [state for state in states if state.icao24 == self.config.icao24]
+        
+        if self.config.maxWindows:
+            print(f"Restricting number of windows to: {self.config.maxWindows}")
+            states = states[:self.config.maxWindows]
+        return states    
+        
     async def runTracker(self, initialStates:list[StateVector]) -> None:
-        # spawn all windows for planes in bbox
-        filteredStates = self.filterStatesMinVelocity(initialStates[:self.maxWindows], debugPrintFlag=True) #TODO: if there's a plane filtered, then maxWindows isn't reached.
+        # spawn all windows for planes in bbox and matching filter criteria
+        filteredStates = self.filterStates(initialStates)
         for state in filteredStates:
             await self.spawnWindow(state)
             
