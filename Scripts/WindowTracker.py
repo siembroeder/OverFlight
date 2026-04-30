@@ -25,12 +25,19 @@ class WindowTrackerConfig:
     maxWindows:int = 3
     screenName:str|None = None
     minVelocity:float = 0
-    departureAirport: str = ""
-    arrivalAirport: str = ""
-    registrationCountry: str = ""
-    callsign: str = ""
-    airline: str = ""
-    icao24: str = ""
+    departureAirport:str = ""
+    arrivalAirport:str = ""
+    registrationCountry:str = ""
+    callsign:str = ""
+    airline:str = ""
+    icao24:str = ""
+    squawk:str = ""
+    onGround:bool|None = None
+    inAir:bool|None = None
+    minBaroAltitude:float|None = None
+    maxBaroAltitude:float|None = None
+    minGeoAltitude:float|None = None
+    maxGeoAltitude:float|None = None
     
     @classmethod
     def loadSettings(cls, api, bboxAtLocation, mover, optionalSettingsPath:str|None = None):
@@ -56,8 +63,6 @@ class WindowTracker():
         self.mover          = config.mover
         self.maxWindows     = config.maxWindows
         self.screenName     = config.screenName
-        self.apiCallDelay   = config.apiCallDelay
-        self.minVelocity    = config.minVelocity
         
         self.windows:dict[str, MainWindow] = {}
         self.numApiCallsSkipped = 0.0
@@ -92,10 +97,10 @@ class WindowTracker():
     async def fetchLocationsLoop(self) -> None: 
         """keep track of icao24 codes, spawn one window per code in bbox, close window if aircraft flies out of bbox"""
         
-        assert self.apiCallDelay >= 10.0, "Please select an apiCallDelay of at least 10 seconds."
+        assert self.config.apiCallDelay >= 10.0, "Please select an apiCallDelay of at least 10 seconds."
         
         while True:
-            await asyncio.sleep(self.apiCallDelay) # wait for at least 10 seconds so not ratelimited by OpenSkyApi
+            await asyncio.sleep(self.config.apiCallDelay) # wait for at least 10 seconds so not ratelimited by OpenSkyApi
             
             newStates:OpenSkyStates|None = fetchStatesInBbox(self.api, self.bboxAtLocation)  
             
@@ -109,7 +114,7 @@ class WindowTracker():
                 self.numApiCallsSkipped += 1
                 continue    # skip if new timestamp older than previous timestamp
             
-            if newStates.time - self.newestApiUpdateTime <= 0.8*(self.numApiCallsSkipped + 1)*self.apiCallDelay: # TODO: this filter shouldn't apply to new aircraft appearing in bbox
+            if newStates.time - self.newestApiUpdateTime <= 0.8*(self.numApiCallsSkipped + 1)*self.config.apiCallDelay: # TODO: this filter shouldn't apply to new aircraft appearing in bbox
                 print(f"New api call spacing too short, continuing\n")
                 self.numApiCallsSkipped += 1
                 continue    # skip if difference between timestamps is less than the elapsed real time
@@ -118,6 +123,7 @@ class WindowTracker():
             self.numApiCallsSkipped  = 0.0  # reset
             
             print(f"\n\nNew states at {datetime.fromtimestamp(newStates.time)}\n")
+            print(f"all new states: {[state.callsign for state in newStates.states]}")
             filteredNewStates = self.filterStates(newStates.states)
             await self.updateWindows(filteredNewStates)
   
@@ -132,9 +138,6 @@ class WindowTracker():
                     window.deadReckonPosition(dt)
      
     def filterStates(self, states:list[StateVector]):
-        
-        print(f"Unfiltered states: {states}")
-        
         states = self.applyLocalFilters(states)
         
         if self.config.departureAirport or self.config.arrivalAirport:
@@ -172,6 +175,38 @@ class WindowTracker():
             print(f"Filtering for icao24: {self.config.icao24}")
             states = [state for state in states if state.icao24.lower() == self.config.icao24.lower()]
         
+        if self.config.squawk:
+            print(f"Filtering for squawk: {self.config.squawk}")
+            states = [state for state in states if state.squawk and state.squawk.lower().strip() == self.config.squawk.lower().strip()]
+        
+        if self.config.onGround == 1:
+            print(f"Filtering for aircraft on the ground")
+            states = [state for state in states if state.on_ground]
+            
+        if self.config.inAir == 1:
+            print(f"Filtering for aircraft in the air")
+            states = [state for state in states if not state.on_ground]
+        
+        if self.config.minBaroAltitude:
+            print(f"Filtering for minBaroAltitude: {self.config.minBaroAltitude}")
+            for state in states:
+                if state.baro_altitude:
+                    print(state.baro_altitude * 3.28084, state.callsign)
+            
+            states = [state for state in states if state.baro_altitude and state.baro_altitude*3.28084 >= self.config.minBaroAltitude] # convert from meters to feet
+        
+        if self.config.maxBaroAltitude:
+            print(f"Filtering for maxBaroAltitude: {self.config.maxBaroAltitude}")
+            states = [state for state in states if state.baro_altitude and state.baro_altitude*3.28084 <= self.config.maxBaroAltitude] # convert from meters to feet   
+                 
+        if self.config.minGeoAltitude:
+            print(f"Filtering for minGeoAltitude: {self.config.minGeoAltitude}")
+            states = [state for state in states if state.geo_altitude and state.geo_altitude*3.28084 >= self.config.minGeoAltitude] # convert from meters to feet
+
+        if self.config.maxGeoAltitude:
+            print(f"Filtering for maxGeoAltitude: {self.config.maxGeoAltitude}")
+            states = [state for state in states if state.geo_altitude and state.geo_altitude*3.28084 <= self.config.maxGeoAltitude] # convert from meters to feet
+
         if self.config.maxWindows and len(states) >= self.config.maxWindows:
             print(f"Restricting number of windows to: {self.config.maxWindows}")
             states = states[:self.config.maxWindows]
@@ -183,7 +218,7 @@ class WindowTracker():
         for state in states:
             if state.velocity is not None:
                 
-                if not state.velocity >= self.minVelocity:
+                if not state.velocity >= self.config.minVelocity:
                         if debugPrintFlag: print(f"Filtered Callsign {state.callsign} because velocity too slow")
                 else:
                     if debugPrintFlag: print(f"Callsign {state.callsign} passed velocity filter: {state.velocity}")

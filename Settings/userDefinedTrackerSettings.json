@@ -4,15 +4,23 @@
         "apiCallDelay": 10},
 
     "setup": {
-        "maxWindows": 5,
+        "maxWindows": 25,
         "screenName": "eDP-1"},
 
     "tracking": {
-        "minVelocity": 1,
-        "departureAirport": "",
-        "arrivalAirport": "",
-        "originCountry": "",
+        "minVelocity": 0,
         "callsign": "",
         "airline": "",
-        "icao24": ""}
+        "icao24": "",
+        "squawk": "",
+        "onGround": 0,
+        "inAir": 0,
+        "minBaroAltitude": 0,
+        "maxBaroAltitude": 0,
+        "minGeoAltitude": 0,
+        "maxGeoAltitude": 0,
+    
+        "departureAirport": "",
+        "arrivalAirport": "",
+        "registrationCountry": ""}
 }
