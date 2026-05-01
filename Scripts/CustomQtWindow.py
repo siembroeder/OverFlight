@@ -62,7 +62,15 @@ class MainWindow(QMainWindow):
         # label.setPixmap(pixmap)
         # self.resize(pixmap.width(), pixmap.height())
 
-        movie = QMovie("Assets/duck-left.gif")
+        if self.heading:
+            if self.heading >= 0.0 and self.heading <= 180.0: 
+                movie = QMovie("Assets/duck-right.gif")
+            else:
+                movie = QMovie("Assets/duck-left.gif")
+        else:
+            movie = QMovie("Assets/duck-left.gif")
+                            
+    
         label.setMovie(movie)
         movie.start()
 
