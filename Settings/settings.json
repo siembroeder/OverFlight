@@ -1,0 +1,29 @@
+
+{
+    "core": {
+        "openskyCredentialsPath": "credentials.json",
+        "location": "den haag",        
+        "bboxSize": "large"},
+    "api": {
+        "apiCallDelay": 10},
+    "setup": {
+        "maxWindows": 25,
+        "displayName": ""},
+
+    "tracking": {
+        "minVelocity": 0,
+        "callsign": "",
+        "airline": "",
+        "icao24": "",
+        "squawk": "",
+        "onGround": 0,
+        "inAir": 0,
+        "minBaroAltitude": 0,
+        "maxBaroAltitude": 0,
+        "minGeoAltitude": 0,
+        "maxGeoAltitude": 0,
+    
+        "departureAirport": "",
+        "arrivalAirport": "",
+        "registrationCountry": ""}
+}
