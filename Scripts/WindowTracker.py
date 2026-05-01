@@ -1,5 +1,5 @@
 
-from opensky_api import OpenSkyApi, StateVector, OpenSkyStates, FlightData
+from opensky_api import OpenSkyApi, StateVector, OpenSkyStates, FlightData, TokenManager
 
 # Core Python imports
 import time
@@ -11,19 +11,27 @@ from dataclasses import dataclass, fields
 # Custom imports
 from Mover import Mover
 from CustomQtWindow import MainWindow
-from HandlingOpenSkyStates import fetchStatesInBbox
+from HandlingOpenSkyStates import fetchStatesInBbox, getBboxSize, getBboxOffset
 from Utils.Helpers import windowIsOpen
 
 
 
 @dataclass
 class WindowTrackerConfig:
-    api: OpenSkyApi
-    bboxAtLocation:tuple
-    mover:Mover
+    # non-keyword arguments, required settings
+    api:OpenSkyApi
+    # location:str
+    bboxAtLocation:tuple 
+    
+    # keyword arguments
+    openskyCredentialsPath:str = "credentials.json"
+    mover:Mover = Mover()
     apiCallDelay:float = 10
-    maxWindows:int = 3
-    screenName:str|None = None
+    bboxSize:str = ""
+    latitudeOffset:float = 0.0
+    longitudeOffset:float = 0.0
+    maxWindows:int = 25
+    displayName:str|None = None
     minVelocity:float = 0
     departureAirport:str = ""
     arrivalAirport:str = ""
@@ -40,21 +48,56 @@ class WindowTrackerConfig:
     maxGeoAltitude:float|None = None
     
     @classmethod
-    def loadSettings(cls, api, bboxAtLocation, mover, optionalSettingsPath:str|None = None):
-        optionalSettings = {}
+    def loadSettings(cls, settingsPath:str="Settings/userDefinedTrackerSettings.json"):
+        settings = {}
         validKeys = {field.name for field in fields(cls)}
         
-        if optionalSettingsPath:
-            with open(optionalSettingsPath) as f:
-                groupedSettings = json.load(f)
-    
-            for group in groupedSettings.values():      # Flatten all groups into one dict, groups are merely for userfriendliness
-                optionalSettings.update(group)
+        with open(settingsPath) as f:
+            groupedSettings = json.load(f)
+
+        for group in groupedSettings.values():      # Flatten all groups into one dict, groups are merely for userfriendliness
+            settings.update(group)
                 
-        filteredSettings = {key: value for key,value in optionalSettings.items() if key in validKeys}
-        return cls(api, bboxAtLocation, mover, **filteredSettings)          
+        api:OpenSkyApi = OpenSkyApi(token_manager=TokenManager.from_json_file(settings["openskyCredentialsPath"]))
+        location = settings.get("location")
+        if not location:
+            raise KeyError("Missing location in settings.")
+        
+        bboxAtLocation = cls.getBbox(location, settings)     
+        filteredSettings = {key: value for key,value in settings.items() if key in validKeys}
+        return cls(api, bboxAtLocation, **filteredSettings)
 
+    @staticmethod
+    def getBbox(location:str, settings:dict) -> tuple[float, float, float, float]:
+        
+        bboxSize  = settings.get("bboxSize")
+        latOffset = settings.get("latitudeOffset")
+        lonOffset = settings.get("longitudeOffset")
 
+        hasBbox = bboxSize not in (None, "")
+        hasLatOffset = latOffset is not None
+        hasLonOffset = lonOffset is not None
+        
+        if hasBbox and (hasLonOffset or hasLatOffset):
+            raise KeyError("Invalid configuration, use either bboxSize or the offsets, not both.")
+        
+        if hasBbox:
+            if bboxSize in ["small", "medium", "large"]:
+                return getBboxSize(location, bboxSize)
+            else:
+                raise KeyError("The selected bboxSize is not \"small\", \"medium\", or \"large\"")
+            
+        if hasLatOffset and hasLonOffset:
+            if latOffset <= 0.0 or lonOffset <= 0.0:
+                raise KeyError("longitudeOffset and latitudeOffset should both be non-zero.")
+            return getBboxOffset(location, lonOffset, latOffset)
+        
+        if hasLatOffset or hasLonOffset:
+            raise KeyError("Both offsets should be set together.")
+        
+        raise KeyError("Missing bbox configuration, set bboxSize or both latitudeOffset and LongitudeOffset in your settings.json file.")
+        
+        
 class WindowTracker():
     def __init__(self, config:WindowTrackerConfig):
         self.config = config
@@ -62,7 +105,7 @@ class WindowTracker():
         self.bboxAtLocation = config.bboxAtLocation
         self.mover          = config.mover
         self.maxWindows     = config.maxWindows
-        self.screenName     = config.screenName
+        self.displayName     = config.displayName
         
         self.windows:dict[str, MainWindow] = {}
         self.numApiCallsSkipped = 0.0
@@ -72,7 +115,7 @@ class WindowTracker():
         """Use spawns a window titled f\"qtApp_{state.icao24}\", also stores the  window in the windows dict with icao24 as key"""
         icao24 = state.icao24
         
-        window = MainWindow(self.bboxAtLocation, state, self.mover, showOnScreenName = self.screenName)
+        window = MainWindow(self.bboxAtLocation, state, self.mover, displayName = self.displayName)
         window.show()  # triggers QMainWindow.showEvent() 
         self.windows[icao24] = window
         # print(f"Now tracking {state.callsign}, {icao24=}")
@@ -95,37 +138,41 @@ class WindowTracker():
                 del self.windows[icao24]
 
     async def fetchLocationsLoop(self) -> None: 
-        """keep track of icao24 codes, spawn one window per code in bbox, close window if aircraft flies out of bbox"""
-        
-        assert self.config.apiCallDelay >= 10.0, "Please select an apiCallDelay of at least 10 seconds."
-        
-        while True:
-            await asyncio.sleep(self.config.apiCallDelay) # wait for at least 10 seconds so not ratelimited by OpenSkyApi
+            """keep track of icao24 codes, spawn one window per code in bbox, close window if aircraft flies out of bbox"""
             
-            newStates:OpenSkyStates|None = fetchStatesInBbox(self.api, self.bboxAtLocation)  
+            assert self.config.apiCallDelay >= 10.0, "Please select an apiCallDelay of at least 10 seconds."
             
-            if not newStates or not newStates.states:
-                print(f"New states are empty, continuing\n")
-                self.numApiCallsSkipped += 1
-                continue    # skip to next api call, else process exits.
-            
-            if newStates.time < self.newestApiUpdateTime: 
-                print(f"New states older than previous, continuing\n")
-                self.numApiCallsSkipped += 1
-                continue    # skip if new timestamp older than previous timestamp
-            
-            if newStates.time - self.newestApiUpdateTime <= 0.8*(self.numApiCallsSkipped + 1)*self.config.apiCallDelay: # TODO: this filter shouldn't apply to new aircraft appearing in bbox
-                print(f"New api call spacing too short, continuing\n")
-                self.numApiCallsSkipped += 1
-                continue    # skip if difference between timestamps is less than the elapsed real time
-            
-            self.newestApiUpdateTime = newStates.time
-            self.numApiCallsSkipped  = 0.0  # reset
-            
-            print(f"\n\nNew states at {datetime.fromtimestamp(newStates.time)}\n")
-            print(f"all new states: {[state.callsign for state in newStates.states]}")
-            filteredNewStates = self.filterStates(newStates.states)
-            await self.updateWindows(filteredNewStates)
+            firstCall = True
+            while True:
+                if not firstCall:
+                    await asyncio.sleep(self.config.apiCallDelay) # wait for at least 10 seconds so not ratelimited by OpenSkyApi
+                firstCall = False
+                
+                newStates:OpenSkyStates|None = fetchStatesInBbox(self.api, self.bboxAtLocation)  
+                
+                if not newStates or not newStates.states:
+                    print(f"New states are empty, continuing\n")
+                    self.numApiCallsSkipped += 1
+                    continue    # skip to next api call, else process exits.
+                
+                if newStates.time < self.newestApiUpdateTime: 
+                    print(f"New states older than previous, continuing\n")
+                    self.numApiCallsSkipped += 1
+                    continue    # skip if new timestamp older than previous timestamp
+                
+                if newStates.time - self.newestApiUpdateTime <= 0.8*(self.numApiCallsSkipped + 1)*self.config.apiCallDelay: # TODO: this filter shouldn't apply to new aircraft appearing in bbox
+                    print(f"New api call spacing too short, continuing\n")
+                    self.numApiCallsSkipped += 1
+                    continue    # skip if difference between timestamps is less than the elapsed real time
+                
+                self.newestApiUpdateTime = newStates.time
+                self.numApiCallsSkipped  = 0.0  # reset
+                
+                print(f"\n\nNew states at {datetime.fromtimestamp(newStates.time)}\n")
+                print(f"all new states: {[state.callsign for state in newStates.states]}")
+                filteredNewStates = self.filterStates(newStates.states)
+                await self.updateWindows(filteredNewStates)
+                await asyncio.sleep(self.config.apiCallDelay) # wait for at least 10 seconds so not ratelimited by OpenSkyApi
   
     async def deadReckonLoop(self, dt:float=1.0) ->None:
         "Move windows in direction of true track with correct velocity every dt seconds"
@@ -258,11 +305,11 @@ class WindowTracker():
         states = filteredStates  
         return states        
         
-    async def runTracker(self, initialStates:list[StateVector]) -> None:
+    async def runTracker(self) -> None:
         # spawn all windows for planes in bbox and matching filter criteria
-        filteredStates = self.filterStates(initialStates)
-        for state in filteredStates:
-            await self.spawnWindow(state)
+        # filteredStates = self.filterStates(initialStates)
+        # for state in filteredStates:
+        #     await self.spawnWindow(state)
             
         # update the location of the windows / check for new/removed planes / check if windows were closed manually.        
         await asyncio.gather(self.fetchLocationsLoop(), self.deadReckonLoop())

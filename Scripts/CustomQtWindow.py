@@ -15,9 +15,8 @@ if TYPE_CHECKING:
     from Mover import Mover
    
 
-class MainWindow(QMainWindow):
-    
-    def __init__(self, bbox:tuple, state:StateVector, mover: "Mover", showOnScreenName:str|None=None):
+class MainWindow(QMainWindow): 
+    def __init__(self, bbox:tuple, state:StateVector, mover: "Mover", displayName:str|None=None):
         super().__init__()
         
 
@@ -26,7 +25,7 @@ class MainWindow(QMainWindow):
         self.state = state
         self.icao24 = state.icao24
         self.callsign = state.callsign
-        self.velocity = state.velocity
+        self.velocity = state.velocity  # m/s
         self.heading  = state.true_track
         self.lastApiUpdate = time.monotonic()
         if state.longitude is None or state.latitude is None:
@@ -35,7 +34,7 @@ class MainWindow(QMainWindow):
         self.minLat, self.maxLat, self.minLong, self.maxLong = bbox
         
         screens = QApplication.screens()
-        if showOnScreenName == 'all': 
+        if displayName == 'all': 
             self.primaryScreen = QApplication.primaryScreen()
             if self.primaryScreen is not None:
                 self.virtual_geom = self.primaryScreen.virtualGeometry()
@@ -43,11 +42,11 @@ class MainWindow(QMainWindow):
                 self.Nypixels = self.virtual_geom.getCoords()[3] + 1            #print(f"{self.virtual_geom=}")
         else:
             for screen in screens:
-                if showOnScreenName==None: # set dimensions to first screen
+                if not displayName: # set dimensions to first screen
                     self.availableGeometry = screen.availableGeometry()
                     self.Nxpixels, self.Nypixels = self.availableGeometry.width(), self.availableGeometry.height()
                     break 
-                elif screen.name() == showOnScreenName:
+                elif screen.name() == displayName:
                     self.availableGeometry = screen.availableGeometry()
                     self.Nxpixels, self.Nypixels = self.availableGeometry.width(), self.availableGeometry.height() 
         
@@ -127,16 +126,16 @@ class MainWindow(QMainWindow):
             return  # skip to prevent jittery updates
         
         distanceTraveled = self.velocity*dt
-        heading_rad = math.radians(self.heading)
-        dlat = (distanceTraveled * math.cos(heading_rad)) / 111_320
-        dlon = (distanceTraveled * math.sin(heading_rad)) / (111_320 * math.cos(math.radians(self.latitude)))
-
-        # print(f"{dlat,dlon=}")
+        headingRadians = math.radians(self.heading)
+        
+        # Use flat earth approximation for converting from meters to degrees of lat/lon
+        dlat = (distanceTraveled * math.cos(headingRadians)) / 111_320
+        dlon = (distanceTraveled * math.sin(headingRadians)) / (111_320 * math.cos(math.radians(self.latitude)))        # print(f"{dlat,dlon=}")
 
         self.latitude += dlat
         self.longitude += dlon
-        # print(f"Deadreckon at {datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d %H:%M:%S")}")
-        self.moveToPlaneLoc(self.longitude, self.latitude)
+        
+        self.moveToPlaneLoc(self.longitude, self.latitude)      # print(f"Deadreckon at {datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d %H:%M:%S")}")
 
 
 

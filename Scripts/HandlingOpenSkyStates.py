@@ -1,6 +1,6 @@
 
 
-from opensky_api import OpenSkyApi, OpenSkyStates, OpenSkyApi, StateVector
+from opensky_api import OpenSkyApi, OpenSkyStates, OpenSkyApi, StateVector, FlightData
 
 import json
 import requests
@@ -12,7 +12,7 @@ from geopy.geocoders import Nominatim
 
 
 
-def getBbox(locationName:str, BboxSize:str) -> tuple[float, float, float, float]:
+def getBboxSize(locationName:str, BboxSize:str) -> tuple[float, float, float, float]:
 
     geolocator:Nominatim = Nominatim(user_agent="appname")
     # location:Location    = geolocator.geocode(locationName)
@@ -31,6 +31,26 @@ def getBbox(locationName:str, BboxSize:str) -> tuple[float, float, float, float]
 
     latitudeOffset:dict  =  BboxSizes[BboxSize]["latitudeOffset"]
     longitudeOffset:dict = BboxSizes[BboxSize]["longitudeOffset"]
+
+    minLat:float  = latitude - latitudeOffset
+    maxLat:float  = latitude + latitudeOffset
+    minLong:float = longitude- longitudeOffset
+    maxLong:float = longitude+ longitudeOffset
+    
+    return (minLat, maxLat, minLong, maxLong)
+
+def getBboxOffset(locationName:str, longitudeOffset:float, latitudeOffset:float) -> tuple[float, float, float, float]:
+
+    geolocator:Nominatim = Nominatim(user_agent="appname")
+    # location:Location    = geolocator.geocode(locationName)
+    location = cast(Location | None, geolocator.geocode(locationName))
+        
+    if location:
+        latitude = location.latitude
+        longitude= location.longitude
+        print(f"{location}\'s coordinates are: {location.latitude}, {location.longitude}")
+    else:
+        raise NameError("Location not found.")
 
     minLat:float  = latitude - latitudeOffset
     maxLat:float  = latitude + latitudeOffset
