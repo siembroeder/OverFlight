@@ -2,7 +2,10 @@
 import subprocess
 
 
-from CustomQtWindow import MainWindow
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from CustomQtWindow import MainWindow
+    
 from PlatformOs import getUserPlatform, getSessionType, getWindowManager
 
 
@@ -37,21 +40,21 @@ class Mover():
         else:
             raise NotImplementedError("Your operating system is not supported")
              
-    def move(self, x:int, y:int, window:MainWindow):
+    def move(self, x:int, y:int, window:"MainWindow"):
         return self.systemDependentMover.move(x, y, window)
 
 
 
     
 class WindowsMover:
-    def move(self, x:int, y:int, window:MainWindow):
+    def move(self, x:int, y:int, window:"MainWindow"):
         window.move(x, y)
 
 class X11Mover:
-    def move(self, x:int, y:int, window:MainWindow):
+    def move(self, x:int, y:int, window:"MainWindow"):
         window.move(x, y)
 
 class HyprlandMover:
-    def move(self, x:int, y:int, window:MainWindow):
+    def move(self, x:int, y:int, window:"MainWindow"):
         subprocess.run(['hyprctl', 'dispatch', 'movewindowpixel', f'exact {x} {y},title:{window.windowTitle()}'], capture_output=True) # ^(qtApp)$
         
