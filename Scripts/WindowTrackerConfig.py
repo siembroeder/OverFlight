@@ -6,68 +6,95 @@ import json
 
 # Custom imports
 from Mover import Mover
-from dataclasses import dataclass, fields
+from typing import Optional
+from dataclasses import dataclass
 from HandlingOpenSkyStates import getBboxSize, getBboxOffset
 
 
 @dataclass
+class CoreConfig:
+    openskyCredentialsPath: str
+    location: str
+    bboxSize: Optional[str] = None
+    latitudeOffset: Optional[float] = None
+    longitudeOffset: Optional[float] = None
+
+@dataclass
+class ApiConfig:
+    apiCallDelay: float = 10.0
+
+@dataclass
+class SetupConfig:
+    maxWindows: int = 25
+    displayName: Optional[str] = None
+
+@dataclass
+class TrackingConfig:
+    minVelocity: Optional[float] = None
+    callsign: Optional[str] = None
+    airline: Optional[str] = None
+    icao24: Optional[str] = None
+    squawk: Optional[str] = None
+    inAir: Optional[bool] = None
+    onGround: Optional[bool] = None
+    minGeoAltitude: Optional[float] = None
+    maxGeoAltitude: Optional[float] = None
+    minBaroAltitude: Optional[float] = None
+    maxBaroAltitude: Optional[float] = None
+    arrivalAirport: Optional[str] = None
+    departureAirport: Optional[str] = None
+    registrationCountry: Optional[str] = None
+
+@dataclass
+class VisualsConfig:
+    windowTheme:str = "aircraft"
+    imageSize:str = "small"
+
+@dataclass
 class WindowTrackerConfig:
-    # non-keyword arguments, required settings
-    api:OpenSkyApi
-    bboxAtLocation:tuple 
+    api: OpenSkyApi
+    bboxAtLocation: tuple
+
+    core:       CoreConfig
+    apiConfig:  ApiConfig
+    setup:      SetupConfig
+    tracking:   TrackingConfig
+    visuals:    VisualsConfig
     
-    # required keyword arguments
-    openskyCredentialsPath:str = "credentials.json"
-    mover:Mover = Mover()
-    apiCallDelay:float = 10.0
+    mover: Mover = Mover()
     
-    # Optional keyword arguments
-    bboxSize:str|None = None
-    latitudeOffset:float|None = None
-    longitudeOffset:float|None = None
-    maxWindows:int = 25
-    displayName:str|None = None
-    minVelocity:float|None = None
-    callsign:str|None = None
-    airline:str|None = None
-    icao24:str|None = None
-    squawk:str|None = None
-    inAir:bool|None = None
-    onGround:bool|None = None
-    minGeoAltitude:float|None = None
-    maxGeoAltitude:float|None = None
-    minBaroAltitude:float|None = None
-    maxBaroAltitude:float|None = None
-    arrivalAirport:str|None = None
-    departureAirport:str|None = None
-    registrationCountry:str|None = None
     
     @classmethod
-    def loadSettings(cls, settingsPath:str="Settings/userDefinedTrackerSettings.json"):
-        settings = {}
-        validKeys = {field.name for field in fields(cls)}
-        
+    def loadSettings(cls, settingsPath: str = "Settings/userDefinedTrackerSettings.json"):
         with open(settingsPath) as f:
-            groupedSettings = json.load(f)
+            configData = json.load(f)
 
-        for group in groupedSettings.values():      # Flatten all groups into one dict, groups are merely for userfriendliness
-            settings.update(group)
-                
-        api:OpenSkyApi = OpenSkyApi(token_manager=TokenManager.from_json_file(settings["openskyCredentialsPath"]))
-        location = settings.get("location")
-        if not location:
-            raise KeyError("Location not defined in settings.json.")
+        # Build config sections
+        coreConfig      = CoreConfig(**configData["core"])
+        apiConfig       = ApiConfig(**configData.get("api", {}))
+        setupConfig     = SetupConfig(**configData.get("setup", {}))
+        trackingConfig  = TrackingConfig(**configData.get("tracking", {}))
+        visualsConfig   = VisualsConfig(**configData.get("visuals", {}))
+
+
+        # Create API
+        api = OpenSkyApi(token_manager=TokenManager.from_json_file(coreConfig.openskyCredentialsPath))
         
-        bboxAtLocation = cls.getBbox(location, settings)     
-        filteredSettings = {key: value for key,value in settings.items() if key in validKeys}
-        return cls(api, bboxAtLocation, **filteredSettings)
+        if not coreConfig.location:
+            raise KeyError("Location not defined in settings.json.")
+
+        bboxAtLocation = cls.getBbox(coreConfig)
+
+        return cls(api, bboxAtLocation, coreConfig, apiConfig, setupConfig, trackingConfig, visualsConfig)
+
 
     @staticmethod
-    def getBbox(location:str, settings:dict) -> tuple[float, float, float, float]:
+    def getBbox(core:CoreConfig) -> tuple[float, float, float, float]:
         
-        bboxSize  = settings.get("bboxSize")
-        latOffset = settings.get("latitudeOffset")
-        lonOffset = settings.get("longitudeOffset")
+        location  = core.location
+        bboxSize  = core.bboxSize
+        latOffset = core.latitudeOffset
+        lonOffset = core.longitudeOffset
 
         hasBbox = (bboxSize not in (None, ""))
         hasLatOffset = (latOffset is not None)
@@ -91,4 +118,3 @@ class WindowTrackerConfig:
             raise KeyError("Both offsets should be set together.")
         
         raise KeyError("Missing bbox configuration, set bboxSize or both latitudeOffset and LongitudeOffset in your settings.json file.")
-        

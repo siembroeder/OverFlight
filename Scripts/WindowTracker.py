@@ -18,14 +18,15 @@ type icao24 = str
         
 class WindowTracker():
     def __init__(self, config:WindowTrackerConfig):
+        self.config = config
+        
         self.api            = config.api
         self.bboxAtLocation = config.bboxAtLocation
-        self.mover          = config.mover
-        self.maxWindows     = config.maxWindows
-        self.displayName    = config.displayName
-        self.apiCallDelay   = config.apiCallDelay
         
-        self.filter = StateFilter(config, self.api)
+        self.maxWindows     = config.setup.maxWindows
+        self.apiCallDelay   = config.apiConfig.apiCallDelay
+        
+        self.filter = StateFilter(config.tracking, self.api, config.setup.maxWindows)
         
         self.windows:dict[icao24, MainWindow] = {}
         self.numApiCallsSkipped = 0.0
@@ -35,7 +36,7 @@ class WindowTracker():
         """Use spawns a window titled f\"qtApp_{state.icao24}\", also stores the  window in the windows dict with icao24 as key"""
         icao24 = state.icao24
         
-        window = MainWindow(self.bboxAtLocation, state, self.mover, displayName = self.displayName)
+        window = MainWindow(state, self.config)
         window.show()  # triggers QMainWindow.showEvent() 
         self.windows[icao24] = window
         # print(f"Now tracking {state.callsign}, {icao24=}")

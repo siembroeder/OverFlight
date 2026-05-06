@@ -6,14 +6,15 @@ import time
 
 # Custom imports
 from CustomQtWindow import MainWindow
-from WindowTrackerConfig import WindowTrackerConfig
+from WindowTrackerConfig import TrackingConfig
 
 type icao24 = str
 
 class StateFilter():
-    def __init__(self, config:WindowTrackerConfig, api:OpenSkyApi):
-        self.config = config
+    def __init__(self, trackingConfig:TrackingConfig, api:OpenSkyApi, maxWindows:int):
+        self.config = trackingConfig
         self.api = api
+        self.maxWindows = maxWindows
     
     def filterStates(self, states:list[StateVector]) -> list[StateVector]:
         states = self.applyLocalFilters(states)
@@ -85,9 +86,9 @@ class StateFilter():
             print(f"Filtering for maxGeoAltitude: {self.config.maxGeoAltitude}")
             states = [state for state in states if state.geo_altitude and state.geo_altitude*3.28084 <= self.config.maxGeoAltitude] # convert from meters to feet
 
-        if self.config.maxWindows and len(states) >= self.config.maxWindows:
-            print(f"Restricting number of windows to: {self.config.maxWindows}")
-            states = states[:self.config.maxWindows]
+        if len(states) >= self.maxWindows:
+            print(f"Restricting number of windows to: {self.maxWindows}")
+            states = states[:self.maxWindows]
         
         return states        
         
