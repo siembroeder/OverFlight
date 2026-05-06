@@ -23,6 +23,8 @@ Current functionality:
   - windowrule = no_blur on, match:title ^qtApp_.*
   - windowrule = border_size 0, match:title ^qtApp_.*
   - windowrule = no_shadow on, match:title ^qtApp_.*
+  - windowrule = no_initial_focus on, match:title ^qtApp_.*
+  - windowrule = pin on, match:title ^qtApp_.*
 
 - Windows
 - X11 like xfce
@@ -38,9 +40,7 @@ Use the .json file in Settings/ to set your preferences for the categories core,
 |openskyCredentialsPath|string|"credentials.json"|Path to your opensky credentials .json file.|
 |location|string|"Schiphol"|Any location in the world that geopy recognizes.|
 |bboxSize|string|"small"|Preconfigured bounding box sizes, set to "small", "medium", or "large". May be omitted if both latitudeOffset and LongitudeOffset are used.|
-|longitudeOffset|float|None|Can be used to set the width of the bounding box. Must be set together with latitudeOffset. Must be a positive float.|
-|latitudeOffset|float|None|Can be used to set the height of the bounding box. Must be set together with longitudeOFfset. Must be a positive float.|
-
+|longitudeOffset, latitudeOffset|float,float|None,None|Can be used to set the width and height of the bounding box. Must both be a non-zero, positive float. Do not use if bboxSize is used.|
 
 ##### Configuring for Boundingbox / Area 
 - Option 1: Set bboxSize from ["small", "medium", "large"]
@@ -65,26 +65,29 @@ Use the .json file in Settings/ to set your preferences for the categories core,
 Aircraft are filtered based on these conditions.
 
 | name                  | type | default | description |
-|-----------------------|------|---------|-------------|
+|------------------|------|---------|-------------|
 | minVelocity           |   float   | 0.0         |       Display only aircraft with a velocity higher than minVelocity in m/s.       |
 | callsign              | string     | None         | Eg "KLM641", case insensitive.            |
 | airline |string      |None         | Filter the three letters in the callsign, eg "KLM" or "DLH".|
 | icao24                |string      |None         |Eg "485F82", case insensitive.             |
 | squawk                |string      |None         |Eg "1000" or "7700".             |
-| onGround              | float/bool      |None         | Set to 1 to only show aircraft on the ground.             |
 | inAir                 |float/bool      | None         | Set to 1 to only show aircraft in the air.             |
-| minBaroAltitude       | float      | None         | Eg 30000, units in feet.             |
-| maxBaroAltitude       | float      | None         | Eg 30000, units in feet             |
+| onGround              | float/bool      |None         | Set to 1 to only show aircraft on the ground.             |
 | minGeoAltitude        | float     | None         | Eg 30000, units in feet.             |
 | maxGeoAltitude        | float      |None         | Eg 30000, units in feet             |
-| departureAirport      | string     | None         | Eg "EHAM", case insensitive.             |
+| minBaroAltitude       | float      | None         | Eg 30000, units in feet.             |
+| maxBaroAltitude       | float      | None         | Eg 30000, units in feet             |
 | arrivalAirport        | string      | None         | Eg "EHAM", case insensitive.             |
+| departureAirport      | string     | None         | Eg "EHAM", case insensitive.             |
 | registrationCountry   | string      | None         | Eg "Kingdom of the Netherlands.             |
 
 
 #### Example settings file:
 <pre> ```json 
 { 
+    "core": {"openskyCredentialsPath": "credentials.json",
+             "location": "Amsterdam",
+             "bboxSize": "medium"},
     "api": { "apiCallDelay": 10.0 },
     "setup": { "maxWindows": 25, 
                "screenName": "eDP-1" },
@@ -96,6 +99,12 @@ Aircraft are filtered based on these conditions.
 
 
 
+## Dependencies
+- OpenSkyApi
+- pyQt6
+- geopy
+- wmctrl, if on linux
+- qasync
 
 
 

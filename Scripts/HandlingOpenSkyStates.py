@@ -26,8 +26,9 @@ def getBboxSize(locationName:str, BboxSize:str) -> tuple[float, float, float, fl
         raise NameError("Location not found.")
      
 
-    BboxSizes:dict[str, dict] = {"small": {"latitudeOffset": 0.15, "longitudeOffset": 0.25},
-                                 "large": {"latitudeOffset": 0.3,  "longitudeOffset": 0.5}}
+    BboxSizes:dict[str, dict] = {"small": {"latitudeOffset": 0.10, "longitudeOffset": 0.25},
+                                 "medium":{"latitudeOffset": 0.30, "longitudeOffset": 0.50},
+                                 "large": {"latitudeOffset": 0.50, "longitudeOffset": 0.75}}
 
     latitudeOffset:dict  =  BboxSizes[BboxSize]["latitudeOffset"]
     longitudeOffset:dict = BboxSizes[BboxSize]["longitudeOffset"]
@@ -63,7 +64,7 @@ def fetchStatesInBbox(api:OpenSkyApi, bbox:tuple) -> OpenSkyStates|None:
     states:OpenSkyStates|None = api.get_states(bbox = bbox)
     return states
 
-def getAircraftMeta(icao24: str, username: str, password: str) -> dict:
+def getAircraftMeta(icao24:str, username:str, password:str) -> dict:
     url:str = f"https://opensky-network.org/api/metadata/aircraft/icao/{icao24}"
     response:Response = requests.get(url, auth=(username, password))
     

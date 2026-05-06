@@ -7,7 +7,7 @@ import subprocess
 
 
 
-def getPlatform() -> str:
+def getUserPlatform() -> str:
     return platform.system().lower()
 
 

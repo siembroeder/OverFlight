@@ -69,15 +69,14 @@ class MainWindow(QMainWindow):
                 movie = QMovie("Assets/duck-left.gif")
         else:
             movie = QMovie("Assets/duck-left.gif")
-                            
-    
+                        
         label.setMovie(movie)
         movie.start()
 
-        pixmap = QPixmap("Assets/duck-left.gif")
-        self.resize(pixmap.width(), pixmap.height())
+        # pixmap = QPixmap("Assets/duck-left.gif")
+        # self.resize(pixmap.width(), pixmap.height())
 
-    def updateState(self, state: StateVector) -> None:
+    def updateState(self, state:StateVector) -> None:
         """Redefine window properties when new a state becomes available"""
         self.icao24 = state.icao24
         self.callsign = state.callsign
@@ -97,7 +96,7 @@ class MainWindow(QMainWindow):
         
         # self.moveToPlaneLoc(self.longitude, self.latitude)
 
-    def coordsToPixels(self, lon, lat) -> tuple[int, int]: 
+    def coordsToPixels(self, lon:float, lat:float) -> tuple[int, int]: 
         # normalize to 0-1 and multiply with number of available pixels
         pixelx = int(((lon - self.minLong) / (self.maxLong - self.minLong) ) * self.Nxpixels)
         pixely = int(((lat - self.minLat)  / (self.maxLat - self.minLat)   ) * self.Nypixels) # print(f"{[pixelx,pixely]=}")
@@ -122,7 +121,7 @@ class MainWindow(QMainWindow):
         self.customMove(self.pixelx, self.pixely)  
         # print(f"Moving {self.callsign} to {self.pixelx}, {self.pixely}")
     
-    def customMove(self, x, y):
+    def customMove(self, x:int, y:int):
         self.mover.move(x, y, self)
 
     def deadReckonPosition(self, dt:float) -> None:

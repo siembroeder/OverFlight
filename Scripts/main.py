@@ -21,8 +21,8 @@ from HandlingOpenSkyStates import getBboxSize, getBboxOffset, fetchStatesInBbox
 
 
       
-def startOverflightApplication(tracker:WindowTracker) ->QApplication:
-    """ spawn the windows asynchronously, wait for 10 seconds before api call, update locations asynchronously."""
+def startOverflightApplication(tracker:WindowTracker) -> QApplication:
+    """ spawn the windows asynchronously, wait for at least 10 seconds before api call, update locations asynchronously."""
     app:QApplication = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
     

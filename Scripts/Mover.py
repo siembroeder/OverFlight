@@ -3,14 +3,14 @@ import subprocess
 
 
 from CustomQtWindow import MainWindow
-from PlatformOs import getPlatform, getSessionType, getWindowManager
+from PlatformOs import getUserPlatform, getSessionType, getWindowManager
 
 
 
 class Mover():
     def __init__(self):
         
-        self.userPlatform = getPlatform()
+        self.userPlatform = getUserPlatform()
         
         self.systemDependentMover = self.determineMover()
         
@@ -37,7 +37,7 @@ class Mover():
         else:
             raise NotImplementedError("Your operating system is not supported")
              
-    def move(self, x, y, window:MainWindow):
+    def move(self, x:int, y:int, window:MainWindow):
         return self.systemDependentMover.move(x, y, window)
 
 
