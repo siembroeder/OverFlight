@@ -5,23 +5,20 @@ import math
 import time
 
 # PyQt imports
-from PyQt6.QtGui import QPixmap, QMovie
-from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel, QWidget, QToolTip
+from PyQt6.QtGui import QPixmap, QMovie, QTransform
+from PyQt6.QtCore import Qt, QTimer, QSize
+from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel
 
-# Custom imports
-from typing import TYPE_CHECKING        # to prevent circular dependency 
-if TYPE_CHECKING:
-    from Mover import Mover
+# Custom imports 
+from Mover import Mover
+from WindowTrackerConfig import WindowTrackerConfig
    
 
 class MainWindow(QMainWindow): 
-    def __init__(self, bbox:tuple, state:StateVector, mover: "Mover", displayName:str|None=None):
+    def __init__(self, state:StateVector, config:WindowTrackerConfig):
         super().__init__()
         
-
-        
-        self.mover = mover
+        # Extract state data
         self.state = state
         self.icao24 = state.icao24
         self.callsign = state.callsign
@@ -31,9 +28,14 @@ class MainWindow(QMainWindow):
         if state.longitude is None or state.latitude is None:
             return
         self.longitude, self.latitude = (state.longitude, state.latitude)
-        self.minLat, self.maxLat, self.minLong, self.maxLong = bbox
+        
+        # Extract config data
+        self.mover:"Mover" = config.mover
+        self.minLat, self.maxLat, self.minLong, self.maxLong = config.bboxAtLocation
+        visuals = config.visuals
         
         screens = QApplication.screens()
+        displayName = config.setup.displayName
         if displayName == 'all': 
             self.primaryScreen = QApplication.primaryScreen()
             if self.primaryScreen is not None:
@@ -57,24 +59,54 @@ class MainWindow(QMainWindow):
 
         label = QLabel(self)
         self.setCentralWidget(label)
+        
+        size = self.getImageSize(visuals.imageSize)    
+        if visuals.windowTheme == "aircraft":
+            pixmap = QPixmap("Assets/singleIsleAircraft.png")
+            if self.heading is not None:
+                transform = QTransform().rotate(self.heading)
+                pixmap = pixmap.transformed(transform, Qt.TransformationMode.SmoothTransformation)
+            
+            pixmap = pixmap.scaled(size,Qt.AspectRatioMode.IgnoreAspectRatio,
+                                        Qt.TransformationMode.SmoothTransformation)
+            label.setPixmap(pixmap)
 
-        # pixmap = QPixmap("Assets/duck-left.gif")
-        # label.setPixmap(pixmap)
-        # self.resize(pixmap.width(), pixmap.height())
-
-        if self.heading:
-            if self.heading >= 0.0 and self.heading <= 180.0: 
-                movie = QMovie("Assets/duck-right.gif")
+            label.setFixedSize(size)
+            self.setFixedSize(size)
+            
+            
+        if visuals.windowTheme == "duck":
+            if self.heading is not None:
+                if self.heading >= 0.0 and self.heading <= 180.0: 
+                    movie = QMovie("Assets/duck-right.gif")
+                else:
+                    movie = QMovie("Assets/duck-left.gif")
             else:
                 movie = QMovie("Assets/duck-left.gif")
-        else:
-            movie = QMovie("Assets/duck-left.gif")
                         
-        label.setMovie(movie)
-        movie.start()
+            self.setFixedSize(size)
+            label.setFixedSize(size)
 
-        # pixmap = QPixmap("Assets/duck-left.gif")
-        # self.resize(pixmap.width(), pixmap.height())
+            movie.setScaledSize(size)
+            label.setMovie(movie)
+            movie.start()        
+                
+    def getImageSize(self, imageSize:str|list) -> QSize:
+        defaultSizes = {"miniature": QSize(25, 25),
+                        "small":     QSize(50, 50),
+                        "medium":    QSize(100, 100),
+                        "large":     QSize(200, 200),
+                        "comicallyLarge": QSize(500, 500)}
+        
+        if isinstance(imageSize, list):
+            if len(imageSize) == 2:
+                return QSize(imageSize[0], imageSize[1])
+            raise IndexError("imageSize should have exactly 2 items")
+        
+        if imageSize not in defaultSizes.keys():
+            imageSize = "small"
+    
+        return defaultSizes[imageSize] 
 
     def updateState(self, state:StateVector) -> None:
         """Redefine window properties when new a state becomes available"""
