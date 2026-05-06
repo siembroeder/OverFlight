@@ -109,33 +109,36 @@ class StateFilter():
         print(f"Applying API filters")
         filteredStates = []
         t1 = int(time.time())
-        t0 = t1 - 1*3600 # fetch flights in past x hours
-            
-        recentFlights:list[FlightData]|None = self.api.get_flights_from_interval(t0, t1)
-        if not recentFlights:
-            return states # failed request, don't apply filters
-        
-        icaos = [state.icao24 for state in states if state.icao24]
+        t0 = t1 - 24*3600 # fetch flights in past x hours
         stateMap = {state.icao24:state for state in states}
+        matchedIcaos = set()
+         
+        if self.config.departureAirport:
+            departures = self.api.get_departures_by_airport(self.config.departureAirport, t0, t1)
+            if departures is None:
+                print("Departure airport request failed — skipping departure filter")
+            else:
+                matchedIcaos.update(flight.icao24 for flight in departures if flight.icao24 in stateMap)
+
+        # if self.config.arrivalAirport:
+        #     for icao24 in stateMap:
+        #         if icao24 in matchedIcaos:
+        #             continue  # already matched, skip the API call
+                
+        #         flights = self.api.get_flights_by_aircraft(icao24, t0, t1)
+        #         if not flights:
+        #             continue
+        #         # Most recent flight is last in the list
+        #         current_flight = flights[-1]
+        #         if current_flight.estArrivalAirport == self.config.arrivalAirport:
+        #             matchedIcaos.add(icao24)
         
-        for flight in recentFlights:
-            state = stateMap.get(flight.icao24)
-            
-            if not state:
-                continue # flight not in states
-            
-            estDepAirport = flight.estDepartureAirport
-            estArrAirport = flight.estArrivalAirport
-            
-            if estDepAirport == self.config.departureAirport:
-                    filteredStates.append(state)
-                    
-            if estArrAirport == self.config.arrivalAirport:
-                if not state in filteredStates: # prevent dupes
-                    filteredStates.append(state)
-            
-        states = filteredStates  
-        return states        
+        if not matchedIcaos:
+            print("No matching flights found for configured airports")
+            return []
+
+        filteredStates = [stateMap[icao] for icao in matchedIcaos]
+        return filteredStates          
 
     def extractUntrackedStates(self, activeWindows:dict[icao24,MainWindow],  newStates:list[StateVector]) -> list[StateVector]:
         activeIcaos = activeWindows.keys()

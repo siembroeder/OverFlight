@@ -24,3 +24,4 @@
 * [ ] Add other windowmanagers / desktop environments, eg sway or kwin
 * [ ] Move window first while not visible, then show
 * [ ] Remove window borders completely on windows
+* [ ] Fix arrival airport filters.

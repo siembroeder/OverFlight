@@ -91,8 +91,10 @@ Aircraft are filtered based on these conditions.
     "api": { "apiCallDelay": 10.0 },
     "setup": { "maxWindows": 25, 
                "screenName": "eDP-1" },
-    "tracking": { "minVelocity": 10.0,
-                  "arrivalAirport": "EHAM}
+    "tracking": {"minVelocity": 10.0,
+                 "departureAirport": "EHAM"},
+    "visuals": {"windowTheme": "duck",
+                "imageSize": "small"}
 } 
 ``` </pre>
 
