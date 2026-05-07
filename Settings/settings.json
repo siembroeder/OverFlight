@@ -1,15 +1,12 @@
 { 
     "core": {"openskyCredentialsPath": "credentials.json",
              "location": "Amsterdam",
-             "bboxSize": "large"},
-
+             "bboxSize": "medium"},
     "api": { "apiCallDelay": 10.0 },
-
     "setup": { "maxWindows": 25, 
                "displayName": "eDP-1" },
-
-    "tracking": {"minVelocity": 0.0},
-
-    "visuals": {"windowTheme": "aircraft",
+    "tracking": {"inAir": 1,
+                 "departureAirport": "EHAM"},
+    "visuals": {"windowTheme": "duck",
                 "imageSize": "small"}
 } 

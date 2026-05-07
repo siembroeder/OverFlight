@@ -78,7 +78,7 @@ Aircraft are filtered based on these conditions.
 | minBaroAltitude       |float       |None     |Eg 30000, units in feet.|
 | maxBaroAltitude       |float       |None     |Eg 30000, units in feet.|
 | arrivalAirport        |string      |None     |Broken: No reliable way to get this info. Eg "EHAM", case insensitive.|
-| departureAirport      |string      |None     |Eg "EHAM", case insensitive.|
+| departureAirport      |string      |None     |Eg "EHAM", case insensitive. Might be slow as it calls to the api for every aircraft.|
 | registrationCountry   |string      |None     |Eg "Kingdom of the Netherlands.|
 
 
@@ -90,8 +90,8 @@ Aircraft are filtered based on these conditions.
              "bboxSize": "medium"},
     "api": { "apiCallDelay": 10.0 },
     "setup": { "maxWindows": 25, 
-               "screenName": "eDP-1" },
-    "tracking": {"minVelocity": 10.0,
+               "displayName": "eDP-1" },
+    "tracking": {"inAir": 1,
                  "departureAirport": "EHAM"},
     "visuals": {"windowTheme": "duck",
                 "imageSize": "small"}
