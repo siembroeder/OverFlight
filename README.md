@@ -66,7 +66,7 @@ Aircraft are filtered based on these conditions.
 
 | name                  | type       | default | description |
 |-----------------------|------------|---------|-------------|
-| minVelocity           |float       |0.0      |Display only aircraft with a velocity higher than minVelocity in m/s.|
+| minVelocity           |float       |None     |Display only aircraft with a velocity higher than minVelocity in m/s.|
 | callsign              |string      |None     |Eg "KLM641", case insensitive.|
 | airline               |string      |None     |Filter the three letters in the callsign, eg "KLM" or "DLH".|
 | icao24                |string      |None     |Eg "485F82", case insensitive.|
@@ -82,6 +82,12 @@ Aircraft are filtered based on these conditions.
 | registrationCountry   |string      |None     |Eg "Kingdom of the Netherlands.|
 
 
+#### visuals
+| name       | type    | default | description |
+|------------|---------|---------|-------------|
+| windowTheme|string   |aircraft |Sets the image. Options: "aircraft", "duck". If "aircraft", the windows contain a .png of an aircraft that rotates depending on the heading. If "duck", the windows contain a .gif of a duck walking to the left or right depening on the heading.|
+| windowSize |string or list   | "small" |Set the size of the window. Options: "miniature", "small", "medium", "large", "comicallyLarge", [width, height]. Width and height must be integers|
+
 #### Example settings file:
 <pre> ```json 
 { 
@@ -94,7 +100,7 @@ Aircraft are filtered based on these conditions.
     "tracking": {"inAir": 1,
                  "departureAirport": "EHAM"},
     "visuals": {"windowTheme": "duck",
-                "imageSize": "small"}
+                "windowSize": "small"}
 } 
 ``` </pre>
 

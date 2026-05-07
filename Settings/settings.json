@@ -8,5 +8,5 @@
     "tracking": {"inAir": 1,
                  "departureAirport": "EHAM"},
     "visuals": {"windowTheme": "duck",
-                "imageSize": "small"}
+                "windowSize": "small"}
 } 

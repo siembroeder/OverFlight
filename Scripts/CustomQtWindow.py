@@ -73,7 +73,7 @@ class MainWindow(QMainWindow):
                 
 
     def setVisuals(self, visuals:VisualsConfig):
-        size = self.getImageSize(visuals.imageSize)
+        size = self.getWindowSize(visuals.windowSize)
 
         if visuals.windowTheme == "aircraft":
             image = QPixmap("Assets/singleIsleAircraft.png")
@@ -104,22 +104,22 @@ class MainWindow(QMainWindow):
             self.label.setMovie(self.movie)
             self.movie.start()        
 
-    def getImageSize(self, imageSize:str|list) -> QSize:
+    def getWindowSize(self, windowSize:str|list) -> QSize:
         defaultSizes = {"miniature": QSize(25, 25),
                         "small":     QSize(50, 50),
                         "medium":    QSize(100, 100),
                         "large":     QSize(200, 200),
                         "comicallyLarge": QSize(500, 500)}
         
-        if isinstance(imageSize, list):
-            if len(imageSize) == 2:
-                return QSize(imageSize[0], imageSize[1])
+        if isinstance(windowSize, list):
+            if len(windowSize) == 2:
+                return QSize(windowSize[0], windowSize[1])
             raise IndexError("imageSize should have exactly 2 items")
         
-        if imageSize not in defaultSizes.keys():
+        if windowSize not in defaultSizes.keys():
             imageSize = "small"
     
-        return defaultSizes[imageSize] 
+        return defaultSizes[windowSize] 
     
     def updatePixmapHeading(self, heading:float|None):
         if self.defaultPixmap and heading is not None:

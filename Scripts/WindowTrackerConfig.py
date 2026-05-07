@@ -13,9 +13,9 @@ from HandlingOpenSkyStates import getBboxSize, getBboxOffset
 
 @dataclass
 class CoreConfig:
-    openskyCredentialsPath: str
-    location: str
-    bboxSize: Optional[str] = None
+    bboxSize: Optional[str]
+    location: str = "Schiphol"
+    openskyCredentialsPath: str = "credentials.json"
     latitudeOffset: Optional[float] = None
     longitudeOffset: Optional[float] = None
 
@@ -48,7 +48,7 @@ class TrackingConfig:
 @dataclass
 class VisualsConfig:
     windowTheme:str = "aircraft"
-    imageSize:str = "small"
+    windowSize:str = "small"
 
 @dataclass
 class WindowTrackerConfig:
