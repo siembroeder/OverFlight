@@ -8,9 +8,11 @@
 * [X] ~~*Fix screenName setting*~~ [2026-05-07]
 * [X] ~~*Rotate image depending on heading*~~ [2026-05-07]
 * [X] ~~*When skipping api call for short spacing, extract aircraft not already being tracked*~~ [2026-05-07]
-* [ ] Split WindowTracker class into multiple classes
+* [X] ~~*Add more info to tooltip and toggle it in settings.*~~ [2026-05-07]
+* [X] ~~*Split WindowTracker class into multiple classes*~~ [2026-05-08]
     * [X] ~~*Filter to separate class*~~ [2026-05-03]
-    * [ ] What to do with fetching/deadreckoning loop?
+    * [X] ~~*Move deadreckoningloop into fetchingloop.*~~ [2026-05-08]
+    * [X] ~~*Split synchronous and asynchronous parts.*~~ [2026-05-08]
 * [ ] Make small, medium, large bbox sizes
     * [X] ~~*All three exist*~~ [2026-05-03]
     * [ ] Verify that the sizes make sense compared to 16:9 ratio.
@@ -24,4 +26,3 @@
 * [ ] Move window first while not visible, then show. Not possible on wayland w/o wlroots
 * [ ] Remove window borders completely on windows
 * [ ] Fix arrival airport filters.
-* [ ] Add more info to tooltip and toggle it in settings.

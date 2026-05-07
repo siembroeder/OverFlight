@@ -1,12 +1,10 @@
 
-from opensky_api import OpenSkyApi, TokenManager, OpenSkyStates, OpenSkyApi, StateVector
 
 
 # Core Python imports
 import sys
 import signal
 import platform
-from datetime import datetime
 
 import asyncio
 from qasync import QEventLoop
@@ -15,13 +13,11 @@ from qasync import QEventLoop
 from PyQt6.QtWidgets import QApplication
 
 # Custom import
-from Mover import Mover
-from WindowTracker import WindowTracker, WindowTrackerConfig
-from HandlingOpenSkyStates import getBboxSize, getBboxOffset, fetchStatesInBbox
+from WindowTracker import WindowTracker, WindowTrackerConfig, WindowTrackerRunner
 
 
       
-def startOverflightApplication(tracker:WindowTracker) -> QApplication:
+def startOverflightApplication(runner:WindowTrackerRunner) -> QApplication:
     """ spawn the windows asynchronously, wait for at least 10 seconds before api call, update locations asynchronously."""
     app:QApplication = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
@@ -35,7 +31,7 @@ def startOverflightApplication(tracker:WindowTracker) -> QApplication:
     # Ensure the program doesn't exit when all windows are closed:
     app.aboutToQuit.connect(loop.stop)
     with loop:
-        asyncio.ensure_future(tracker.runTracker())
+        asyncio.ensure_future(runner.run())
         loop.run_forever()
  
     return app # keep reference to prevent them from being garbage collected
@@ -46,7 +42,8 @@ def main():
 
     trackerConfig = WindowTrackerConfig.loadSettings(settingsPath="Settings/settings.json")
     tracker       = WindowTracker(trackerConfig)
-    app = startOverflightApplication(tracker)
+    runner        = WindowTrackerRunner(tracker, trackerConfig)
+    app = startOverflightApplication(runner)
     
     
     
