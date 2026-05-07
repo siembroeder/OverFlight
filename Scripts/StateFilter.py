@@ -1,8 +1,9 @@
 
-from opensky_api import StateVector, FlightData, OpenSkyApi
+from opensky_api import StateVector, OpenSkyApi
 
 # Core imports
 import time
+import requests
 
 # Custom imports
 from CustomQtWindow import MainWindow
@@ -104,12 +105,40 @@ class StateFilter():
                     filteredStates.append(state)
                 
         return filteredStates
+            
+    # def applyApiFilters(self, states:list[StateVector]) -> list[StateVector]:
+    #     print(f"Applying API filters")
+    #     filteredStates = []
+    #     stateMap = {state.icao24:state for state in states}
+    #     matchedIcaos = set()
+            
+    #     print(self.config.departureAirport, self.config.arrivalAirport)
+    #     if self.config.departureAirport or self.config.arrivalAirport:
+    #         for state in states:
+    #             if state.callsign is None:
+    #                 continue
+                
+    #             callsign = state.callsign.strip()
+    #             route = self.getRouteCallsign(callsign)
+
+    #             if route is None:
+    #                 continue
+                
+    #             if route[0] == self.config.departureAirport or route[1] == self.config.arrivalAirport:
+    #                 print(callsign, state.icao24, route)
+    #                 matchedIcaos.add(state.icao24)
         
+    #     if not matchedIcaos:
+    #         return []
+
+    #     filteredStates = [stateMap[icao] for icao in matchedIcaos]
+    #     return filteredStates    
+    
     def applyApiFilters(self, states:list[StateVector]) -> list[StateVector]:
         print(f"Applying API filters")
         filteredStates = []
         t1 = int(time.time())
-        t0 = t1 - 24*3600 # fetch flights in past x hours
+        t0 = t1 - 24*3600 # fetch flights in past 24 hours
         stateMap = {state.icao24:state for state in states}
         matchedIcaos = set()
          
@@ -119,6 +148,9 @@ class StateFilter():
                 print("Departure airport request failed — skipping departure filter")
             else:
                 matchedIcaos.update(flight.icao24 for flight in departures if flight.icao24 in stateMap)
+
+        if self.config.arrivalAirport:
+            print(f"WARNING: arrivalAirport filtering is broken")
 
         # if self.config.arrivalAirport:
         #     for icao24 in stateMap:
@@ -138,7 +170,19 @@ class StateFilter():
             return []
 
         filteredStates = [stateMap[icao] for icao in matchedIcaos]
-        return filteredStates          
+        return filteredStates
+
+    # def getRouteCallsign(self, callsign:str) -> tuple[str, str]|None:
+    #     r = requests.get(f"https://api.adsbdb.com/v0/callsign/{callsign.strip()}")
+        
+    #     if r.status_code != 200:
+    #         return None
+    #     # print(r.json())
+    #     data = r.json().get("response", {}).get("flightroute")
+    #     if not data:
+    #         return None
+        
+    #     return (data["origin"]["icao_code"], data["destination"]["icao_code"])
 
     def extractUntrackedStates(self, activeWindows:dict[icao24,MainWindow],  newStates:list[StateVector]) -> list[StateVector]:
         activeIcaos = activeWindows.keys()

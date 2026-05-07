@@ -35,11 +35,11 @@ Use the .json file in Settings/ to set your preferences for the categories core,
 
 #### core
 
-|name|type|default|description|
-|----|----|-------|-----------|
+|name                  |type  |default           |description|
+|----------------------|------|------------------|-----------|
 |openskyCredentialsPath|string|"credentials.json"|Path to your opensky credentials .json file.|
-|location|string|"Schiphol"|Any location in the world that geopy recognizes.|
-|bboxSize|string|"small"|Preconfigured bounding box sizes, set to "small", "medium", or "large". May be omitted if both latitudeOffset and LongitudeOffset are used.|
+|location              |string|"Schiphol"        |Any location in the world that geopy recognizes.|
+|bboxSize              |string|"small"           |Preconfigured bounding box sizes, set to "small", "medium", or "large". May be omitted if both latitudeOffset and LongitudeOffset are used.|
 |longitudeOffset, latitudeOffset|float,float|None,None|Can be used to set the width and height of the bounding box. Must both be a non-zero, positive float. Do not use if bboxSize is used.|
 
 ##### Configuring for Boundingbox / Area 
@@ -52,34 +52,34 @@ Use the .json file in Settings/ to set your preferences for the categories core,
 
 | name         | type | default | description |
 |--------------|------|---------|-------------|
-| apiCallDelay |   float   |    10.0     | Spacing between consecutive calls to opensky_api.get_states(). Any value smaller than 10.0 results in rate limiting for free OpenSky users.          |
+|apiCallDelay  |float |10.0     | Spacing between consecutive calls to opensky_api.get_states(). Any value smaller than 10.0 results in rate limiting for free OpenSky users.|
 
 #### setup
 
-| name       | type | default | description |
-|------------|------|---------|-------------|
-| maxWindows | int     |25         | Maximum number of aircraft windows on the screen.              |
-| screenName |   string   | First entry in QApplication.screens()         |Select the name of display on which to project the windows, eg "eDP-1", "HDMI-1-A", or "DP-1". If "all" use all displays, can be finicky.           |
+| name       | type    | default | description |
+|------------|---------|---------|-------------|
+| maxWindows |int      |25       | Maximum number of aircraft windows on the screen.|
+| screenName |string   |First entry in QApplication.screens() | Select the name of display on which to project the windows, eg "eDP-1", "HDMI-1-A", or "DP-1". If "all" use all displays. Depending on scaling of the displays, part of the bounding box may be "outside" the displays.|
 
 #### tracking
 Aircraft are filtered based on these conditions.
 
-| name                  | type | default | description |
-|------------------|------|---------|-------------|
-| minVelocity           |   float   | 0.0         |       Display only aircraft with a velocity higher than minVelocity in m/s.       |
-| callsign              | string     | None         | Eg "KLM641", case insensitive.            |
-| airline |string      |None         | Filter the three letters in the callsign, eg "KLM" or "DLH".|
-| icao24                |string      |None         |Eg "485F82", case insensitive.             |
-| squawk                |string      |None         |Eg "1000" or "7700".             |
-| inAir                 |float/bool      | None         | Set to 1 to only show aircraft in the air.             |
-| onGround              | float/bool      |None         | Set to 1 to only show aircraft on the ground.             |
-| minGeoAltitude        | float     | None         | Eg 30000, units in feet.             |
-| maxGeoAltitude        | float      |None         | Eg 30000, units in feet             |
-| minBaroAltitude       | float      | None         | Eg 30000, units in feet.             |
-| maxBaroAltitude       | float      | None         | Eg 30000, units in feet             |
-| arrivalAirport        | string      | None         | Eg "EHAM", case insensitive.             |
-| departureAirport      | string     | None         | Eg "EHAM", case insensitive.             |
-| registrationCountry   | string      | None         | Eg "Kingdom of the Netherlands.             |
+| name                  | type       | default | description |
+|-----------------------|------------|---------|-------------|
+| minVelocity           |float       |0.0      |Display only aircraft with a velocity higher than minVelocity in m/s.|
+| callsign              |string      |None     |Eg "KLM641", case insensitive.|
+| airline               |string      |None     |Filter the three letters in the callsign, eg "KLM" or "DLH".|
+| icao24                |string      |None     |Eg "485F82", case insensitive.|
+| squawk                |string      |None     |Eg "1000" or "7700".|
+| inAir                 |float/bool  |None     |Set to 1 to only show aircraft in the air.|
+| onGround              |float/bool  |None     |Set to 1 to only show aircraft on the ground.|
+| minGeoAltitude        |float       |None     |Eg 30000, units in feet.|
+| maxGeoAltitude        |float       |None     |Eg 30000, units in feet.|
+| minBaroAltitude       |float       |None     |Eg 30000, units in feet.|
+| maxBaroAltitude       |float       |None     |Eg 30000, units in feet.|
+| arrivalAirport        |string      |None     |Broken: No reliable way to get this info. Eg "EHAM", case insensitive.|
+| departureAirport      |string      |None     |Eg "EHAM", case insensitive.|
+| registrationCountry   |string      |None     |Eg "Kingdom of the Netherlands.|
 
 
 #### Example settings file:
