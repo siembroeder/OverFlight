@@ -32,17 +32,17 @@ class WindowTracker():
         self.numApiCallsSkipped = 0.0
         self.newestApiUpdateTime = 0.0
 
-    async def spawnWindow(self, state:StateVector) -> None:
+    def spawnWindow(self, state:StateVector) -> None:
         """Use spawns a window titled f\"qtApp_{state.icao24}\", also stores the  window in the windows dict with icao24 as key"""
         icao24 = state.icao24
         
         window = MainWindow(state, self.config)
         window.show()  # triggers QMainWindow.showEvent() 
         self.windows[icao24] = window
+        
         # print(f"Now tracking {state.callsign}, {icao24=}")
-        # await asyncio.sleep(0.2) #Delay between spawning windows
 
-    async def updateWindows(self, newStates:list[StateVector]) -> None:
+    def updateWindows(self, newStates:list[StateVector], delete:bool = True) -> None:
         """Spawn, update, or close windows based on current aircraft states."""
         newIcaos = {state.icao24 for state in newStates}
 
@@ -50,13 +50,14 @@ class WindowTracker():
             if state.icao24 in self.windows and windowIsOpen(state.icao24):
                 self.windows[state.icao24].updateState(state)
             elif len(self.windows) < self.maxWindows:
-                await self.spawnWindow(state)
+                self.spawnWindow(state)
 
-        for icao24 in list(self.windows.keys()):
-            if icao24 not in newIcaos:
-                self.windows[icao24].close()
-                print(f"Stopped tracking {icao24}")
-                del self.windows[icao24]
+        if delete:
+            for icao24 in list(self.windows.keys()):
+                if icao24 not in newIcaos:
+                    self.windows[icao24].close()
+                    print(f"Stopped tracking {icao24}")
+                    del self.windows[icao24]
                 
     async def fetchStatesLoop(self) -> None: 
             """keep track of icao24 codes, spawn one window per code in bbox, close window if aircraft flies out of bbox"""
@@ -88,7 +89,7 @@ class WindowTracker():
                     
                     # If there are previously untracked states in the newest api call result, add those to tracked states. Even if the spacing is too short.
                     untrackedStates = self.filter.extractUntrackedStates(self.windows, newStates.states)
-                    await self.updateWindows(untrackedStates)
+                    self.updateWindows(untrackedStates, delete = False)
                                         
                     print(f"New api call spacing too short, continuing\n")
                     self.numApiCallsSkipped += 1
@@ -97,10 +98,10 @@ class WindowTracker():
                 self.newestApiUpdateTime = newStates.time
                 self.numApiCallsSkipped  = 0.0  # reset
                 
-                print(f"\n\nNew states at {datetime.fromtimestamp(newStates.time)}\n")
-                # print(f"all new states: {[state.callsign for state in newStates.states]}")
+                print(f"\n\nAccepted new states at {datetime.fromtimestamp(newStates.time)}\n")             # print(f"all new states: {[state.callsign for state in newStates.states]}")
+                
                 filteredNewStates = self.filter.filterStates(newStates.states)
-                await self.updateWindows(filteredNewStates)
+                self.updateWindows(filteredNewStates)
                 await asyncio.sleep(self.apiCallDelay) # wait for at least 10 seconds so not ratelimited by OpenSkyApi
   
     async def deadReckonLoop(self, dt:float=1.0) -> None:

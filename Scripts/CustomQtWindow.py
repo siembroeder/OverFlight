@@ -62,47 +62,31 @@ class MainWindow(QMainWindow):
             self.Nypixels     = geom.height()
             self.screenOrigin = geom.topLeft()
         
-        # if displayName == 'all': 
-        #     self.primaryScreen = QApplication.primaryScreen()
-        #     if self.primaryScreen is not None:
-        #         self.virtual_geom = self.primaryScreen.virtualGeometry()
-        #         self.Nxpixels = self.virtual_geom.getCoords()[2] + 1
-        #         self.Nypixels = self.virtual_geom.getCoords()[3] + 1            #print(f"{self.virtual_geom=}")
-        # else:
-        #     for screen in screens:
-        #         if not displayName: # set dimensions to first screen
-        #             self.availableGeometry = screen.availableGeometry()
-        #             self.Nxpixels, self.Nypixels = self.availableGeometry.width(), self.availableGeometry.height()
-        #             break 
-        #         elif screen.name() == displayName:
-        #             self.availableGeometry = screen.availableGeometry()
-        #             self.Nxpixels, self.Nypixels = self.availableGeometry.width(), self.availableGeometry.height() 
-        
         self.setToolTip(self.callsign)
         self.setWindowTitle(f"qtApp_{self.icao24}")
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
 
-        label = QLabel(self)
-        self.setCentralWidget(label)
-        self.setVisuals(config.visuals, label)
+        self.label = QLabel(self)
+        self.setCentralWidget(self.label)
+        self.setVisuals(config.visuals)
                 
 
-    def setVisuals(self, visuals:VisualsConfig, label:QLabel):
+    def setVisuals(self, visuals:VisualsConfig):
         size = self.getImageSize(visuals.imageSize)
 
         if visuals.windowTheme == "aircraft":
-            pixmap = QPixmap("Assets/singleIsleAircraft.png")
-            if self.heading is not None:
-                transform = QTransform().rotate(self.heading)
-                pixmap = pixmap.transformed(transform, Qt.TransformationMode.SmoothTransformation)
+            image = QPixmap("Assets/singleIsleAircraft.png")
+            self.defaultPixmap = image.scaled(size, Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
             
-            pixmap = pixmap.scaled(size,Qt.AspectRatioMode.IgnoreAspectRatio,
-                                        Qt.TransformationMode.SmoothTransformation)
-            label.setPixmap(pixmap)
 
-            label.setFixedSize(size)
+            # pixmap = self.defaultPixmap.scaled(size,Qt.AspectRatioMode.IgnoreAspectRatio,
+            #                             Qt.TransformationMode.SmoothTransformation)
+            # self.label.setPixmap(pixmap)
+
+            self.label.setFixedSize(size)
             self.setFixedSize(size)
+            self.updatePixmapHeading(self.heading)
             
         if visuals.windowTheme == "duck":
             if self.heading is not None:
@@ -114,10 +98,10 @@ class MainWindow(QMainWindow):
                 self.movie = QMovie("Assets/duck-left.gif")
                         
             self.setFixedSize(size)
-            label.setFixedSize(size)
+            self.label.setFixedSize(size)
 
             self.movie.setScaledSize(size)
-            label.setMovie(self.movie)
+            self.label.setMovie(self.movie)
             self.movie.start()        
 
     def getImageSize(self, imageSize:str|list) -> QSize:
@@ -137,12 +121,28 @@ class MainWindow(QMainWindow):
     
         return defaultSizes[imageSize] 
     
+    def updatePixmapHeading(self, heading:float|None):
+        if self.defaultPixmap and heading is not None:
+            transform = QTransform().rotate(heading)
+            rotated   = self.defaultPixmap.transformed(transform, Qt.TransformationMode.SmoothTransformation)
+            
+            size = self.label.size()
+            x = (rotated.width()  - size.width())  // 2
+            y = (rotated.height() - size.height()) // 2
+            self.pixmap = rotated.copy(x, y, size.width(), size.height())
+            
+            self.label.setPixmap(self.pixmap)
+             
     def updateState(self, state:StateVector) -> None:
         """Redefine window properties when new a state becomes available"""
         self.icao24 = state.icao24
         self.callsign = state.callsign
         self.velocity = state.velocity
         self.heading = state.true_track
+        
+        if self.defaultPixmap: # ducks use movie, don't rotate to heading
+            self.updatePixmapHeading(state.true_track)
+        
         if state.longitude is None or state.latitude is None:
             return
         self.longitude = state.longitude
@@ -155,8 +155,6 @@ class MainWindow(QMainWindow):
             
         self.lastApiUpdate = time.monotonic()
         
-        # self.moveToPlaneLoc(self.longitude, self.latitude)
-
     def coordsToPixels(self, lon:float, lat:float) -> tuple[int, int]: 
         # normalize to 0-1 and multiply with number of available pixels
         pixelx = int(((lon - self.minLong) / (self.maxLong - self.minLong) ) * self.Nxpixels)

@@ -28,3 +28,4 @@
 * [ ] Move window first while not visible, then show
 * [ ] Remove window borders completely on windows
 * [ ] Fix arrival airport filters.
+* [ ] Add more info to tooltip and toggle it in settings.
