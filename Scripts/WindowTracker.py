@@ -90,7 +90,7 @@ class WindowTracker():
                     # If there are previously untracked states in the newest api call result, add those to tracked states. Even if the spacing is too short.
                     untrackedStates = self.filter.extractUntrackedStates(self.windows, newStates.states)
                     self.updateWindows(untrackedStates, delete = False)
-                                        
+
                     print(f"New api call spacing too short, continuing\n")
                     self.numApiCallsSkipped += 1
                     continue    
@@ -98,13 +98,13 @@ class WindowTracker():
                 self.newestApiUpdateTime = newStates.time
                 self.numApiCallsSkipped  = 0.0  # reset
                 
-                print(f"\n\nAccepted new states at {datetime.fromtimestamp(newStates.time)}\n")             # print(f"all new states: {[state.callsign for state in newStates.states]}")
+                print(f"\n\nAccepted {len(newStates.states)} new states at {datetime.fromtimestamp(newStates.time)}\n")             # print(f"all new states: {[state.callsign for state in newStates.states]}")
                 
                 filteredNewStates = self.filter.filterStates(newStates.states)
                 self.updateWindows(filteredNewStates)
                 await asyncio.sleep(self.apiCallDelay) # wait for at least 10 seconds so not ratelimited by OpenSkyApi
   
-    async def deadReckonLoop(self, dt:float=1.0) -> None:
+    async def deadReckonLoop(self, dt:float = 1.0) -> None:
         "Move windows in direction of true track with correct velocity every dt seconds"
         while True:
             t0 = time.monotonic()
