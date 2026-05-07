@@ -7,7 +7,7 @@ import json
 # Custom imports
 from Mover import Mover
 from typing import Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from HandlingOpenSkyStates import getBboxSize, getBboxOffset
 
 
@@ -49,6 +49,8 @@ class TrackingConfig:
 class VisualsConfig:
     windowTheme:str = "aircraft"
     windowSize:str = "small"
+    updateInterval:float = 1.0
+    tooltipFields:list = field(default_factory=lambda: ["callsign"])
 
 @dataclass
 class WindowTrackerConfig:

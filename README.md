@@ -59,7 +59,7 @@ Use the .json file in Settings/ to set your preferences for the categories core,
 | name       | type    | default | description |
 |------------|---------|---------|-------------|
 | maxWindows |int      |25       | Maximum number of aircraft windows on the screen.|
-| screenName |string   |First entry in QApplication.screens() | Select the name of display on which to project the windows, eg "eDP-1", "HDMI-1-A", or "DP-1". If "all" use all displays. Depending on scaling of the displays, part of the bounding box may be "outside" the displays.|
+| displayName |string   |First entry in QApplication.screens() | Select the name of display on which to project the windows, eg "eDP-1", "HDMI-1-A", or "DP-1". If "all" use all displays. Depending on scaling of the displays, part of the bounding box may be "outside" the displays.|
 
 #### tracking
 Aircraft are filtered based on these conditions.
@@ -71,8 +71,8 @@ Aircraft are filtered based on these conditions.
 | airline               |string      |None     |Filter the three letters in the callsign, eg "KLM" or "DLH".|
 | icao24                |string      |None     |Eg "485F82", case insensitive.|
 | squawk                |string      |None     |Eg "1000" or "7700".|
-| inAir                 |float/bool  |None     |Set to 1 to only show aircraft in the air.|
-| onGround              |float/bool  |None     |Set to 1 to only show aircraft on the ground.|
+| inAir                 |int         |None     |Set to 1 to only show aircraft in the air.|
+| onGround              |int         |None     |Set to 1 to only show aircraft on the ground.|
 | minGeoAltitude        |float       |None     |Eg 30000, units in feet.|
 | maxGeoAltitude        |float       |None     |Eg 30000, units in feet.|
 | minBaroAltitude       |float       |None     |Eg 30000, units in feet.|
@@ -87,6 +87,8 @@ Aircraft are filtered based on these conditions.
 |------------|---------|---------|-------------|
 | windowTheme|string   |aircraft |Sets the image. Options: "aircraft", "duck". If "aircraft", the windows contain a .png of an aircraft that rotates depending on the heading. If "duck", the windows contain a .gif of a duck walking to the left or right depening on the heading.|
 | windowSize |string or list   | "small" |Set the size of the window. Options: "miniature", "small", "medium", "large", "comicallyLarge", [width, height]. Width and height must be integers|
+|updateInterval|float  |1.0      |Time in seconds between moving windows around. Must be positive and non-zero.|
+|tooltipFields|list     |["callsign"]        |List of fields shown when hovering over a window. May be any field from the tracking conditions or any field from opensky_api.StateVector.|
 
 #### Example settings file:
 <pre> ```json 
@@ -100,7 +102,8 @@ Aircraft are filtered based on these conditions.
     "tracking": {"inAir": 1,
                  "departureAirport": "EHAM"},
     "visuals": {"windowTheme": "duck",
-                "windowSize": "small"}
+                "windowSize": "small",
+                "tooltipFields": ["callsign", "true_track", "baro_altitude"]}
 } 
 ``` </pre>
 

@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel
 
 # Custom imports 
 from Mover import Mover
-from WindowTrackerConfig import WindowTrackerConfig, VisualsConfig
+from WindowTrackerConfig import WindowTrackerConfig, VisualsConfig, TrackingConfig
    
 
 class MainWindow(QMainWindow): 
@@ -62,7 +62,9 @@ class MainWindow(QMainWindow):
             self.Nypixels     = geom.height()
             self.screenOrigin = geom.topLeft()
         
-        self.setToolTip(self.callsign)
+        tooltip = self.buildTooltip(state, config.visuals.tooltipFields, config.tracking)
+        self.setToolTip(tooltip)
+        
         self.setWindowTitle(f"qtApp_{self.icao24}")
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
@@ -70,7 +72,30 @@ class MainWindow(QMainWindow):
         self.label = QLabel(self)
         self.setCentralWidget(self.label)
         self.setVisuals(config.visuals)
+         
+    def buildTooltip(self, state:StateVector, tooltip_fields:list, trackingConfig:TrackingConfig):
+        lines = []
+        
+        
+        for field in tooltip_fields:
+           
+            if hasattr(state, field):
+                value = getattr(state, field)
+            elif hasattr(trackingConfig, field):
+                value = getattr(trackingConfig, field)
+            else: # field not in state nor tracking config
+                continue
+
+            if isinstance(value, str): # Clean in string
+                value = value.strip()
                 
+                
+            if "altitude" in field and type(value) == int or type(value) == float:
+                value = round(value * 3.28084)
+
+            lines.append(f"{field}={repr(value)}")
+
+        return "\n".join(lines)       
 
     def setVisuals(self, visuals:VisualsConfig):
         size = self.getWindowSize(visuals.windowSize)
@@ -140,7 +165,7 @@ class MainWindow(QMainWindow):
         self.velocity = state.velocity
         self.heading = state.true_track
         
-        if self.defaultPixmap: # ducks use movie, don't rotate to heading
+        if hasattr(self, "defaultPixmap"): # ducks use movie, don't rotate to heading
             self.updatePixmapHeading(state.true_track)
         
         if state.longitude is None or state.latitude is None:
@@ -198,6 +223,20 @@ class MainWindow(QMainWindow):
         
         distanceTraveled = self.velocity*dt
         headingRadians = math.radians(self.heading)
+        
+        
+        # calculate position at next api update, depends on apiCallDelay, self.velocity, headingRadians
+        # Move there in int(apiCallDelay / dt) steps, after that many steps check if new api call has come in.
+        
+        # while not new api call, continue in current direction every dt second.
+        
+        # if new api call, calculate from THOSE coordinates/heading/velocity where window would be for NEXT call, coordinates (targetX, targetY).
+        #   Don't update position but rather calculate how to get from current lon/lat to (targetX, targetY) using int(apiCallDelay/dt) steps.
+        
+        
+        
+        
+        
         
         # Use flat earth approximation for converting from meters to degrees of lat/lon
         dlat = (distanceTraveled * math.cos(headingRadians)) / 111_320
