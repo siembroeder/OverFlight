@@ -172,8 +172,8 @@ class MainWindow(QMainWindow):
     def showEvent(self, a0) -> None: #a0 == event but qtwidgets complains
         """Fires when window is first shown"""
         super().showEvent(a0)             
-        QTimer.singleShot(150, lambda:self.moveToPlaneLoc(self.longitude, self.latitude)) # wait for window to spawn, then move. TODO: move first, then show.
-
+        QTimer.singleShot(10, lambda:self.moveToPlaneLoc(self.longitude, self.latitude)) # wait for window to spawn, then move. TODO: move first, then show.
+    
     def centerImage(self):
         self.pixelx = int(self.pixelx - (self.width() / 2))       # update such that image is rendered at the center rather than top left
         self.pixely = int(self.pixely - (self.height()/ 2))
