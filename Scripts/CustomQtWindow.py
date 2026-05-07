@@ -248,6 +248,10 @@ class MainWindow(QMainWindow):
 
 
 
+def windowIsOpen(icao24:str) -> bool:
+    title = f"qtApp_{icao24}"
+    return any(w.windowTitle() == title and w.isVisible() for w in QApplication.topLevelWidgets())
+
 
 
 def main():
