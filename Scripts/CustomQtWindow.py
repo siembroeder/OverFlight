@@ -89,8 +89,7 @@ class MainWindow(QMainWindow):
             if isinstance(value, str): # Clean in string
                 value = value.strip()
                 
-                
-            if "altitude" in field and type(value) == int or type(value) == float:
+            if "altitude" in field and (type(value) == int or type(value) == float):
                 value = round(value * 3.28084)
 
             lines.append(f"{field}={repr(value)}")
