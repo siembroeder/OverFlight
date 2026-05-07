@@ -5,7 +5,10 @@
 * [X] ~~*Ducks walking left/right depending on heading.*~~ [2026-05-01]
 * [X] ~~*Type hinting of windows:dict[str,MainWindow] should become dict[icao24, Mainwindow]*~~ [2026-05-06]
 * [X] ~~*Fix image resizing. Also check if centering image works correctly.*~~ [2026-05-06]
-* [X] ~~*Rotate image depending on heading*~~ [2026-05-06]
+* [X] ~~*Fix screenName setting*~~ [2026-05-07]
+* [ ] Rotate image depending on heading
+    * [X] ~~*Initial heading*~~ [2026-05-07] 
+    * [ ] Update heading
 * [ ] Split WindowTracker class into multiple classes
     * [X] ~~*Filter to separate class*~~ [2026-05-03]
     * [ ] What to do with fetching/deadreckoning loop?

@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel
 
 # Custom imports 
 from Mover import Mover
-from WindowTrackerConfig import WindowTrackerConfig
+from WindowTrackerConfig import WindowTrackerConfig, VisualsConfig
    
 
 class MainWindow(QMainWindow): 
@@ -32,25 +32,51 @@ class MainWindow(QMainWindow):
         # Extract config data
         self.mover:"Mover" = config.mover
         self.minLat, self.maxLat, self.minLong, self.maxLong = config.bboxAtLocation
-        visuals = config.visuals
         
+        # Select display
         screens = QApplication.screens()
         displayName = config.setup.displayName
-        if displayName == 'all': 
-            self.primaryScreen = QApplication.primaryScreen()
-            if self.primaryScreen is not None:
-                self.virtual_geom = self.primaryScreen.virtualGeometry()
-                self.Nxpixels = self.virtual_geom.getCoords()[2] + 1
-                self.Nypixels = self.virtual_geom.getCoords()[3] + 1            #print(f"{self.virtual_geom=}")
+        self.targetScreen = None
+        
+        if displayName == "all":
+            self.targetScreen = QApplication.primaryScreen()
+            if self.targetScreen is not None:
+                self.virtual_geom = self.targetScreen.virtualGeometry()
+                self.Nxpixels = self.virtual_geom.width()
+                self.Nypixels = self.virtual_geom.height()
+                self.screenOrigin = self.virtual_geom.topLeft()
         else:
             for screen in screens:
-                if not displayName: # set dimensions to first screen
-                    self.availableGeometry = screen.availableGeometry()
-                    self.Nxpixels, self.Nypixels = self.availableGeometry.width(), self.availableGeometry.height()
-                    break 
+                if not displayName: # Use first screen
+                    self.targetScreen = screen
+                    break
                 elif screen.name() == displayName:
-                    self.availableGeometry = screen.availableGeometry()
-                    self.Nxpixels, self.Nypixels = self.availableGeometry.width(), self.availableGeometry.height() 
+                    self.targetScreen = screen
+                    break
+                
+            if self.targetScreen is None:
+                raise ValueError("No screen found. Set the displayName.")
+                
+            geom              = self.targetScreen.availableGeometry()
+            self.Nxpixels     = geom.width()
+            self.Nypixels     = geom.height()
+            self.screenOrigin = geom.topLeft()
+        
+        # if displayName == 'all': 
+        #     self.primaryScreen = QApplication.primaryScreen()
+        #     if self.primaryScreen is not None:
+        #         self.virtual_geom = self.primaryScreen.virtualGeometry()
+        #         self.Nxpixels = self.virtual_geom.getCoords()[2] + 1
+        #         self.Nypixels = self.virtual_geom.getCoords()[3] + 1            #print(f"{self.virtual_geom=}")
+        # else:
+        #     for screen in screens:
+        #         if not displayName: # set dimensions to first screen
+        #             self.availableGeometry = screen.availableGeometry()
+        #             self.Nxpixels, self.Nypixels = self.availableGeometry.width(), self.availableGeometry.height()
+        #             break 
+        #         elif screen.name() == displayName:
+        #             self.availableGeometry = screen.availableGeometry()
+        #             self.Nxpixels, self.Nypixels = self.availableGeometry.width(), self.availableGeometry.height() 
         
         self.setToolTip(self.callsign)
         self.setWindowTitle(f"qtApp_{self.icao24}")
@@ -59,8 +85,12 @@ class MainWindow(QMainWindow):
 
         label = QLabel(self)
         self.setCentralWidget(label)
-        
-        size = self.getImageSize(visuals.imageSize)    
+        self.setVisuals(config.visuals, label)
+                
+
+    def setVisuals(self, visuals:VisualsConfig, label:QLabel):
+        size = self.getImageSize(visuals.imageSize)
+
         if visuals.windowTheme == "aircraft":
             pixmap = QPixmap("Assets/singleIsleAircraft.png")
             if self.heading is not None:
@@ -74,23 +104,22 @@ class MainWindow(QMainWindow):
             label.setFixedSize(size)
             self.setFixedSize(size)
             
-            
         if visuals.windowTheme == "duck":
             if self.heading is not None:
                 if self.heading >= 0.0 and self.heading <= 180.0: 
-                    movie = QMovie("Assets/duck-right.gif")
+                    self.movie = QMovie("Assets/duck-right.gif")
                 else:
-                    movie = QMovie("Assets/duck-left.gif")
+                    self.movie = QMovie("Assets/duck-left.gif")
             else:
-                movie = QMovie("Assets/duck-left.gif")
+                self.movie = QMovie("Assets/duck-left.gif")
                         
             self.setFixedSize(size)
             label.setFixedSize(size)
 
-            movie.setScaledSize(size)
-            label.setMovie(movie)
-            movie.start()        
-                
+            self.movie.setScaledSize(size)
+            label.setMovie(self.movie)
+            self.movie.start()        
+
     def getImageSize(self, imageSize:str|list) -> QSize:
         defaultSizes = {"miniature": QSize(25, 25),
                         "small":     QSize(50, 50),
@@ -107,7 +136,7 @@ class MainWindow(QMainWindow):
             imageSize = "small"
     
         return defaultSizes[imageSize] 
-
+    
     def updateState(self, state:StateVector) -> None:
         """Redefine window properties when new a state becomes available"""
         self.icao24 = state.icao24
@@ -133,8 +162,13 @@ class MainWindow(QMainWindow):
         pixelx = int(((lon - self.minLong) / (self.maxLong - self.minLong) ) * self.Nxpixels)
         pixely = int(((lat - self.minLat)  / (self.maxLat - self.minLat)   ) * self.Nypixels) # print(f"{[pixelx,pixely]=}")
         
-        # since on hyprland y axis inverted:
-        pixely = self.Nypixels - pixely        
+        # invert y axis
+        pixely = self.Nypixels - pixely    
+        
+        # offset to selected display
+        pixelx += self.screenOrigin.x()
+        pixely += self.screenOrigin.y()   
+         
         return pixelx, pixely
         
     def showEvent(self, a0) -> None: #a0 == event but qtwidgets complains
