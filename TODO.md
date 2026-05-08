@@ -16,7 +16,7 @@
 * [X] ~~*Make small, medium, large bbox sizes*~~ [2026-05-08]
     * [X] ~~*All three exist*~~ [2026-05-03]
     * [X] ~~*Calculate bbox aspect ratio using supplied bboxSize and selected screens' aspect ratio*~~ [2026-05-08]
-* [ ] Use some way to smoothen transition to incoming new api states. eg kallman filter or deadreckoning strechting
+* [ ] Use some way to smoothen transition to incoming new api states. eg kallman filter or deadreckoning stretching
 
         When new api call comes in, calculate position of where the window would be for next call, move there with required heading/velocity. 
         If no new call and position reached, then take latest heading/velocity and deadreckon from there.

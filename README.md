@@ -5,14 +5,14 @@ Overflight is a desktop agent that displays nearby aircrafts through icons that 
 
 
 ## Prototype / Development
-Not ready for use.
+
 Current functionality:
-- choose a location, bounding box: "small"/"large", monitor eg "eDP-1", and maximum amount of windows allowed eg "3".
-- spawns a duck at the corrent location relative to the chosen bounding box and screen.
-- in between api calls, use deadreckoning to update every dt seconds
-- reposition the window/duck when a new api call comes in.
+- Configure in Settings/settings.json using below documentation.
+- spawns windows representing live aircraft at their current location relative to the chosen bounding box and screen.
+- in between api calls, use deadreckoning to update window position for more a interactive experience
+- reposition the windows and reset deadreckoning when a new api call comes in.
 - close the window when the aircraft moves out of the bounding box.
-- creates a new window if a new aircraft moves into the bounding box and the max number of windows isn't reached.
+- create a new window if a new aircraft moves into the bounding box and the max number of windows isn't reached.
 - runs indefinitely.
 
 
@@ -31,7 +31,7 @@ Current functionality:
 
 
 ### Settings / Configuration
-Use the .json file in Settings/ to set your preferences for the categories core, api, setup, tracking. 
+Use the settings.json file in Settings/ to set your preferences for the categories core, api, setup, tracking, and visuals. 
 
 #### core
 
@@ -116,6 +116,7 @@ Aircraft are filtered based on these conditions.
 - geopy
 - wmctrl, if on linux
 - qasync
+- qasyncio
 
 
 
