@@ -16,12 +16,6 @@ from WindowTrackerConfig import WindowTrackerConfig, VisualsConfig, TrackingConf
 
 
 
-def windowIsOpen(icao24:str) -> bool:
-    title = f"qtApp_{icao24}"
-    return any(w.windowTitle() == title and w.isVisible() for w in QApplication.topLevelWidgets())
-
-
-
 
 class MainWindow(QMainWindow): 
     def __init__(self, state:StateVector, config:WindowTrackerConfig):
@@ -82,7 +76,6 @@ class MainWindow(QMainWindow):
     def buildTooltip(self, state:StateVector, tooltip_fields:list, trackingConfig:TrackingConfig):
         lines = []
         
-        
         for field in tooltip_fields:
            
             if hasattr(state, field):
@@ -98,7 +91,7 @@ class MainWindow(QMainWindow):
             if "altitude" in field and isinstance(value, (int, float)):
                 value = round(value * 3.28084)
 
-            lines.append(f"{field}={repr(value)}")
+            lines.append(f"{field}={value}")
 
         return "\n".join(lines)       
 

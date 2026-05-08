@@ -8,7 +8,7 @@ import json
 from Mover import Mover
 from typing import Optional
 from dataclasses import dataclass, field
-from HandlingOpenSkyStates import getBboxSize, getBboxOffset
+from Utils.OpenSkyUtils import getBboxSize, getBboxOffset
 
 
 @dataclass
@@ -85,13 +85,13 @@ class WindowTrackerConfig:
         if not coreConfig.location:
             raise KeyError("Location not defined in settings.json.")
 
-        bboxAtLocation = cls.getBbox(coreConfig)
+        bboxAtLocation = cls.getBbox(coreConfig, setupConfig)
 
         return cls(api, bboxAtLocation, coreConfig, apiConfig, setupConfig, trackingConfig, visualsConfig)
 
 
     @staticmethod
-    def getBbox(core:CoreConfig) -> tuple[float, float, float, float]:
+    def getBbox(core:CoreConfig, setup:SetupConfig) -> tuple[float, float, float, float]:
         
         location  = core.location
         bboxSize  = core.bboxSize
@@ -106,10 +106,7 @@ class WindowTrackerConfig:
             raise KeyError("Invalid configuration, use either bboxSize or the offsets, not both.")
         
         if hasBbox:
-            if bboxSize in ["small", "medium", "large"]:
-                return getBboxSize(location, bboxSize)
-            else:
-                raise KeyError("The selected bboxSize is not \"small\", \"medium\", or \"large\"")
+            return getBboxSize(location, bboxSize, setup.displayName)
             
         if hasLatOffset and hasLonOffset:
             if latOffset <= 0.0 or lonOffset <= 0.0:

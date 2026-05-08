@@ -13,9 +13,9 @@
     * [X] ~~*Filter to separate class*~~ [2026-05-03]
     * [X] ~~*Move deadreckoningloop into fetchingloop.*~~ [2026-05-08]
     * [X] ~~*Split synchronous and asynchronous parts.*~~ [2026-05-08]
-* [ ] Make small, medium, large bbox sizes
+* [X] ~~*Make small, medium, large bbox sizes*~~ [2026-05-08]
     * [X] ~~*All three exist*~~ [2026-05-03]
-    * [ ] Verify that the sizes make sense compared to 16:9 ratio.
+    * [X] ~~*Calculate bbox aspect ratio using supplied bboxSize and selected screens' aspect ratio*~~ [2026-05-08]
 * [ ] Use some way to smoothen transition to incoming new api states. eg kallman filter or deadreckoning strechting
 
         When new api call comes in, calculate position of where the window would be for next call, move there with required heading/velocity. 
@@ -26,3 +26,4 @@
 * [ ] Move window first while not visible, then show. Not possible on wayland w/o wlroots
 * [ ] Remove window borders completely on windows
 * [ ] Fix arrival airport filters.
+* [ ] Cache settings & load settings every ... for runtime settings editing.

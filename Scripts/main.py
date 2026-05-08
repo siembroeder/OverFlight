@@ -19,10 +19,8 @@ from WindowTrackerRunner import WindowTrackerRunner
 
 
       
-def startOverflightApplication(runner:WindowTrackerRunner) -> QApplication:
+def startOverflightApplication(app: QApplication, runner:WindowTrackerRunner):
     """ spawn the windows asynchronously, wait for at least 10 seconds before api call, update locations asynchronously."""
-    app:QApplication = QApplication(sys.argv)
-    app.setQuitOnLastWindowClosed(False)
     
     loop:QEventLoop  = QEventLoop(app)
     asyncio.set_event_loop(loop)
@@ -35,17 +33,17 @@ def startOverflightApplication(runner:WindowTrackerRunner) -> QApplication:
     with loop:
         asyncio.ensure_future(runner.run())
         loop.run_forever()
- 
-    return app # keep reference to prevent them from being garbage collected
-
 
 
 def main():
+    app:QApplication = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
+
 
     trackerConfig = WindowTrackerConfig.loadSettings(settingsPath="Settings/settings.json")
     tracker       = WindowTracker(trackerConfig)
     runner        = WindowTrackerRunner(tracker, trackerConfig)
-    app = startOverflightApplication(runner)
+    startOverflightApplication(app, runner)
     
     
     

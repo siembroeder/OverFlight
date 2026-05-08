@@ -1,8 +1,10 @@
 
 
-from opensky_api import OpenSkyApi, OpenSkyStates, OpenSkyApi, StateVector, FlightData
+from opensky_api import OpenSkyApi, OpenSkyStates, OpenSkyApi, StateVector
 
+# Core Python Imports
 import json
+import math
 import requests
 from typing import cast
 from requests.models import Response
@@ -10,12 +12,14 @@ from requests.models import Response
 from geopy.location import Location
 from geopy.geocoders import Nominatim
 
+# Custom imports
+from Utils.QtUtils import getScreenGeometry
 
 
-def getBboxSize(locationName:str, BboxSize:str) -> tuple[float, float, float, float]:
+
+def getBboxSize(locationName:str, bboxSize:str, displayName:str|None) -> tuple[float, float, float, float]:
 
     geolocator:Nominatim = Nominatim(user_agent="appname")
-    # location:Location    = geolocator.geocode(locationName)
     location = cast(Location | None, geolocator.geocode(locationName))
         
     if location:
@@ -24,15 +28,21 @@ def getBboxSize(locationName:str, BboxSize:str) -> tuple[float, float, float, fl
         print(f"{location}\'s coordinates are: {location.latitude}, {location.longitude}")
     else:
         raise NameError("Location not found.")
-     
 
-    BboxSizes:dict[str, dict] = {"small": {"latitudeOffset": 0.10, "longitudeOffset": 0.25},
-                                 "medium":{"latitudeOffset": 0.30, "longitudeOffset": 0.50},
-                                 "large": {"latitudeOffset": 0.50, "longitudeOffset": 0.75}}
-
-    latitudeOffset:dict  =  BboxSizes[BboxSize]["latitudeOffset"]
-    longitudeOffset:dict = BboxSizes[BboxSize]["longitudeOffset"]
-
+    latitudeOffsets = {"small": 0.10, "medium": 0.30, "large": 0.50}
+    
+    if bboxSize in latitudeOffsets.keys():
+        latitudeOffset = latitudeOffsets[bboxSize]
+    else:
+        raise KeyError("The selected bboxSize is not \"small\", \"medium\", or \"large\"")
+    
+    
+    # Use the selected screens' aspect ratio to set the boundingbox aspect ratio
+    geom = getScreenGeometry(displayName)
+    factor = geom.width() / geom.height()   
+    
+    longitudeOffset = factor * latitudeOffset / math.cos(math.radians(latitude))
+    
     minLat:float  = latitude - latitudeOffset
     maxLat:float  = latitude + latitudeOffset
     minLong:float = longitude- longitudeOffset

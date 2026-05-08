@@ -10,7 +10,7 @@ from datetime import datetime
 # Custom imports
 from WindowTracker import WindowTracker
 from WindowTrackerConfig import WindowTrackerConfig
-from HandlingOpenSkyStates import fetchStatesInBbox
+from Utils.OpenSkyUtils import fetchStatesInBbox
 
 
 class WindowTrackerRunner():

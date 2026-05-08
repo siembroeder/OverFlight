@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from CustomQtWindow import MainWindow
     
-from PlatformOs import getUserPlatform, getSessionType, getWindowManager
+from Utils.PlatformUtils import getUserPlatform, getSessionType, getWindowManager
 
 
 

@@ -3,7 +3,8 @@ from opensky_api import StateVector
 
 # Custom imports
 from StateFilter import StateFilter
-from CustomQtWindow import MainWindow, windowIsOpen
+from CustomQtWindow import MainWindow
+from Utils.QtUtils import windowIsOpen
 from WindowTrackerConfig import WindowTrackerConfig
 
 type icao24 = str
