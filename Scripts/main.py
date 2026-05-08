@@ -13,7 +13,9 @@ from qasync import QEventLoop
 from PyQt6.QtWidgets import QApplication
 
 # Custom import
-from WindowTracker import WindowTracker, WindowTrackerConfig, WindowTrackerRunner
+from WindowTracker import WindowTracker
+from WindowTrackerConfig import WindowTrackerConfig
+from WindowTrackerRunner import WindowTrackerRunner
 
 
       
