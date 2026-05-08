@@ -14,12 +14,20 @@ from Mover import Mover
 from WindowTrackerConfig import WindowTrackerConfig, VisualsConfig, TrackingConfig
    
 
+
+
+def windowIsOpen(icao24:str) -> bool:
+    title = f"qtApp_{icao24}"
+    return any(w.windowTitle() == title and w.isVisible() for w in QApplication.topLevelWidgets())
+
+
+
+
 class MainWindow(QMainWindow): 
     def __init__(self, state:StateVector, config:WindowTrackerConfig):
         super().__init__()
         
         # Extract state data
-        self.state = state
         self.icao24 = state.icao24
         self.callsign = state.callsign
         self.velocity = state.velocity  # m/s
@@ -32,46 +40,44 @@ class MainWindow(QMainWindow):
         # Extract config data
         self.mover:"Mover" = config.mover
         self.minLat, self.maxLat, self.minLong, self.maxLong = config.bboxAtLocation
+        self.theme = config.visuals.windowTheme
         
-        # Select display
-        screens = QApplication.screens()
-        displayName = config.setup.displayName
-        self.targetScreen = None
-        
-        if displayName == "all":
-            self.targetScreen = QApplication.primaryScreen()
-            if self.targetScreen is not None:
-                self.virtual_geom = self.targetScreen.virtualGeometry()
-                self.Nxpixels = self.virtual_geom.width()
-                self.Nypixels = self.virtual_geom.height()
-                self.screenOrigin = self.virtual_geom.topLeft()
-        else:
-            for screen in screens:
-                if not displayName: # Use first screen
-                    self.targetScreen = screen
-                    break
-                elif screen.name() == displayName:
-                    self.targetScreen = screen
-                    break
-                
-            if self.targetScreen is None:
-                raise ValueError("No screen found. Set the displayName.")
-                
-            geom              = self.targetScreen.availableGeometry()
-            self.Nxpixels     = geom.width()
-            self.Nypixels     = geom.height()
-            self.screenOrigin = geom.topLeft()
-        
-        tooltip = self.buildTooltip(state, config.visuals.tooltipFields, config.tracking)
-        self.setToolTip(tooltip)
-        
+        # Set basic Qt info
         self.setWindowTitle(f"qtApp_{self.icao24}")
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
 
         self.label = QLabel(self)
         self.setCentralWidget(self.label)
+        
+        # Set custom Qt info
+        tooltip = self.buildTooltip(state, config.visuals.tooltipFields, config.tracking)
+        self.setToolTip(tooltip)
         self.setVisuals(config.visuals)
+        self.setScreenParams(config.setup.displayName)
+        
+             
+    def setScreenParams(self, displayName:str|None):
+        if displayName == "all":
+            screen = QApplication.primaryScreen()
+            
+            if screen is None:
+                raise ValueError("No primary screen found.")
+            
+            geom = screen.virtualGeometry()
+            
+        else:
+            # set to first screen if not displayName, elif match to displayName, else None.
+            screen = next((screen for screen in QApplication.screens() if not displayName or screen.name() == displayName), None) 
+            
+            if screen is None:
+                raise ValueError("No screen found. Set the displayName.")
+            
+            geom = screen.availableGeometry()
+
+        self.Nxpixels     = geom.width()
+        self.Nypixels     = geom.height()
+        self.screenOrigin = geom.topLeft()
          
     def buildTooltip(self, state:StateVector, tooltip_fields:list, trackingConfig:TrackingConfig):
         lines = []
@@ -89,7 +95,7 @@ class MainWindow(QMainWindow):
             if isinstance(value, str): # Clean in string
                 value = value.strip()
                 
-            if "altitude" in field and (type(value) == int or type(value) == float):
+            if "altitude" in field and isinstance(value, (int, float)):
                 value = round(value * 3.28084)
 
             lines.append(f"{field}={repr(value)}")
@@ -103,11 +109,6 @@ class MainWindow(QMainWindow):
             image = QPixmap("Assets/singleIsleAircraft.png")
             self.defaultPixmap = image.scaled(size, Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
             
-
-            # pixmap = self.defaultPixmap.scaled(size,Qt.AspectRatioMode.IgnoreAspectRatio,
-            #                             Qt.TransformationMode.SmoothTransformation)
-            # self.label.setPixmap(pixmap)
-
             self.label.setFixedSize(size)
             self.setFixedSize(size)
             self.updatePixmapHeading(self.heading)
@@ -141,7 +142,7 @@ class MainWindow(QMainWindow):
             raise IndexError("imageSize should have exactly 2 items")
         
         if windowSize not in defaultSizes.keys():
-            imageSize = "small"
+            windowSize = "small"
     
         return defaultSizes[windowSize] 
     
@@ -164,7 +165,7 @@ class MainWindow(QMainWindow):
         self.velocity = state.velocity
         self.heading = state.true_track
         
-        if hasattr(self, "defaultPixmap"): # ducks use movie, don't rotate to heading
+        if self.theme == "aircraft": # ducks use movie, don't rotate to heading
             self.updatePixmapHeading(state.true_track)
         
         if state.longitude is None or state.latitude is None:
@@ -198,19 +199,14 @@ class MainWindow(QMainWindow):
         super().showEvent(a0)             
         QTimer.singleShot(10, lambda:self.moveToPlaneLoc(self.longitude, self.latitude)) # wait for window to spawn, then move. TODO: move first, then show.
     
-    def centerImage(self):
-        self.pixelx = int(self.pixelx - (self.width() / 2))       # update such that image is rendered at the center rather than top left
-        self.pixely = int(self.pixely - (self.height()/ 2))
-
     def moveToPlaneLoc(self, longitude:float, latitude:float) -> None:
-        self.pixelx, self.pixely = self.coordsToPixels(longitude, latitude)
+        pixelx, pixely = self.coordsToPixels(longitude, latitude)
         
-        self.centerImage()
-        self.customMove(self.pixelx, self.pixely)  
-        # print(f"Moving {self.callsign} to {self.pixelx}, {self.pixely}")
-    
-    def customMove(self, x:int, y:int):
-        self.mover.move(x, y, self)
+        # Center image
+        pixelx = int(pixelx - (self.width() / 2))
+        pixely = int(pixely - (self.height()/ 2))
+
+        self.mover.move(pixelx, pixely, self)         # print(f"Moving {self.callsign} to {self.pixelx}, {self.pixely}")        
 
     def deadReckonPosition(self, dt:float) -> None:
         
@@ -248,9 +244,6 @@ class MainWindow(QMainWindow):
 
 
 
-def windowIsOpen(icao24:str) -> bool:
-    title = f"qtApp_{icao24}"
-    return any(w.windowTitle() == title and w.isVisible() for w in QApplication.topLevelWidgets())
 
 
 
