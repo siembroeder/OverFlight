@@ -5,6 +5,7 @@ from opensky_api import OpenSkyApi, OpenSkyStates, OpenSkyApi, StateVector
 # Core Python Imports
 import json
 import math
+import logging
 import requests
 from typing import cast
 from requests.models import Response
@@ -15,6 +16,7 @@ from geopy.geocoders import Nominatim
 # Custom imports
 from Utils.QtUtils import getScreenGeometry
 
+logger = logging.getLogger(__name__)
 
 
 def getBboxSize(locationName:str, bboxSize:str, displayName:str|None) -> tuple[float, float, float, float]:
@@ -25,7 +27,7 @@ def getBboxSize(locationName:str, bboxSize:str, displayName:str|None) -> tuple[f
     if location:
         latitude = location.latitude
         longitude= location.longitude
-        print(f"{location}\'s coordinates are: {location.latitude}, {location.longitude}")
+        logger.info(f"{location}\'s coordinates are: {location.latitude}, {location.longitude}")
     else:
         raise NameError("Location not found.")
 
@@ -59,7 +61,7 @@ def getBboxOffset(locationName:str, longitudeOffset:float, latitudeOffset:float)
     if location:
         latitude = location.latitude
         longitude= location.longitude
-        print(f"{location}\'s coordinates are: {location.latitude}, {location.longitude}")
+        logger.info(f"{location}\'s coordinates are: {location.latitude}, {location.longitude}")
     else:
         raise NameError("Location not found.")
 

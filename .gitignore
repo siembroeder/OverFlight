@@ -4,3 +4,4 @@ credentials.json
 */__pycache__/
 */*/__pycache__/
 Scripts/scratchpad.py
+logs/*

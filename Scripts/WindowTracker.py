@@ -1,6 +1,9 @@
 
 from opensky_api import StateVector
 
+# Core Python imports
+import logging
+
 # Custom imports
 from StateFilter import StateFilter
 from CustomQtWindow import MainWindow
@@ -8,6 +11,8 @@ from Utils.QtUtils import windowIsOpen
 from WindowTrackerConfig import WindowTrackerConfig
 
 type icao24 = str
+
+logger = logging.getLogger(__name__)
         
 class WindowTracker():
     def __init__(self, config:WindowTrackerConfig):
@@ -15,15 +20,11 @@ class WindowTracker():
         
         self.api            = config.api
         self.bboxAtLocation = config.bboxAtLocation
-        
         self.maxWindows     = config.setup.maxWindows
         self.apiCallDelay   = config.apiConfig.apiCallDelay
-        
         self.filter = StateFilter(config.tracking, self.api, config.setup.maxWindows)
         
         self.windows:dict[icao24, MainWindow] = {}
-        self.numApiCallsSkipped = 0.0
-        self.newestStateTimestamp = 0.0
 
     def spawnWindow(self, state:StateVector) -> None:
         """Use spawns a window titled f\"qtApp_{state.icao24}\", also stores the  window in the windows dict with icao24 as key"""
@@ -35,6 +36,9 @@ class WindowTracker():
 
     def updateWindows(self, newStates:list[StateVector], delete:bool = True) -> None:
         """Spawn, update, or close windows based on current aircraft states."""
+        
+        self.checkNewSettings()
+        
         newIcaos = {state.icao24 for state in newStates}
 
         for state in newStates:
@@ -47,7 +51,7 @@ class WindowTracker():
             for icao24 in list(self.windows.keys()):
                 if icao24 not in newIcaos:
                     self.windows[icao24].close()
-                    print(f"Stopped tracking {icao24}")
+                    logger.debug(f"Stopped tracking {icao24}")
                     del self.windows[icao24]
                           
     def deadReckonWindows(self, dt:float):
@@ -55,4 +59,20 @@ class WindowTracker():
             if windowIsOpen(icao24):
                 window.deadReckonPosition(dt)
 
+    def checkNewSettings(self) -> bool:
+        logging.disable(logging.INFO) # disable logging for checking settings.
+        newConfig = WindowTrackerConfig.loadSettings(settingsPath="Settings/settings.json")
+        logging.disable(logging.NOTSET)
+        
+        isUpdated = False
+        
+        if newConfig != self.config:
+            self.config         = newConfig
+            self.bboxAtLocation = newConfig.bboxAtLocation
+            self.maxWindows     = newConfig.setup.maxWindows
+            self.apiCallDelay   = newConfig.apiConfig.apiCallDelay
+            self.filter         = StateFilter(newConfig.tracking, self.api, newConfig.setup.maxWindows)
+            
+            isUpdated = True
 
+        return isUpdated

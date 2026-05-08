@@ -2,23 +2,27 @@
 
 
 # Core Python imports
+import os
 import sys
 import signal
 import platform
-
 import asyncio
+import logging
+from logging.handlers import RotatingFileHandler
 from qasync import QEventLoop
 
 # PyQt imports
 from PyQt6.QtWidgets import QApplication
 
 # Custom import
+from Utils.LoggingUtils import setupLogging
+setupLogging()
+
 from WindowTracker import WindowTracker
 from WindowTrackerConfig import WindowTrackerConfig
 from WindowTrackerRunner import WindowTrackerRunner
 
 
-      
 def startOverflightApplication(app: QApplication, runner:WindowTrackerRunner):
     """ spawn the windows asynchronously, wait for at least 10 seconds before api call, update locations asynchronously."""
     

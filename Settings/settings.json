@@ -21,6 +21,6 @@
                 "registrationCountry": ""},
     "visuals": {"windowTheme": "duck",
                 "windowSize": "small",
-                "updateInterval": 3.0,
+                "updateInterval": 1.0,
                 "tooltipFields": ["callsign", "true_track", "baro_altitude"]}
 } 

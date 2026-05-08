@@ -6,7 +6,7 @@ import json
 
 # Custom imports
 from Mover import Mover
-from typing import Optional
+from typing import Optional, ClassVar
 from dataclasses import dataclass, field
 from Utils.OpenSkyUtils import getBboxSize, getBboxOffset
 
@@ -54,7 +54,7 @@ class VisualsConfig:
 
 @dataclass
 class WindowTrackerConfig:
-    api: OpenSkyApi
+    api: ClassVar[OpenSkyApi]
     bboxAtLocation: tuple
 
     core:       CoreConfig
@@ -67,7 +67,7 @@ class WindowTrackerConfig:
     
     
     @classmethod
-    def loadSettings(cls, settingsPath: str = "Settings/userDefinedTrackerSettings.json"):
+    def loadSettings(cls, settingsPath:str = "Settings/settings.json", printFlag:bool = True):
         with open(settingsPath) as f:
             configData = json.load(f)
 
@@ -80,14 +80,15 @@ class WindowTrackerConfig:
 
 
         # Create API
-        api = OpenSkyApi(token_manager=TokenManager.from_json_file(coreConfig.openskyCredentialsPath))
+        if not hasattr(cls, "api"):
+            cls.api = OpenSkyApi(token_manager=TokenManager.from_json_file(coreConfig.openskyCredentialsPath))
         
         if not coreConfig.location:
             raise KeyError("Location not defined in settings.json.")
 
         bboxAtLocation = cls.getBbox(coreConfig, setupConfig)
 
-        return cls(api, bboxAtLocation, coreConfig, apiConfig, setupConfig, trackingConfig, visualsConfig)
+        return cls(bboxAtLocation, coreConfig, apiConfig, setupConfig, trackingConfig, visualsConfig)
 
 
     @staticmethod

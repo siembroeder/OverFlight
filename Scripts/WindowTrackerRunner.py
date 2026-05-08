@@ -4,6 +4,7 @@ from opensky_api import OpenSkyStates
 #Core Python imports
 import time
 import asyncio
+import logging
 from datetime import datetime
 
 
@@ -12,12 +13,11 @@ from WindowTracker import WindowTracker
 from WindowTrackerConfig import WindowTrackerConfig
 from Utils.OpenSkyUtils import fetchStatesInBbox
 
-
+logger = logging.getLogger(__name__)
 class WindowTrackerRunner():
     def __init__(self, tracker: WindowTracker, config: WindowTrackerConfig):
         self.tracker = tracker
         
-        self.api            = config.api
         self.bboxAtLocation = config.bboxAtLocation
         self.apiCallDelay   = config.apiConfig.apiCallDelay
         self.updateInterval = config.visuals.updateInterval
@@ -43,12 +43,16 @@ class WindowTrackerRunner():
         assert self.apiCallDelay >= 10.0, "apiCallDelay must be at least 10 seconds."
         
         while True:
+            
+                # update settings if changed during runtime
+                self.syncTrackerSettings()
                 
-                newStates:OpenSkyStates|None = fetchStatesInBbox(self.api, self.bboxAtLocation)  
+                # fetch new states, ratelimiting is handled in .waitWithDeadReckoning
+                newStates:OpenSkyStates|None = fetchStatesInBbox(self.tracker.config.api, self.bboxAtLocation)  
                 
                 # skip to next api call if newStates empty.
                 if not newStates or not newStates.states:
-                    print(f"New states are empty, continuing\n")
+                    logger.debug("New states are empty, continuing\n")
                     self.numApiCallsSkipped += 1
                     
                     await self.waitWithDeadReckoning(self.apiCallDelay)
@@ -56,7 +60,7 @@ class WindowTrackerRunner():
                 
                 # skip if new timestamp older than previous timestamp
                 if newStates.time < self.newestStateTimestamp: 
-                    print(f"New states older than previous, continuing\n")
+                    logger.debug("New states older than previous, continuing\n")
                     self.numApiCallsSkipped += 1
                     
                     await self.waitWithDeadReckoning(self.apiCallDelay)
@@ -70,21 +74,30 @@ class WindowTrackerRunner():
                     filteredUntrackedStates = self.tracker.filter.filterStates(untrackedStates)
                     self.tracker.updateWindows(filteredUntrackedStates, delete = False)
 
-                    print(f"New api call spacing too short, continuing\n")
+                    logger.debug("New api call spacing too short, continuing\n")
                     self.numApiCallsSkipped += 1
                     
                     await self.waitWithDeadReckoning(self.apiCallDelay)
                     continue    
                 
                 self.newestStateTimestamp = newStates.time
-                self.numApiCallsSkipped  = 0.0  # reset
+                self.numApiCallsSkipped   = 0.0  # reset
                 
-                print(f"\n\nAccepted {len(newStates.states)} new states at {datetime.fromtimestamp(int(time.time()))} with timestamp: {datetime.fromtimestamp(newStates.time)}\n")             # print(f"all new states: {[state.callsign for state in newStates.states]}")
+                logger.info(f"\n\nAccepted {len(newStates.states)} new states at {datetime.fromtimestamp(int(time.time()))} with timestamp: {datetime.fromtimestamp(newStates.time)}\n")
                 
                 filteredNewStates = self.tracker.filter.filterStates(newStates.states)
                 self.tracker.updateWindows(filteredNewStates)
                 
                 await self.waitWithDeadReckoning(self.apiCallDelay)
+
+    def syncTrackerSettings(self):
+        if self.tracker.checkNewSettings():
+            config = self.tracker.config
+            
+            self.bboxAtLocation = config.bboxAtLocation
+            self.apiCallDelay   = config.apiConfig.apiCallDelay
+            self.updateInterval = config.visuals.updateInterval
+
 
     async def run(self) -> None:
         await self.fetchStatesLoop()
