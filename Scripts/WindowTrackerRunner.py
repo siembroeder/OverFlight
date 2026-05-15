@@ -5,53 +5,62 @@ from opensky_api import OpenSkyStates
 import time
 import asyncio
 import logging
+logger = logging.getLogger(__name__)
 from datetime import datetime
 
 
 # Custom imports
 from WindowTracker import WindowTracker
-from WindowTrackerConfig import WindowTrackerConfig
 from Utils.OpenSkyUtils import fetchStatesInBbox
 
-logger = logging.getLogger(__name__)
+
 class WindowTrackerRunner():
-    def __init__(self, tracker: WindowTracker, config: WindowTrackerConfig):
+    """
+    Controls WindowTracker.
+    Responsible for fetching aircraft states and for waiting in between api calls for apiCallDelay seconds. 
+    Must be longer than 10 seconds to not be ratelimited by the openskyapi if you're using a free subscription 
+    """
+    def __init__(self, tracker: WindowTracker):
         self.tracker = tracker
         
-        self.bboxAtLocation = config.bboxAtLocation
-        self.apiCallDelay   = config.apiConfig.apiCallDelay
-        self.updateInterval = config.visuals.updateInterval
+        self.bboxAtLocation = self.tracker.config.bboxAtLocation
+        self.apiCallDelay   = self.tracker.config.apiConfig.apiCallDelay
+        self.updateInterval = self.tracker.config.visuals.updateInterval
         
         self.newestStateTimestamp = 0.0
         self.numApiCallsSkipped   = 0.0
         
-    async def waitWithDeadReckoning(self, duration:float) -> None:
-        """ Pass apiCallDelay (despite self.apiCallDelay also being available here) to make it clear how long this function takes from where it's called."""
+    async def waitWithDeadReckoning(self, delayTime:float) -> None:
+        """ 
+        Async loop waiting for the next api call while applying dead reckoning to tracked windows.
         
-        dt = self.updateInterval
-        deadline = time.monotonic() + duration
+        Pass apiCallDelay explicitly (despite self.apiCallDelay also being available here) to make it clear how long this function takes from where it's called.
+        """
+        
+        dt = self.tracker.config.visuals.updateInterval
+        deadline = time.monotonic() + delayTime
         
         while time.monotonic() < deadline:
-            t0 = time.monotonic()
             await asyncio.sleep(dt)
-            
-            actualTimePassed = time.monotonic() - t0
-            self.tracker.deadReckonWindows(actualTimePassed)
+            self.tracker.deadReckonWindows()
 
     async def fetchStatesLoop(self):
+        """
+        Main asynchronous loop that fetches aircraft states, applies filtering, rate-limits API usage, and updates tracked windows.
+        """
         
         assert self.apiCallDelay >= 10.0, "apiCallDelay must be at least 10 seconds."
         
         while True:
             
                 # update settings if changed during runtime
-                self.syncTrackerSettings()
-                
+                self.tracker.checkNewSettings()
+            
                 # fetch new states, ratelimiting is handled in .waitWithDeadReckoning
                 newStates:OpenSkyStates|None = fetchStatesInBbox(self.tracker.config.api, self.bboxAtLocation)  
-                
+
                 # skip to next api call if newStates empty.
-                if not newStates or not newStates.states:
+                if (newStates is None) or (newStates.states is None):
                     logger.debug("New states are empty, continuing\n")
                     self.numApiCallsSkipped += 1
                     
@@ -87,20 +96,33 @@ class WindowTrackerRunner():
                 
                 filteredNewStates = self.tracker.filter.filterStates(newStates.states)
                 self.tracker.updateWindows(filteredNewStates)
-                
+                                
                 await self.waitWithDeadReckoning(self.apiCallDelay)
-
-    def syncTrackerSettings(self):
-        if self.tracker.checkNewSettings():
-            config = self.tracker.config
-            
-            self.bboxAtLocation = config.bboxAtLocation
-            self.apiCallDelay   = config.apiConfig.apiCallDelay
-            self.updateInterval = config.visuals.updateInterval
-
 
     async def run(self) -> None:
         await self.fetchStatesLoop()
 
 
-    
+# # use these to test / if no internet is available
+
+# sVector = [["icao24",
+#             "KLM123",
+#             "NL",
+#             123456789,
+#             987654321,
+#             52.3,
+#             4.89,
+#             10000,
+#             False,
+#             300,
+#             270.4,
+#             None,
+#             None,
+#             11000,
+#             "7700",
+#             False,
+#             0,
+#             0]]
+
+# NEW_STATES = OpenSkyStates({"time": time.time(), "states": sVector})
+

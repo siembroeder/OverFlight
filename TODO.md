@@ -16,15 +16,19 @@
 * [X] ~~*Make small, medium, large bbox sizes*~~ [2026-05-08]
     * [X] ~~*All three exist*~~ [2026-05-03]
     * [X] ~~*Calculate bbox aspect ratio using supplied bboxSize and selected screens' aspect ratio*~~ [2026-05-08]
-* [X] ~~*Cache settings & load settings every api call for runtime settings editing.*~~ [2026-05-08]
 * [X] ~~*Move to logging instead of printing.*~~ [2026-05-08]
-* [ ] Use some way to smoothen transition to incoming new api states. eg kallman filter or deadreckoning stretching
+* [X] ~~*Cache settings & load settings every api call for runtime settings editing.*~~ [2026-05-16]
+* [X] ~~*Smoothen transition to incoming new api states.*~~ [2026-05-16]
 
         When new api call comes in, calculate position of where the window would be for next call, move there with required heading/velocity. 
         If no new call and position reached, then take latest heading/velocity and deadreckon from there.
         When new call, again calculate position it would be after apiCallDelay seconds, move there. etc 
+
+* [X] ~~*Reconstruct tooltip every api update*~~ [2026-05-16]
 * [ ] Include plane/helicopter images and select based on type
 * [ ] Add other windowmanagers / desktop environments, eg sway or kwin
 * [ ] Move window first while not visible, then show. Not possible on wayland w/o wlroots
 * [ ] Remove window borders completely on windows
 * [ ] Fix arrival airport filters.
+* [ ] windowSizes' set pixels should scale with display
+* [ ] Include a filter for every StateVector field

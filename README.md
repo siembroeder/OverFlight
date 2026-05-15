@@ -8,23 +8,25 @@ Overflight is a desktop agent that displays nearby aircrafts through icons that 
 
 Current functionality:
 - Configure in Settings/settings.json using below documentation.
-- spawns windows representing live aircraft at their current location relative to the chosen bounding box and screen.
+- spawns windows representing live aircraft at their current location relative to the chosen boundingbox and screen.
 - in between api calls, use deadreckoning to update window position for more a interactive experience
-- reposition the windows and reset deadreckoning when a new api call comes in.
-- close the window when the aircraft moves out of the bounding box.
-- create a new window if a new aircraft moves into the bounding box and the max number of windows isn't reached.
+- When a new api call comes in, deadreckon to predicted next api location.
+- close the window when the aircraft moves out of the bounding box or no longer passes filters
+- create a new window if a new aircraft moves into the boundingbox and the max number of windows isn't reached.
+- Settings can be changed at runtime
 - runs indefinitely.
 
 
 ### Supported Sessions:
 
 - Hyprland, add these to your hyprland.conf file:
-  - windowrule = float on, match:title ^qtApp_.*
-  - windowrule = no_blur on, match:title ^qtApp_.*
-  - windowrule = border_size 0, match:title ^qtApp_.*
-  - windowrule = no_shadow on, match:title ^qtApp_.*
-  - windowrule = no_initial_focus on, match:title ^qtApp_.*
-  - windowrule = pin on, match:title ^qtApp_.*
+  - windowrule = float on, match:title ^OverFlightWindow_.*
+  - windowrule = no_blur on, match:title ^OverFlightWindow_.*
+  - windowrule = border_size 0, match:title ^OverFlightWindow_.*
+  - windowrule = no_shadow on, match:title ^OverFlightWindow_.*
+  - windowrule = no_initial_focus on, match:title ^OverFlightWindow_.*
+  - windowrule = pin on, match:title ^OverFlightWindow_.*
+    - Hyprland 0.55 (lua) support is coming.
 
 - Windows
 - X11 like xfce
@@ -88,7 +90,7 @@ Aircraft are filtered based on these conditions.
 | windowTheme|string   |aircraft |Sets the image. Options: "aircraft", "duck". If "aircraft", the windows contain a .png of an aircraft that rotates depending on the heading. If "duck", the windows contain a .gif of a duck walking to the left or right depening on the heading.|
 | windowSize |string or list   | "small" |Set the size of the window. Options: "miniature", "small", "medium", "large", "comicallyLarge", [width, height]. Width and height must be integers|
 |updateInterval|float  |1.0      |Time in seconds between moving windows around. Must be positive and non-zero.|
-|tooltipFields|list     |["callsign"]        |List of fields shown when hovering over a window. May be any field from the tracking conditions or any field from opensky_api.StateVector.|
+|tooltipFields|list     |["callsign"]        |List of fields shown when hovering over a window. May be any field from the tracking conditions or any field from [opensky_api.StateVector](https://openskynetwork.github.io/opensky-api/python.html#opensky_api.StateVector).|
 
 #### Example settings file:
 <pre> ```json 
@@ -107,16 +109,38 @@ Aircraft are filtered based on these conditions.
 } 
 ``` </pre>
 
+#### Runtime settings updating
+There are three different tiers of settings:
+- Tier 1, these are cheap and easy to change:
+    
+  - Tracking settings
+  - maxWindow
+  - apiCallDelay
+  - updateInterval
+  - tooltipFields
 
+- Tier 2, visual settings that might require all windows to close and reopen on the next api call:
+
+    - windowTheme
+    - windowSize
+
+- Tier 3, settings that require restarting OverFlight:
+
+    - openskyCredentialsPath
+    - displayName
+    
+    for now anyway, the goal is to implement runtime changing of these too
+  
+    
 
 
 ## Dependencies
 - OpenSkyApi
 - pyQt6
 - geopy
-- wmctrl, if on linux
 - qasync
 - qasyncio
+- wmctrl, if on linux
 
 
 

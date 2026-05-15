@@ -1,14 +1,10 @@
 
 
-
 # Core Python imports
-import os
 import sys
 import signal
 import platform
 import asyncio
-import logging
-from logging.handlers import RotatingFileHandler
 from qasync import QEventLoop
 
 # PyQt imports
@@ -16,7 +12,10 @@ from PyQt6.QtWidgets import QApplication
 
 # Custom import
 from Utils.LoggingUtils import setupLogging
-setupLogging()
+import logging
+loggingLevel = "debug" # Set the logging level. Options : 'debug', 'info', 'warning', 'critical'
+setupLogging(loggingLevel)
+logger = logging.getLogger(__name__)
 
 from WindowTracker import WindowTracker
 from WindowTrackerConfig import WindowTrackerConfig
@@ -24,7 +23,9 @@ from WindowTrackerRunner import WindowTrackerRunner
 
 
 def startOverflightApplication(app: QApplication, runner:WindowTrackerRunner):
-    """ spawn the windows asynchronously, wait for at least 10 seconds before api call, update locations asynchronously."""
+    """
+    Runs the asynchronous Qt application using a asyncio loop to ensure it runs forever
+    """
     
     loop:QEventLoop  = QEventLoop(app)
     asyncio.set_event_loop(loop)
@@ -40,61 +41,25 @@ def startOverflightApplication(app: QApplication, runner:WindowTrackerRunner):
 
 
 def main():
+    """
+    Starting point.
+    
+    Create the app, tracker(-config, -runner) and schedule WindowTrackerRunner.run() through startOverflightApplication
+    All settings should be set in Settings/settings.json
+    Read the README.md for more information on settings
+    """
+    logger.info("Starting OverFlight\n")
+    
     app:QApplication = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
 
-
-    trackerConfig = WindowTrackerConfig.loadSettings(settingsPath="Settings/settings.json")
+    trackerConfig = WindowTrackerConfig.buildTrackerConfig(settingsPath="Settings/settings.json")
     tracker       = WindowTracker(trackerConfig)
-    runner        = WindowTrackerRunner(tracker, trackerConfig)
+    runner        = WindowTrackerRunner(tracker)
+    
+    # app.aboutToQuit.connect(tracker.CloseAllWindows)
+    
     startOverflightApplication(app, runner)
-    
-    
-    
-        # other info:
-        # typecodes:list = getTypeCodes(statesAtLocation)
-        # tracks          = getTrueTracks(statesAtLocation)
-        # classifications = printClassifications(typecodes)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
