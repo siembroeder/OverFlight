@@ -1,5 +1,6 @@
 
 # Core Python imports
+import os
 import math
 import time
 import logging
@@ -54,6 +55,12 @@ class Mover():
 
                 if "hyprland" in wm:
                     return HyprlandMover()
+                if "wlroots" in wm:
+                    desktop = os.environ.get("XDG_CURRENT_DESKTOP")
+                    if (desktop is not None) and "sway" in desktop:
+                        return SwayMover()
+                    else:
+                        raise NotImplementedError("Your wm is not supported.")     
                 else:
                     raise NotImplementedError("Your wm is not supported.")     
                 
@@ -188,3 +195,6 @@ class HyprlandMover:
         # Old hyprlang version, as of hyprland 0.55 moved to lua instead.
         subprocess.run(['hyprctl', 'dispatch', 'movewindowpixel', f'exact {x} {y},title:{window.windowTitle()}'], capture_output=True) # ^(qtApp)$
         
+class SwayMover:
+    def move(self, x:int, y:int, window:"MainWindow"):
+        subprocess.run(['swaymsg', f'[title="^{window.windowTitle()}$"] move absolute position {x} {y}'], capture_output=True)

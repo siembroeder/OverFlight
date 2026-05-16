@@ -30,6 +30,7 @@ Current functionality:
 
 - Windows
 - X11 like xfce
+- Sway
 
 
 ### Settings / Configuration
