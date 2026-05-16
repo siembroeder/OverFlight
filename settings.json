@@ -28,7 +28,7 @@
         "registrationCountry": ""
     },
     "visuals": {
-        "windowTheme": "duck",
+        "windowTheme": "aircraft",
         "windowSize": "small",
         "updateInterval": 1.0,
         "tooltipFields": [
