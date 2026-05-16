@@ -1,6 +1,6 @@
 {
     "core": {
-        "openskyCredentialsPath": "credentials.json",
+        "openskyCredentialsPath": ".credentials.json",
         "location": "toronto",
         "bboxSize": "large"
     },
