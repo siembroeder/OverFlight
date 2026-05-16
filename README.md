@@ -36,7 +36,8 @@ Current functionality:
 
 - Windows
 - X11 like xfce
-- Sway
+- Sway (Provisional support only), add these to your sway config:
+  - for_window [title="^OverFlightWindow_"] sticky enable
 
 
 ### Settings / Configuration
