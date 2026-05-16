@@ -10,11 +10,11 @@ from dataclasses import dataclass, field, fields
 from utils.OpenSkyUtils import getBboxSize, getBboxOffset
 from utils.TypeHints import Seconds, Latitude, Longitude, MetersPerSecond, Meters
 
-CONFIG_SECTIONS = ("core", "apiConfig", "setup", "tracking", "visuals")
+SETTINGS_SECTIONS = ("core", "api", "setup", "tracking", "visuals")
 SETTINGS_PATH = "settings.json"
 
 @dataclass
-class CoreConfig:
+class CoreSettings:
     bboxSize: Optional[str]
     location: str = "Schiphol"
     openskyCredentialsPath: str = ".credentials.json"
@@ -22,16 +22,16 @@ class CoreConfig:
     longitudeOffset: Optional[Longitude] = None
 
 @dataclass
-class ApiConfig:
+class ApiSettings:
     apiCallDelay: Seconds = Seconds(10.0)
 
 @dataclass
-class SetupConfig:
+class SetupSettings:
     maxWindows: int = 25
     displayName: Optional[str] = None
 
 @dataclass
-class TrackingConfig:
+class TrackingSettings:
     minVelocity: Optional[MetersPerSecond] = None
     callsign: Optional[str] = None
     airline: Optional[str] = None
@@ -48,7 +48,7 @@ class TrackingConfig:
     registrationCountry: Optional[str] = None
 
 @dataclass
-class VisualsConfig:
+class VisualsSettings:
     windowTheme:str = "aircraft"
     windowSize:str = "small"
     updateInterval:Seconds = Seconds(1.0)
@@ -64,57 +64,57 @@ class VisualsConfig:
 
 
 @dataclass
-class WindowTrackerConfig:
+class Settings:
     """
     Central configuration combining all config sections, API, boundingbox, callbacks.
     
-    Should be initialized via WindowTrackerConfig.buildTrackerConfig()
+    Should be initialized via Settings.build()
     
     
     """
-    api: ClassVar[OpenSkyApi]
+    openSkyApi: ClassVar[OpenSkyApi]
     bboxAtLocation: tuple
 
-    core:       CoreConfig
-    apiConfig:  ApiConfig
-    setup:      SetupConfig
-    tracking:   TrackingConfig
-    visuals:    VisualsConfig
+    core:       CoreSettings
+    api:        ApiSettings
+    setup:      SetupSettings
+    tracking:   TrackingSettings
+    visuals:    VisualsSettings
     
     callbacks: dict[str, list[Callable]] = field(default_factory=dict)
     
     @classmethod
-    def buildTrackerConfig(cls):
-        configData = cls.loadSettings()
-        cls.raw = configData # include raw data dictionary in class
+    def build(cls):
+        settings = cls.loadSettings()
+        cls.raw = settings # include raw data dictionary in class
         
-        # Build config sections
-        coreConfig      = CoreConfig(**configData.get("core", {}))
-        apiConfig       = ApiConfig(**configData.get("api", {}))
-        setupConfig     = SetupConfig(**configData.get("setup", {}))
-        trackingConfig  = TrackingConfig(**configData.get("tracking", {}))
-        visualsConfig   = VisualsConfig(**configData.get("visuals", {}))
+        # Build settings sections
+        core      = CoreSettings(**settings.get("core", {}))
+        api       = ApiSettings(**settings.get("api", {}))
+        setup     = SetupSettings(**settings.get("setup", {}))
+        tracking  = TrackingSettings(**settings.get("tracking", {}))
+        visuals   = VisualsSettings(**settings.get("visuals", {}))
 
-        if not coreConfig.location:
+        if not core.location:
             raise KeyError("Location not defined in settings file.")
 
         # Create API
         if not hasattr(cls, "api"):
-            cls.api = OpenSkyApi(token_manager=TokenManager.from_json_file(coreConfig.openskyCredentialsPath))
+            cls.openSkyApi = OpenSkyApi(token_manager=TokenManager.from_json_file(core.openskyCredentialsPath))
     
-        bboxAtLocation = cls.getBbox(coreConfig, setupConfig)
+        bboxAtLocation = cls.getBbox(core, setup)
 
-        return cls(bboxAtLocation, coreConfig, apiConfig, setupConfig, trackingConfig, visualsConfig)
+        return cls(bboxAtLocation, core, api, setup, tracking, visuals)
 
     @staticmethod
     def loadSettings() -> dict:
         with open(SETTINGS_PATH) as f:
-            configData = json.load(f)
+            data = json.load(f)
 
-        return configData
+        return data
 
     @staticmethod
-    def getBbox(core:CoreConfig, setup:SetupConfig) -> tuple[float, float, float, float]:
+    def getBbox(core:CoreSettings, setup:SetupSettings) -> tuple[float, float, float, float]:
         """Helper function for finding boundingbox. settings should include either bboxSize or BOTH lat/lonOffset"""
         location  = core.location
         bboxSize  = core.bboxSize
@@ -144,19 +144,19 @@ class WindowTrackerConfig:
     def onChange(self, key: str, func: Callable) -> None:
         """
         Registers a callback function to be triggered when a setting changes
-        Should be used in __init__ functions like in WindowTracker: config.onChange("windowSize", lambda _: self.CloseAllWindows())
+        Should be used in __init__ functions like in WindowTracker: settings.onChange("windowSize", lambda _: self.CloseAllWindows())
         """
         self.callbacks.setdefault(key, []).append(func)
 
-    def applyUpdate(self, newConfig:"WindowTrackerConfig") -> None:
-        """Executes the registered callbacks for each field that changed values in newConfig"""
+    def applyUpdate(self, newSettings:"Settings") -> None:
+        """Executes the registered callbacks for each field that changed values in newSetings"""
         
         # Some fields can not be changed during runtime, if they're changed the change is ignored.
         RESTART_REQUIRED = {"openskyCredentialsPath", "displayName"}
         
-        for sectionName in CONFIG_SECTIONS:
+        for sectionName in SETTINGS_SECTIONS:
             oldSection = getattr(self, sectionName)
-            newSection = getattr(newConfig, sectionName)
+            newSection = getattr(newSettings, sectionName)
             
             for field in fields(oldSection):
                 if field.name in RESTART_REQUIRED:
@@ -171,10 +171,10 @@ class WindowTrackerConfig:
                 for callback in self.callbacks.get(field.name, []):
                     callback(newVal)
 
-        if newConfig.bboxAtLocation != self.bboxAtLocation:
-            self.bboxAtLocation = newConfig.bboxAtLocation
+        if newSettings.bboxAtLocation != self.bboxAtLocation:
+            self.bboxAtLocation = newSettings.bboxAtLocation
             for cb in self.callbacks.get("bboxAtLocation", []):
-                cb(newConfig.bboxAtLocation)
+                cb(newSettings.bboxAtLocation)
 
         # update raw data dictionary
-        self.raw = newConfig.raw
+        self.raw = newSettings.raw

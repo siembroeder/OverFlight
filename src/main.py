@@ -18,7 +18,7 @@ setupLogging(loggingLevel)
 logger = logging.getLogger(__name__)
 
 from WindowTracker import WindowTracker
-from WindowTrackerConfig import WindowTrackerConfig
+from Settings import Settings
 from WindowTrackerRunner import WindowTrackerRunner
 
 
@@ -53,8 +53,8 @@ def main():
     app:QApplication = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
 
-    trackerConfig = WindowTrackerConfig.buildTrackerConfig()
-    tracker       = WindowTracker(trackerConfig)
+    settings = Settings.build()
+    tracker       = WindowTracker(settings)
     runner        = WindowTrackerRunner(tracker)
     
     # app.aboutToQuit.connect(tracker.CloseAllWindows)
