@@ -11,6 +11,8 @@ from Utils.OpenSkyUtils import getBboxSize, getBboxOffset
 from Utils.TypeHints import Seconds, Latitude, Longitude, MetersPerSecond, Meters
 
 CONFIG_SECTIONS = ("core", "apiConfig", "setup", "tracking", "visuals")
+SETTINGS_PATH = "settings.json"
+
 @dataclass
 class CoreConfig:
     bboxSize: Optional[str]
@@ -66,7 +68,7 @@ class WindowTrackerConfig:
     """
     Central configuration combining all config sections, API, boundingbox, callbacks.
     
-    Should be initialized via WindowTrackerConfig.buildTrackerConfig(settingsPath)
+    Should be initialized via WindowTrackerConfig.buildTrackerConfig()
     
     
     """
@@ -82,8 +84,8 @@ class WindowTrackerConfig:
     callbacks: dict[str, list[Callable]] = field(default_factory=dict)
     
     @classmethod
-    def buildTrackerConfig(cls, settingsPath:str = "Settings/settings.json"):
-        configData = cls.loadSettings(settingsPath)
+    def buildTrackerConfig(cls):
+        configData = cls.loadSettings()
         cls.raw = configData # include raw data dictionary in class
         
         # Build config sections
@@ -94,7 +96,7 @@ class WindowTrackerConfig:
         visualsConfig   = VisualsConfig(**configData.get("visuals", {}))
 
         if not coreConfig.location:
-            raise KeyError("Location not defined in settings.json.")
+            raise KeyError("Location not defined in settings file.")
 
         # Create API
         if not hasattr(cls, "api"):
@@ -105,8 +107,8 @@ class WindowTrackerConfig:
         return cls(bboxAtLocation, coreConfig, apiConfig, setupConfig, trackingConfig, visualsConfig)
 
     @staticmethod
-    def loadSettings(settingsPath:str = "Settings/settings.json") -> dict:
-        with open(settingsPath) as f:
+    def loadSettings() -> dict:
+        with open(SETTINGS_PATH) as f:
             configData = json.load(f)
 
         return configData
@@ -137,7 +139,7 @@ class WindowTrackerConfig:
         if hasLatOffset or hasLonOffset:
             raise KeyError("Both offsets should be set together.")
         
-        raise KeyError("Missing bbox configuration, set bboxSize or both latitudeOffset and LongitudeOffset in your settings.json file.")
+        raise KeyError("Missing bbox configuration, set bboxSize or both latitudeOffset and LongitudeOffset in your settings file.")
     
     def onChange(self, key: str, func: Callable) -> None:
         """

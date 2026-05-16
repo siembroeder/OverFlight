@@ -45,7 +45,7 @@ def main():
     Starting point.
     
     Create the app, tracker(-config, -runner) and schedule WindowTrackerRunner.run() through startOverflightApplication
-    All settings should be set in Settings/settings.json
+    All settings should be set in settings.json
     Read the README.md for more information on settings
     """
     logger.info("Starting OverFlight\n")
@@ -53,7 +53,7 @@ def main():
     app:QApplication = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
 
-    trackerConfig = WindowTrackerConfig.buildTrackerConfig(settingsPath="Settings/settings.json")
+    trackerConfig = WindowTrackerConfig.buildTrackerConfig()
     tracker       = WindowTracker(trackerConfig)
     runner        = WindowTrackerRunner(tracker)
     

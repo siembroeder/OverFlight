@@ -76,7 +76,7 @@ class WindowTracker():
         self.windows.clear()        
                 
     def checkNewSettings(self) -> bool:
-        newRawConfig = WindowTrackerConfig.loadSettings(settingsPath="Settings/settings.json")
+        newRawConfig = WindowTrackerConfig.loadSettings()
         
         isUpdated = False
         if newRawConfig != self.config.raw:

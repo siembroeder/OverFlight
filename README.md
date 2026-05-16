@@ -13,7 +13,7 @@ To run, use the command `uv run Scripts/main.py`.
 ## Prototype / Development
 
 Current functionality:
-- Configure in Settings/settings.json using below documentation.
+- Configure in settings.json using below documentation.
 - spawns windows representing live aircraft at their current location relative to the chosen boundingbox and screen.
 - in between api calls, use deadreckoning to update window position for more a interactive experience
 - When a new api call comes in, deadreckon to predicted next api location.
