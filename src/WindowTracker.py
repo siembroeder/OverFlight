@@ -9,7 +9,7 @@ from dataclasses import fields
 # Custom imports
 from StateFilter import StateFilter
 from CustomQtWindow import MainWindow
-from Utils.QtUtils import windowIsOpen
+from utils.QtUtils import windowIsOpen
 from WindowTrackerConfig import WindowTrackerConfig
 
 type icao24 = str

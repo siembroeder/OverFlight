@@ -12,7 +12,7 @@ from geopy.location import Location
 from geopy.geocoders import Nominatim
 
 # Custom imports
-from Utils.QtUtils import getScreenGeometry
+from utils.QtUtils import getScreenGeometry
 
 
 
