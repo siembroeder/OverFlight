@@ -45,7 +45,7 @@ class TrackingSettings:
     maxBaroAltitude: Optional[Meters] = None
     arrivalAirport: Optional[str] = None
     departureAirport: Optional[str] = None
-    registrationCountry: Optional[str] = None
+    originCountry: Optional[str] = None
 
 @dataclass
 class VisualsSettings:

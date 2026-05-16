@@ -38,25 +38,26 @@ class StateFilter():
         return states    
          
     def applyLocalFilters(self, states:list[StateVector]) -> list[StateVector]:
-        if self.settings.minVelocity:
-            logger.debug(f"Filtering for minVelocity: {self.settings.minVelocity}")
-            states = self.filterStatesMinVelocity(states)
-            
-        if self.settings.registrationCountry:
-            logger.debug(f"Filtering for registration country: {self.settings.registrationCountry}")
-            states = [state for state in states if state.origin_country.lower().strip() == self.settings.registrationCountry.lower().strip()]
-                    
-        if self.settings.callsign:
-            logger.debug(f"Filtering for callsign {self.settings.callsign}")
-            states = [state for state in states if (state.callsign is not None) and (state.callsign.strip() == self.settings.callsign)]
-            
-        if self.settings.airline:
-            logger.debug(f"Filtering for airline: {self.settings.airline}")
-            states = [state for state in states if (state.callsign is not None) and (state.callsign.lower().startswith(self.settings.airline.strip().lower()))]
-            
         if self.settings.icao24:
-            logger.debug(f"Filtering for icao24: {self.settings.icao24}")
-            states = [state for state in states if state.icao24.lower() == self.settings.icao24.lower()]
+            logger.debug(f"Filtering for icao24: {self.config.icao24}")
+            states = [state for state in states if state.icao24.lower() == self.config.icao24.lower()]
+        
+        if self.settings.callsign:
+            logger.debug(f"Filtering for callsign {self.config.callsign}")
+            states = [state for state in states if (state.callsign is not None) and (state.callsign.strip() == self.config.callsign)]
+        
+        if self.settings.originCountry:
+            logger.debug(f"Filtering for registration country: {self.config.originCountry}")
+            states = [state for state in states if state.origin_country.lower().strip() == self.config.originCountry.lower().strip()]
+                
+        if self.settings.minVelocity:
+            logger.debug(f"Filtering for minVelocity: {self.config.minVelocity}")
+            states = self.filterStatesMinVelocity(states)
+             
+        if self.settings.airline:
+            logger.debug(f"Filtering for airline: {self.config.airline}")
+            states = [state for state in states if (state.callsign is not None) and (state.callsign.lower().startswith(self.config.airline.strip().lower()))]
+            
         
         if self.settings.squawk:
             logger.debug(f"Filtering for squawk: {self.settings.squawk}")
