@@ -46,7 +46,7 @@ Use the settings.json file in Settings/ to set your preferences for the categori
 
 |name                  |type  |default           |description|
 |----------------------|------|------------------|-----------|
-|openskyCredentialsPath|string|"credentials.json"|Path to your opensky credentials .json file.|
+|openskyCredentialsPath|string|".credentials.json"|Path to your opensky credentials .json file.|
 |location              |string|"Schiphol"        |Any location in the world that geopy recognizes.|
 |bboxSize              |string|"small"           |Preconfigured bounding box sizes, set to "small", "medium", or "large". May be omitted if both latitudeOffset and LongitudeOffset are used.|
 |longitudeOffset, latitudeOffset|float,float|None,None|Can be used to set the width and height of the bounding box. Must both be a non-zero, positive float. Do not use if bboxSize is used.|
@@ -102,7 +102,7 @@ Aircraft are filtered based on these conditions.
 #### Example settings file:
 <pre> ```json 
 { 
-    "core": {"openskyCredentialsPath": "credentials.json",
+    "core": {"openskyCredentialsPath": ".credentials.json",
              "location": "Amsterdam",
              "bboxSize": "medium"},
     "api": { "apiCallDelay": 10.0 },

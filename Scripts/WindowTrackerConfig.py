@@ -15,7 +15,7 @@ CONFIG_SECTIONS = ("core", "apiConfig", "setup", "tracking", "visuals")
 class CoreConfig:
     bboxSize: Optional[str]
     location: str = "Schiphol"
-    openskyCredentialsPath: str = "credentials.json"
+    openskyCredentialsPath: str = ".credentials.json"
     latitudeOffset: Optional[Latitude] = None
     longitudeOffset: Optional[Longitude] = None
 
