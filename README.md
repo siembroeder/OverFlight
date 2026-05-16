@@ -2,7 +2,13 @@
 
 Overflight is a desktop agent that displays nearby aircrafts through icons that mirror their flight paths on the screen. 
 
+## Installation
 
+Before running OverFlight, make sure you have `uv`, a package and project manager. Installation can be found at: https://docs.astral.sh/uv/getting-started/installation/.
+
+To run, use the command `uv run Scripts/main.py`. 
+
+> **_On windows:_** For the icons to be transparent, the setting `transparency effects` under `Personalisation > Colours` must be turned off. 
 
 ## Prototype / Development
 
