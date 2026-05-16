@@ -7,8 +7,8 @@ import json
 # Custom imports
 from typing import Optional, ClassVar, Callable
 from dataclasses import dataclass, field, fields
-from Utils.OpenSkyUtils import getBboxSize, getBboxOffset
-from Utils.TypeHints import Seconds, Latitude, Longitude, MetersPerSecond, Meters
+from utils.OpenSkyUtils import getBboxSize, getBboxOffset
+from utils.TypeHints import Seconds, Latitude, Longitude, MetersPerSecond, Meters
 
 CONFIG_SECTIONS = ("core", "apiConfig", "setup", "tracking", "visuals")
 SETTINGS_PATH = "settings.json"

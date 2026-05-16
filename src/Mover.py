@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from CustomQtWindow import MainWindow
     
-from Utils.PlatformUtils import getUserPlatform, getSessionType, getWindowManager
-from Utils.TypeHints import Meters, Degrees, Radians, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
+from utils.PlatformUtils import getUserPlatform, getSessionType, getWindowManager
+from utils.TypeHints import Meters, Degrees, Radians, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
 
 
 class Mover():

@@ -11,7 +11,7 @@ from qasync import QEventLoop
 from PyQt6.QtWidgets import QApplication
 
 # Custom import
-from Utils.LoggingUtils import setupLogging
+from utils.LoggingUtils import setupLogging
 import logging
 loggingLevel = "debug" # Set the logging level. Options : 'debug', 'info', 'warning', 'critical'
 setupLogging(loggingLevel)

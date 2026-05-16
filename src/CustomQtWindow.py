@@ -12,9 +12,9 @@ from PyQt6.QtWidgets import QMainWindow, QLabel
 
 # Custom imports 
 from Mover import Mover
-from Utils.QtUtils import getWindowSize, getScreenGeometry
+from utils.QtUtils import getWindowSize, getScreenGeometry
 from WindowTrackerConfig import WindowTrackerConfig, VisualsConfig, TrackingConfig
-from Utils.TypeHints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
+from utils.TypeHints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
 
 
 

@@ -11,7 +11,7 @@ from datetime import datetime
 
 # Custom imports
 from WindowTracker import WindowTracker
-from Utils.OpenSkyUtils import fetchStatesInBbox
+from utils.OpenSkyUtils import fetchStatesInBbox
 
 
 class WindowTrackerRunner():
