@@ -10,17 +10,17 @@ from typing import TYPE_CHECKING
 # Custom imports
 from CustomQtWindow import MainWindow
 if TYPE_CHECKING:
-    from Settings import Settings
+    from Settings import Settings, TrackingSettings
 
 type icao24 = str
 class StateFilter():
     """
     Filters OpenSky aircraft state vectors using opensky_api and local configuration settings.
     """
-    def __init__(self, settings:"Settings", api:OpenSkyApi, maxWindows:int):
+    def __init__(self, settings:"TrackingSettings", api:OpenSkyApi, maxWindows:int):
         """Initialize filter with tracking configuration, OpenSky API client, and maximum number of windows (default=25)"""
         
-        self.settings:Settings = settings
+        self.settings:TrackingSettings = settings
         self.api:OpenSkyApi = api
         self.maxWindows = maxWindows
     
@@ -39,24 +39,24 @@ class StateFilter():
          
     def applyLocalFilters(self, states:list[StateVector]) -> list[StateVector]:
         if self.settings.icao24:
-            logger.debug(f"Filtering for icao24: {self.config.icao24}")
-            states = [state for state in states if state.icao24.lower() == self.config.icao24.lower()]
+            logger.debug(f"Filtering for icao24: {self.settings.icao24}")
+            states = [state for state in states if state.icao24.lower() == self.settings.icao24.lower()]
         
         if self.settings.callsign:
-            logger.debug(f"Filtering for callsign {self.config.callsign}")
-            states = [state for state in states if (state.callsign is not None) and (state.callsign.strip() == self.config.callsign)]
+            logger.debug(f"Filtering for callsign {self.settings.callsign}")
+            states = [state for state in states if (state.callsign is not None) and (state.callsign.strip() == self.settings.callsign)]
         
         if self.settings.originCountry:
-            logger.debug(f"Filtering for registration country: {self.config.originCountry}")
-            states = [state for state in states if state.origin_country.lower().strip() == self.config.originCountry.lower().strip()]
+            logger.debug(f"Filtering for registration country: {self.settings.originCountry}")
+            states = [state for state in states if state.origin_country.lower().strip() == self.settings.originCountry.lower().strip()]
                 
         if self.settings.minVelocity:
-            logger.debug(f"Filtering for minVelocity: {self.config.minVelocity}")
+            logger.debug(f"Filtering for minVelocity: {self.settings.minVelocity}")
             states = self.filterStatesMinVelocity(states)
              
         if self.settings.airline:
-            logger.debug(f"Filtering for airline: {self.config.airline}")
-            states = [state for state in states if (state.callsign is not None) and (state.callsign.lower().startswith(self.config.airline.strip().lower()))]
+            logger.debug(f"Filtering for airline: {self.settings.airline}")
+            states = [state for state in states if (state.callsign is not None) and (state.callsign.lower().startswith(self.settings.airline.strip().lower()))]
             
         
         if self.settings.squawk:

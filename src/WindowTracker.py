@@ -24,7 +24,7 @@ class WindowTracker():
     def __init__(self, settings:Settings):
         self.settings = settings
         self.windows:dict[icao24, MainWindow] = {}
-        self.filter = StateFilter(settings.tracking, settings.api, settings.setup.maxWindows)
+        self.filter = StateFilter(settings.tracking, settings.openSkyApi, settings.setup.maxWindows)
         
         for f in fields(settings.tracking): # if any field in settings.tracking changes, rebuild the filter completely
             settings.onChange(f.name, lambda _: self.rebuildFilter())
@@ -68,7 +68,7 @@ class WindowTracker():
                 window.mover.deadReckonIncrement()
                 
     def rebuildFilter(self):
-        self.filter = StateFilter(self.settings.tracking, self.settings.api, self.settings.setup.maxWindows)
+        self.filter = StateFilter(self.settings.tracking, self.settings.openSkyApi, self.settings.setup.maxWindows)
 
     def CloseAllWindows(self):
         for window in self.windows.values():
