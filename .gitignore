@@ -1,0 +1,10 @@
+.credentials.json
+
+uv.lock
+.venv/
+.vscode/
+__pycache__/
+
+logs/*
+
+Scripts/scratchpad.py
