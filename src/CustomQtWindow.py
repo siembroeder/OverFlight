@@ -69,7 +69,7 @@ class MainWindow(QMainWindow):
         # Set basic Qt info
         self.setWindowTitle(f"OverFlightWindow_{state.icao24}")
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
 
         self.label = QLabel(self)
         self.setCentralWidget(self.label)
@@ -154,7 +154,7 @@ class MainWindow(QMainWindow):
         #     self.movie.stop()
 
         if visuals.windowTheme == "aircraft":
-            image = QPixmap("Assets/singleIsleAircraft.png")
+            image = QPixmap("assets/singleIsleAircraft.png")
             self.originalPixmap = image  # store original
             self.defaultPixmap = self.originalPixmap.scaled(self.label.size(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
             self.updatePixmapHeading()
@@ -162,11 +162,11 @@ class MainWindow(QMainWindow):
         if visuals.windowTheme == "duck":
             if self.true_track is not None:
                 if (self.true_track >= 0.0) and (self.true_track <= 180.0): 
-                    self.movie = QMovie("Assets/duck-right.gif")
+                    self.movie = QMovie("assets/duck-right.gif")
                 else:
-                    self.movie = QMovie("Assets/duck-left.gif")
+                    self.movie = QMovie("assets/duck-left.gif")
             else:
-                self.movie = QMovie("Assets/duck-left.gif")
+                self.movie = QMovie("assets/duck-left.gif")
                     
             self.movie.setScaledSize(self.label.size())
             self.label.setMovie(self.movie)
