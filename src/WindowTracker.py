@@ -37,6 +37,7 @@ class WindowTracker():
         icao24 = state.icao24
         
         window = MainWindow(state, self.settings)
+        window.mover.moveToLoc(window.latitude, window.longitude)
         window.show()  # triggers QMainWindow.showEvent() 
         self.windows[icao24] = window                       # print(f"Now tracking {state.callsign}, {icao24=}")
 
