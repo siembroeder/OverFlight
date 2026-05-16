@@ -89,7 +89,7 @@ Aircraft are filtered based on these conditions.
 | maxBaroAltitude       |float       |None     |Eg 30000, units in feet.|
 | arrivalAirport        |string      |None     |Broken: No reliable way to get this info. Eg "EHAM", case insensitive.|
 | departureAirport      |string      |None     |Eg "EHAM", case insensitive. Might be slow as it calls to the api for every aircraft.|
-| registrationCountry   |string      |None     |Eg "Kingdom of the Netherlands.|
+| originCountry   |string      |None     |Eg "Kingdom of the Netherlands.|
 
 
 #### visuals

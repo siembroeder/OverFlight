@@ -38,25 +38,26 @@ class StateFilter():
         return states    
          
     def applyLocalFilters(self, states:list[StateVector]) -> list[StateVector]:
-        if self.config.minVelocity:
-            logger.debug(f"Filtering for minVelocity: {self.config.minVelocity}")
-            states = self.filterStatesMinVelocity(states)
-            
-        if self.config.registrationCountry:
-            logger.debug(f"Filtering for registration country: {self.config.registrationCountry}")
-            states = [state for state in states if state.origin_country.lower().strip() == self.config.registrationCountry.lower().strip()]
-                    
+        if self.config.icao24:
+            logger.debug(f"Filtering for icao24: {self.config.icao24}")
+            states = [state for state in states if state.icao24.lower() == self.config.icao24.lower()]
+        
         if self.config.callsign:
             logger.debug(f"Filtering for callsign {self.config.callsign}")
             states = [state for state in states if (state.callsign is not None) and (state.callsign.strip() == self.config.callsign)]
-            
+        
+        if self.config.originCountry:
+            logger.debug(f"Filtering for registration country: {self.config.originCountry}")
+            states = [state for state in states if state.origin_country.lower().strip() == self.config.originCountry.lower().strip()]
+                
+        if self.config.minVelocity:
+            logger.debug(f"Filtering for minVelocity: {self.config.minVelocity}")
+            states = self.filterStatesMinVelocity(states)
+             
         if self.config.airline:
             logger.debug(f"Filtering for airline: {self.config.airline}")
             states = [state for state in states if (state.callsign is not None) and (state.callsign.lower().startswith(self.config.airline.strip().lower()))]
             
-        if self.config.icao24:
-            logger.debug(f"Filtering for icao24: {self.config.icao24}")
-            states = [state for state in states if state.icao24.lower() == self.config.icao24.lower()]
         
         if self.config.squawk:
             logger.debug(f"Filtering for squawk: {self.config.squawk}")

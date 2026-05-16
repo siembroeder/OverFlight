@@ -25,7 +25,7 @@
         "maxBaroAltitude": 0.0,
         "arrivalAirport": "",
         "departureAirport": "",
-        "registrationCountry": ""
+        "originCountry": ""
     },
     "visuals": {
         "windowTheme": "aircraft",
