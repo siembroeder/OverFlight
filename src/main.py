@@ -19,10 +19,10 @@ logger = logging.getLogger(__name__)
 
 from WindowTracker import WindowTracker
 from Settings import Settings
-from WindowTrackerRunner import WindowTrackerRunner
+from AirTrafficController import AirTrafficController
 
 
-def startOverflightApplication(app: QApplication, runner:WindowTrackerRunner):
+def startOverflightApplication(app: QApplication, controller:AirTrafficController):
     """
     Runs the asynchronous Qt application using a asyncio loop to ensure it runs forever
     """
@@ -36,7 +36,7 @@ def startOverflightApplication(app: QApplication, runner:WindowTrackerRunner):
     # Ensure the program doesn't exit when all windows are closed:
     app.aboutToQuit.connect(loop.stop)
     with loop:
-        asyncio.ensure_future(runner.run())
+        asyncio.ensure_future(controller.run())
         loop.run_forever()
 
 
@@ -44,7 +44,7 @@ def main():
     """
     Starting point.
     
-    Create the app, tracker(-config, -runner) and schedule WindowTrackerRunner.run() through startOverflightApplication
+    Create the app, tracker(-settings, -controller) and schedule AirTrafficController.run() through startOverflightApplication
     All settings should be set in settings.json
     Read the README.md for more information on settings
     """
@@ -55,11 +55,11 @@ def main():
 
     settings = Settings.build()
     tracker       = WindowTracker(settings)
-    runner        = WindowTrackerRunner(tracker)
+    controller        = AirTrafficController(tracker)
     
     # app.aboutToQuit.connect(tracker.CloseAllWindows)
     
-    startOverflightApplication(app, runner)
+    startOverflightApplication(app, controller)
 
 
 
