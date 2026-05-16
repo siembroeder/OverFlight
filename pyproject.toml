@@ -11,8 +11,7 @@ dependencies = [
     "lxml>=6.0.2",
     "opensky-api",
     "pandas>=3.0.2",
-    "pyqt6>=6.11.0",
-    "qasync>=0.28.0",
+    "pyside6>=6.11.1",
 ]
 
 [tool.uv.sources]

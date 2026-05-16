@@ -1,21 +1,16 @@
-
-
-# Core Python imports
 import sys
 import signal
-import platform
 import asyncio
-from qasync import QEventLoop
+import platform
 
-# PyQt imports
-from PyQt6.QtWidgets import QApplication
+from PySide6.QtCore import QEventLoop
+from PySide6.QtWidgets import QApplication
 
-# Custom import
-from utils.LoggingUtils import setupLogging
 import logging
+logger = logging.getLogger(__name__)
+from utils.LoggingUtils import setupLogging
 loggingLevel = "debug" # Set the logging level. Options : 'debug', 'info', 'warning', 'critical'
 setupLogging(loggingLevel)
-logger = logging.getLogger(__name__)
 
 from WindowTracker import WindowTracker
 from WindowTrackerConfig import WindowTrackerConfig

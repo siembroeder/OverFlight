@@ -144,10 +144,8 @@ There are three different tiers of settings:
 
 ## Dependencies
 - OpenSkyApi
-- pyQt6
+- PySide6
 - geopy
-- qasync
-- qasyncio
 - wmctrl, if on linux
 
 

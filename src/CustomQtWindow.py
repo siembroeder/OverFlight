@@ -1,24 +1,17 @@
-from opensky_api import StateVector
-
-# Core Python imports
 import time
 import logging
 logger = logging.getLogger(__name__)
 
-# PyQt imports
-from PyQt6.QtGui import QPixmap, QMovie, QTransform
-from PyQt6.QtCore import Qt, QTimer, QSize
-from PyQt6.QtWidgets import QMainWindow, QLabel
+from opensky_api import StateVector
+from PySide6.QtCore import Qt, QTimer, QSize
+from PySide6.QtWidgets import QMainWindow, QLabel
+from PySide6.QtGui import QPixmap, QMovie, QTransform
 
 # Custom imports 
 from Mover import Mover
 from utils.QtUtils import getWindowSize, getScreenGeometry
 from WindowTrackerConfig import WindowTrackerConfig, VisualsConfig, TrackingConfig
 from utils.TypeHints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
-
-
-
-
 
 
 class MainWindow(QMainWindow): 
