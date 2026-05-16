@@ -1,12 +1,8 @@
-
-from opensky_api import StateVector
-
-# Core Python imports
 import logging
 logger = logging.getLogger(__name__)
 from dataclasses import fields
 
-# Custom imports
+from opensky_api import StateVector
 from StateFilter import StateFilter
 from CustomQtWindow import MainWindow
 from utils.QtUtils import windowIsOpen

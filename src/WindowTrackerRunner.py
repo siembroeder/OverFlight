@@ -1,15 +1,10 @@
-
-from opensky_api import OpenSkyStates
-
-#Core Python imports
 import time
 import asyncio
 import logging
 logger = logging.getLogger(__name__)
 from datetime import datetime
 
-
-# Custom imports
+from opensky_api import OpenSkyStates
 from WindowTracker import WindowTracker
 from utils.OpenSkyUtils import fetchStatesInBbox
 

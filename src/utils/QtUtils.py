@@ -1,6 +1,6 @@
 
-from PyQt6.QtCore import QRect, QSize
-from PyQt6.QtWidgets import QApplication
+from PySide6.QtCore import QRect, QSize
+from PySide6.QtWidgets import QApplication
 
 
 
