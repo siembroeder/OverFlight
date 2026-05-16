@@ -1,26 +1,41 @@
-{ 
-    "core": {"openskyCredentialsPath": "credentials.json",
-             "location": "toronto",
-             "bboxSize": "large"},
-    "api": { "apiCallDelay": 10.0 },
-    "setup": {"maxWindows": 25, 
-              "displayName": "" },
-    "tracking":{"minVelocity": 0.0,
-                "callsign": "",
-                "airline": "",
-                "icao24": "",
-                "squawk": "",
-                "inAir": 1,
-                "onGround": 0,
-                "minGeoAltitude": 0.0,
-                "maxGeoAltitude": 0.0,
-                "minBaroAltitude": 0.0,
-                "maxBaroAltitude": 0.0,
-                "arrivalAirport": "",
-                "departureAirport": "",
-                "registrationCountry": ""},
-    "visuals": {"windowTheme": "duck",
-                "windowSize": "small",
-                "updateInterval": 1.0,
-                "tooltipFields": ["callsign", "icao24", "true_track", "baro_altitude"]}
-} 
+{
+    "core": {
+        "openskyCredentialsPath": "credentials.json",
+        "location": "toronto",
+        "bboxSize": "large"
+    },
+    "api": {
+        "apiCallDelay": 10.0
+    },
+    "setup": {
+        "maxWindows": 25,
+        "displayName": ""
+    },
+    "tracking": {
+        "minVelocity": 0.0,
+        "callsign": "",
+        "airline": "",
+        "icao24": "",
+        "squawk": "",
+        "inAir": 1,
+        "onGround": 0,
+        "minGeoAltitude": 0.0,
+        "maxGeoAltitude": 0.0,
+        "minBaroAltitude": 0.0,
+        "maxBaroAltitude": 0.0,
+        "arrivalAirport": "",
+        "departureAirport": "",
+        "registrationCountry": ""
+    },
+    "visuals": {
+        "windowTheme": "duck",
+        "windowSize": "small",
+        "updateInterval": 1.0,
+        "tooltipFields": [
+            "callsign",
+            "icao24",
+            "true_track",
+            "baro_altitude"
+        ]
+    }
+}
