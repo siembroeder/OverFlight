@@ -6,7 +6,7 @@ Overflight is a desktop agent that displays nearby aircrafts through icons that 
 
 Before running OverFlight, make sure you have `uv`, a package and project manager. Installation can be found at: https://docs.astral.sh/uv/getting-started/installation/.
 
-To run, use the command `uv run Scripts/main.py`. 
+To run, use the command `uv run src/main.py`. 
 
 > **_On windows:_** For the icons to be transparent, the setting `transparency effects` under `Personalisation > Colours` must be turned off. 
 
@@ -89,7 +89,7 @@ Aircraft are filtered based on these conditions.
 | maxBaroAltitude       |float       |None     |Eg 30000, units in feet.|
 | arrivalAirport        |string      |None     |Broken: No reliable way to get this info. Eg "EHAM", case insensitive.|
 | departureAirport      |string      |None     |Eg "EHAM", case insensitive. Might be slow as it calls to the api for every aircraft.|
-| registrationCountry   |string      |None     |Eg "Kingdom of the Netherlands.|
+| originCountry   |string      |None     |Eg "Kingdom of the Netherlands.|
 
 
 #### visuals

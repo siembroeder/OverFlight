@@ -9,7 +9,7 @@ from WindowTracker import WindowTracker
 from utils.OpenSkyUtils import fetchStatesInBbox
 
 
-class WindowTrackerRunner():
+class AirTrafficController():
     """
     Controls WindowTracker.
     Responsible for fetching aircraft states and for waiting in between api calls for apiCallDelay seconds. 
@@ -18,9 +18,9 @@ class WindowTrackerRunner():
     def __init__(self, tracker: WindowTracker):
         self.tracker = tracker
         
-        self.bboxAtLocation = self.tracker.config.bboxAtLocation
-        self.apiCallDelay   = self.tracker.config.apiConfig.apiCallDelay
-        self.updateInterval = self.tracker.config.visuals.updateInterval
+        self.bboxAtLocation = self.tracker.settings.bboxAtLocation
+        self.apiCallDelay   = self.tracker.settings.api.apiCallDelay
+        self.updateInterval = self.tracker.settings.visuals.updateInterval
         
         self.newestStateTimestamp = 0.0
         self.numApiCallsSkipped   = 0.0
@@ -32,7 +32,7 @@ class WindowTrackerRunner():
         Pass apiCallDelay explicitly (despite self.apiCallDelay also being available here) to make it clear how long this function takes from where it's called.
         """
         
-        dt = self.tracker.config.visuals.updateInterval
+        dt = self.tracker.settings.visuals.updateInterval
         deadline = time.monotonic() + delayTime
         
         while time.monotonic() < deadline:
@@ -52,7 +52,7 @@ class WindowTrackerRunner():
                 self.tracker.checkNewSettings()
             
                 # fetch new states, ratelimiting is handled in .waitWithDeadReckoning
-                newStates:OpenSkyStates|None = fetchStatesInBbox(self.tracker.config.api, self.bboxAtLocation)  
+                newStates:OpenSkyStates|None = fetchStatesInBbox(self.tracker.settings.openSkyApi, self.bboxAtLocation)  
 
                 # skip to next api call if newStates empty.
                 if (newStates is None) or (newStates.states is None):

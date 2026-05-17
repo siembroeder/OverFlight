@@ -75,7 +75,7 @@ class Mover():
         Convert the coordinate (lat, lon) in the boundingbox to a location on the screen (pixelx, pixely)
         """
         
-        minLat, maxLat, minLon, maxLon = self.window.config.bboxAtLocation
+        minLat, maxLat, minLon, maxLon = self.window.settings.bboxAtLocation
         
         # normalize to 0-1 and multiply with number of available pixels
         pixelx = int(((lon - minLon) / (maxLon - minLon) ) * self.window.Nxpixels)
@@ -118,7 +118,7 @@ class Mover():
         lon:Longitude = self.window.longitude
         
         velocity:MetersPerSecond = self.window.velocity
-        distanceTraveledAtNextApiCall:Meters = Meters(velocity * self.window.config.apiConfig.apiCallDelay)
+        distanceTraveledAtNextApiCall:Meters = Meters(velocity * self.window.settings.api.apiCallDelay)
         
         # Use flat earth approximation for converting from meters to degrees of lat/lon
         heading:Degrees = self.window.true_track
@@ -148,7 +148,7 @@ class Mover():
         if (self.window.true_track is None) or (self.window.velocity is None):
             return
     
-        if time.monotonic() - self.window.lastApiUpdate < 0.75 * self.window.config.visuals.updateInterval:
+        if time.monotonic() - self.window.lastApiUpdate < 0.75 * self.window.settings.visuals.updateInterval:
             return  # skip to prevent jittery updates
         
         if (self.window.latitude is None) or (self.window.longitude is None):
@@ -165,9 +165,9 @@ class Mover():
     def steps(self) -> float:
         """
         Number of steps of deadreckoning in between api calls. 
-        Use @property decorator to set self.steps but let it always depend on current self.window.config vars
+        Use @property decorator to set self.steps but let it always depend on current self.window.settings vars
         """
-        return self.window.config.apiConfig.apiCallDelay / self.window.config.visuals.updateInterval
+        return self.window.settings.api.apiCallDelay / self.window.settings.visuals.updateInterval
 
 
 

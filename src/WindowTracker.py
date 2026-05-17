@@ -6,7 +6,7 @@ from opensky_api import StateVector
 from StateFilter import StateFilter
 from CustomQtWindow import MainWindow
 from utils.QtUtils import windowIsOpen
-from WindowTrackerConfig import WindowTrackerConfig
+from Settings import Settings
 
 type icao24 = str
 
@@ -17,22 +17,23 @@ class WindowTracker():
                 for opening and closing windows when they enter/leave the bounding box
     """
     
-    def __init__(self, config:WindowTrackerConfig):
-        self.config = config
+    def __init__(self, settings:Settings):
+        self.settings = settings
         self.windows:dict[icao24, MainWindow] = {}
-        self.filter = StateFilter(config.tracking, config.api, config.setup.maxWindows)
+        self.filter = StateFilter(settings.tracking, settings.openSkyApi, settings.setup.maxWindows)
         
-        for f in fields(config.tracking): # if any field in config.tracking changes, rebuild the filter completely
-            config.onChange(f.name, lambda _: self.rebuildFilter())
+        for f in fields(settings.tracking): # if any field in settings.tracking changes, rebuild the filter completely
+            settings.onChange(f.name, lambda _: self.rebuildFilter())
             
         # Register callback for settings that require WindowTracker method to execute
-        config.onChange("windowSize", lambda _: self.CloseAllWindows()) # Windows are rebuild on next api call with updated windowSize
+        settings.onChange("windowSize", lambda _: self.CloseAllWindows()) # Windows are rebuild on next api call with updated windowSize
 
     def spawnWindow(self, state:StateVector) -> None:
         """Use spawns a window titled f\"OverFlightWindow_{state.icao24}\", also stores the  window in the windows dict with icao24 as key"""
         icao24 = state.icao24
         
-        window = MainWindow(state, self.config)
+        window = MainWindow(state, self.settings)
+        window.mover.moveToLoc(window.latitude, window.longitude)
         window.show()  # triggers QMainWindow.showEvent() 
         self.windows[icao24] = window                       # print(f"Now tracking {state.callsign}, {icao24=}")
 
@@ -46,7 +47,7 @@ class WindowTracker():
         for state in newStates:
             if state.icao24 in self.windows and windowIsOpen(state.icao24):
                 self.windows[state.icao24].updateState(state)
-            elif len(self.windows) < self.config.setup.maxWindows:
+            elif len(self.windows) < self.settings.setup.maxWindows:
                 self.spawnWindow(state)
                 
         # Delete windows that are no longer being tracked. 
@@ -64,7 +65,7 @@ class WindowTracker():
                 window.mover.deadReckonIncrement()
                 
     def rebuildFilter(self):
-        self.filter = StateFilter(self.config.tracking, self.config.api, self.config.setup.maxWindows)
+        self.filter = StateFilter(self.settings.tracking, self.settings.openSkyApi, self.settings.setup.maxWindows)
 
     def CloseAllWindows(self):
         for window in self.windows.values():
@@ -72,12 +73,12 @@ class WindowTracker():
         self.windows.clear()        
                 
     def checkNewSettings(self) -> bool:
-        newRawConfig = WindowTrackerConfig.loadSettings()
+        newRawSettings = Settings.loadSettings()
         
         isUpdated = False
-        if newRawConfig != self.config.raw:
-            newConfig = WindowTrackerConfig.buildTrackerConfig()
-            self.config.applyUpdate(newConfig)
+        if newRawSettings != self.settings.raw:
+            newSettings = Settings.build()
+            self.settings.applyUpdate(newSettings)
             isUpdated = True
         
         return isUpdated

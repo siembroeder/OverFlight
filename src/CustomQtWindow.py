@@ -10,7 +10,7 @@ from PySide6.QtGui import QPixmap, QMovie, QTransform
 # Custom imports 
 from Mover import Mover
 from utils.QtUtils import getWindowSize, getScreenGeometry
-from WindowTrackerConfig import WindowTrackerConfig, VisualsConfig, TrackingConfig
+from Settings import Settings, VisualsSettings, TrackingSettings
 from utils.TypeHints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
 
 
@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
     
     Properties:
     - All the fields in opensky_api.StateVector
-    - config:WindowTrackerConfig, shared across windows
+    - settings:Settings, shared across windows
     - mover:Mover(), unique to each window. Is responsible for moving the window around, all coordinate logic lives there
     - self.lastApiUpdate:float. Timestamp of the last moment where new api data came in
     
@@ -48,10 +48,10 @@ class MainWindow(QMainWindow):
     position_source: int = 0
     category: int = 0
     
-    def __init__(self, state:StateVector, config:WindowTrackerConfig):
+    def __init__(self, state:StateVector, settings:Settings):
         super().__init__()
         
-        self.config = config
+        self.settings = settings
         
         # Extract state data, manually write self.lat/lon. All other lat/lon logic is handled by mover
         self.applyState(state)
@@ -77,16 +77,16 @@ class MainWindow(QMainWindow):
         self.mover.updateDeadReckonIncrements()
         
         # Register callbacks for settings that require a MainWindow method to execute
-        config.onChange("windowTheme", lambda _: self.setWindowTheme())
-        config.onChange("tooltipFields", lambda _: self.buildTooltip())
-        config.onChange("bboxAtLocation", lambda _: self.mover.moveToLoc(self.latitude, self.longitude))
+        settings.onChange("windowTheme", lambda _: self.setWindowTheme())
+        settings.onChange("tooltipFields", lambda _: self.buildTooltip())
+        settings.onChange("bboxAtLocation", lambda _: self.mover.moveToLoc(self.latitude, self.longitude))
                
     def setScreenParams(self):
         """
-        Set the widht, height and topLeft coordinates in pixels of the displayName from config.setup
-        If config.setup.displayName == None, return the first screen from QApplication.screens()
+        Set the widht, height and topLeft coordinates in pixels of the displayName from settings.setup
+        If settings.setup.displayName == None, return the first screen from QApplication.screens()
         """
-        displayName = self.config.setup.displayName
+        displayName = self.settings.setup.displayName
         geom = getScreenGeometry(displayName)
         
         self.Nxpixels     = geom.width()
@@ -96,21 +96,21 @@ class MainWindow(QMainWindow):
     def buildTooltip(self) -> None:
         """
         Set the string that's shown when a mouse hovers over the window.
-        Taken from self.config.visuals.tooltipFields. 
-        Valid fields are all those found in config.trackingConfig and StateVector
+        Taken from self.settings.visuals.tooltipFields. 
+        Valid fields are all those found in settings.tracking and StateVector
         
         Default = f'callsign = {self.callsign}'
         """
         
         lines = []
         
-        trackingConfig:TrackingConfig = self.config.tracking
-        for field in self.config.visuals.tooltipFields:
-           # Check self and trackingConfig for field
+        trackingSettings:TrackingSettings = self.settings.tracking
+        for field in self.settings.visuals.tooltipFields:
+           # Check self and trackingSettings for field
             if hasattr(self, field):
                 value = getattr(self, field)
-            elif hasattr(trackingConfig, field):
-                value = getattr(trackingConfig, field)
+            elif hasattr(trackingSettings, field):
+                value = getattr(trackingSettings, field)
             else:
                 continue
 
@@ -140,7 +140,7 @@ class MainWindow(QMainWindow):
         """
         
         
-        visuals:VisualsConfig = self.config.visuals
+        visuals:VisualsSettings = self.settings.visuals
         
         # Stop movie if running when switching from theme duck to aircraft.
         # if hasattr(self, "movie") and (self.movie.state() == QMovie.MovieState.Running):
@@ -175,17 +175,17 @@ class MainWindow(QMainWindow):
         """
         
         
-        size:QSize = getWindowSize(self.config.visuals.windowSize)
+        size:QSize = getWindowSize(self.settings.visuals.windowSize)
         self.label.setFixedSize(size)
         self.setFixedSize(size)
         
         # resize what is currently being displayed
-        if (self.config.visuals.windowTheme == "aircraft") and hasattr(self, "defaultPixmap"):
+        if (self.settings.visuals.windowTheme == "aircraft") and hasattr(self, "defaultPixmap"):
             self.defaultPixmap = self.originalPixmap.scaled(size,  # scale from original to preserve resolution
                                                             Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
             self.updatePixmapHeading()
 
-        elif (self.config.visuals.windowTheme == "duck") and (hasattr(self, "movie")):
+        elif (self.settings.visuals.windowTheme == "duck") and (hasattr(self, "movie")):
             self.movie.setScaledSize(size)
             
     def updatePixmapHeading(self):
@@ -242,7 +242,7 @@ class MainWindow(QMainWindow):
         self.mover.updateDeadReckonIncrements()
         self.buildTooltip()
         
-        if self.config.visuals.windowTheme == "aircraft": # ducks use movie, don't rotate to heading
+        if self.settings.visuals.windowTheme == "aircraft": # ducks use movie, don't rotate to heading
             self.updatePixmapHeading()
                  
 
