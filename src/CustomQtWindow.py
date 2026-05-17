@@ -69,6 +69,7 @@ class MainWindow(QMainWindow):
         # Set basic Qt info
         self.setWindowTitle(f"OverFlightWindow_{state.icao24}")
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setWindowFlag(Qt.WindowType.Tool)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
 
         self.label = QLabel(self)
