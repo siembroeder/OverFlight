@@ -32,9 +32,11 @@ class SetupSettings:
 
 @dataclass
 class TrackingSettings:
+    icao24: Optional[str] = None
     callsign: Optional[str] = None
     airline: Optional[str] = None
-    icao24: Optional[str] = None
+    allowedTimePositionLag: Optional[int] = None
+    allowedLastContactLag: Optional[int] = None
     squawk: Optional[str] = None
     inAir: Optional[bool] = None
     onGround: Optional[bool] = None

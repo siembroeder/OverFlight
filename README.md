@@ -76,17 +76,19 @@ Aircraft are filtered based on these conditions.
 
 | name                  | type    | default | description |
 |-----------------------|---------|---------|-------------|
-| callsign              |string   |None     |Eg "KLM641", case insensitive.|
-| airline               |string   |None     |Filter the three letters in the callsign, eg "KLM" or "DLH".|
 | icao24                |string   |None     |Eg "485F82", case insensitive.|
+| callsign              |string   |None     |Eg "KLM641", case insensitive.|
+| airline               |string   |None     |Filter the callsign for airline designator, eg "KLM" or "DLH".|
+| allowedTimePositionLag|float    |None     |Filter for aircraft with time position timestamp (Unix time) greater than timestamp at filtering minus allowedLastContactLag.|
+| allowedLastContactLag |float    |None     |Filter for aircraft with last contact timestamp (Unix time) greater than timestamp at filtering minus allowedLastContactLag.|
 | squawk                |string   |None     |Eg "1000" or "7700".|
 | inAir                 |int      |None     |Set to 1 to only show aircraft in the air. Shouldn't be set together with onGround.|
 | onGround              |int      |None     |Set to 1 to only show aircraft on the ground. Shouldn't be set together with inAir.|
-| minVelocity           |float    |None     |Display only aircraft with a velocity higher than minVelocity in m/s.|
-| maxVelocity           |float    |None     |Display only aircraft with a velocity lower than maxVelocity in m/s.|
-| trueTrackRange        |list     |[0,360]  |Display only aircraft states with a true_track (heading) that's included in the range. Setting [0,90] shows only aircraft flying northeast. Set [350, 10] for aircraft only going north.|
-| minVerticalRate       |float    |None     |Display only aircraft with a vertical rate higher than minVerticalRate in m/s.|
-| maxVerticalRate       |float    |None     |Display only aircraft with a vertical rate lower than maxVerticalRate in m/s.|
+| minVelocity           |float    |None     |Filter for aircraft with a velocity higher than minVelocity in m/s.|
+| maxVelocity           |float    |None     |Filter for aircraft with a velocity lower than maxVelocity in m/s.|
+| trueTrackRange        |list     |None     |Filter for aircraft with a true_track (heading) that's included in the range. Setting [0,90] shows only aircraft flying northeast. Set [350, 10] for aircraft only going north.|
+| minVerticalRate       |float    |None     |Filter for aircraft with a vertical rate higher than minVerticalRate in m/s.|
+| maxVerticalRate       |float    |None     |Filter for aircraft with a vertical rate lower than maxVerticalRate in m/s.|
 | minGeoAltitude        |float    |None     |Eg 30000, units in feet.|
 | maxGeoAltitude        |float    |None     |Eg 30000, units in feet.|
 | minBaroAltitude       |float    |None     |Eg 30000, units in feet.|

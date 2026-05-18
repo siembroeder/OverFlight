@@ -40,6 +40,7 @@ class StateFilter():
          
     def applyLocalFilters(self, states:list[StateVector]) -> list[StateVector]:
         settings = self.settings
+        filterTimestamp = time.monotonic()
         
         if settings.icao24:
             logger.debug(f"Filtering for icao24: {settings.icao24}")
@@ -52,6 +53,14 @@ class StateFilter():
         if settings.airline:
             logger.debug(f"Filtering for airline: {settings.airline}")
             states = [state for state in states if (state.callsign is not None) and (state.callsign.lower().startswith(settings.airline.strip().lower()))]
+            
+        if settings.allowedTimePositionLag:
+            logger.debug(f"Filtering for timePositionLag: {settings.allowedTimePositionLag}")
+            states = [state for state in states if (state.time_position is not None) and (state.time_position > (filterTimestamp - settings.allowedTimePositionLag))]
+            
+        if settings.allowedLastContactLag:
+            logger.debug(f"Filtering for lastContactLag: {settings.allowedLastContactLag}")
+            states = [state for state in states if state.last_contact > (filterTimestamp - settings.allowedLastContactLag)]
             
         if settings.originCountry:
             logger.debug(f"Filtering for registration country: {settings.originCountry}")

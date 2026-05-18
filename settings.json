@@ -2,7 +2,7 @@
     "core": {
         "openskyCredentialsPath": ".credentials.json",
         "location": "Schiphol",
-        "bboxSize": "local"
+        "bboxSize": "huge"
     },
     "api": {
         "apiCallDelay": 10.0
@@ -12,9 +12,11 @@
         "displayName": ""
     },
     "tracking": {
+        "icao24": "",
         "callsign": "",
         "airline": "",
-        "icao24": "",
+        "allowedTimePositionLag": 0,
+        "allowedLastContactLag": 0,
         "squawk": "",
         "inAir": 1,
         "onGround": 0,
