@@ -1,18 +1,16 @@
-
-from opensky_api import StateVector, OpenSkyApi
-
-# Core imports
 import time
 import logging
 logger = logging.getLogger(__name__)
 from typing import TYPE_CHECKING
     
-# Custom imports
+from opensky_api import StateVector, OpenSkyApi
 from CustomQtWindow import MainWindow
 if TYPE_CHECKING:
     from Settings import Settings, TrackingSettings
 
 type icao24 = str
+
+
 class StateFilter():
     """
     Filters OpenSky aircraft state vectors using opensky_api and local configuration settings.

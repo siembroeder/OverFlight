@@ -1,5 +1,3 @@
-
-# Core Python imports
 import os
 import math
 import time
@@ -7,7 +5,6 @@ import logging
 logger = logging.getLogger(__name__)
 import subprocess
 
-# Custom imports
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from CustomQtWindow import MainWindow
