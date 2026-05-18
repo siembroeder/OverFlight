@@ -32,13 +32,17 @@ class SetupSettings:
 
 @dataclass
 class TrackingSettings:
-    minVelocity: Optional[MetersPerSecond] = None
     callsign: Optional[str] = None
     airline: Optional[str] = None
     icao24: Optional[str] = None
     squawk: Optional[str] = None
     inAir: Optional[bool] = None
     onGround: Optional[bool] = None
+    minVelocity: Optional[MetersPerSecond] = None
+    maxVelocity: Optional[MetersPerSecond] = None
+    trueTrackRange: Optional[list[float]] = None
+    minVerticalRate: Optional[float] = None
+    maxVerticalRate: Optional[float] = None
     minGeoAltitude: Optional[Meters] = None
     maxGeoAltitude: Optional[Meters] = None
     minBaroAltitude: Optional[Meters] = None

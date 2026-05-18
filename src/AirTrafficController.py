@@ -96,6 +96,8 @@ class AirTrafficController():
                 
                 filteredNewStates = self.tracker.filter.filterStates(newStates.states)
                 self.tracker.updateWindows(filteredNewStates)
+                             
+                logger.debug(f"After filtering {len(filteredNewStates)} remain")
                                 
                 await self.waitWithDeadReckoning(self.apiCallDelay)
 

@@ -1,24 +1,28 @@
 {
     "core": {
         "openskyCredentialsPath": ".credentials.json",
-        "location": "toronto",
+        "location": "Schiphol",
         "bboxSize": "large"
     },
     "api": {
         "apiCallDelay": 10.0
     },
     "setup": {
-        "maxWindows": 25,
+        "maxWindows": 100,
         "displayName": ""
     },
     "tracking": {
-        "minVelocity": 0.0,
         "callsign": "",
         "airline": "",
         "icao24": "",
         "squawk": "",
         "inAir": 1,
         "onGround": 0,
+        "minVelocity": 0.0,
+        "maxVelocity": 0.0,
+        "trueTrackRange": [0, 360],
+        "minVerticalRate": 0.0,
+        "maxVerticalRate": 0.0,
         "minGeoAltitude": 0.0,
         "maxGeoAltitude": 0.0,
         "minBaroAltitude": 0.0,
