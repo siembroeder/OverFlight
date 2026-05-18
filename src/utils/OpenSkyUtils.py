@@ -1,18 +1,19 @@
 
 
-from opensky_api import OpenSkyApi, OpenSkyStates, OpenSkyApi
-
-# Core Python Imports
+import csv
 import math
+import json
+import requests
+from typing import cast
 import logging
 logger = logging.getLogger(__name__)
-from typing import cast
+from requests import Response
 
 from geopy.location import Location
 from geopy.geocoders import Nominatim
 
-# Custom imports
 from utils.QtUtils import getScreenGeometry
+from opensky_api import OpenSkyApi, OpenSkyStates, OpenSkyApi, StateVector
 
 
 
@@ -92,30 +93,41 @@ def fetchStatesInBbox(api:OpenSkyApi, bbox:tuple) -> OpenSkyStates|None:
 
 
 
-# # Code that can be used later for getting aircraft's wake turbulence classification
+# Code that can be used later for getting aircraft's wake turbulence classification
 
-# def getAircraftMeta(icao24:str, username:str, password:str) -> dict:
-#     url:str = f"https://opensky-network.org/api/metadata/aircraft/icao/{icao24}"
-#     response:Response = requests.get(url, auth=(username, password))
+def getAircraftMeta(icao24:str, username:str, password:str) -> dict:
+    url:str = f"https://opensky-network.org/api/metadata/aircraft/icao/{icao24}"
+    # response:Response = requests.get(url, auth=(username, password))
+    response:Response = requests.get(url, timeout=5)
     
-#     if response.status_code == 200:
-#         return response.json()
-#     return {}
+    if response.status_code == 200:
+        return response.json()
+    return {}
 
-# def getTypeCodes(states:list[StateVector], printCodes:bool = False) -> list[str]:
-#     typecodes:list = []
-#     for state in states:
-#         meta:dict = getAircraftMeta(state.icao24, "", "") # The empty strings are the username and password for the api call ... ?!
+def getTypeCodes(states:list[StateVector], printCodes:bool = False) -> list[str]:
+    typecodes:list = []
+    for state in states:
+        meta:dict = getAircraftMeta(state.icao24, "", "") # The empty strings are the username and password for the api call ... ?!
         
-#         # print(f"{meta=}")
-        
-#         typecode = meta.get("typecode")
-#         typecodes.append(typecode)
+        typecode = meta.get("typecode")
+        typecodes.append(typecode)
 
-#         if printCodes:
-#             print(state.callsign, typecode, meta.get("model"))
+        if isinstance(typecode, str) and printCodes:
+            print(state.callsign, typecode, meta.get("model"), f"{get_wtc(typecode)=}")
 
-#     return typecodes
+    return typecodes
+
+
+def get_wtc(typecode:str) -> str|None:
+    WTC_MAP:dict[str, str] = {} 
+    with open("data/icao_8643.csv", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            designator = row["Designator"].strip().upper()
+            wtc = row["WTC"].strip()
+            
+            if typecode and (designator == typecode.strip().upper()):
+                return wtc
+
 
 # def printClassifications(typecodes:list[str], printClassifications = False) -> None:
     
@@ -132,10 +144,16 @@ def fetchStatesInBbox(api:OpenSkyApi, bbox:tuple) -> OpenSkyStates|None:
 #             except:
 #                 if printClassifications: print(f"Type \'{typecode}\' not found, continuing")
 #                 pass
+            
+            
+            
+# def get_typecode(icao24: str) -> str | None:
+#     try:
+#         url = f"https://opensky-network.org/api/metadata/aircraft/icao/{icao24.lower()}"
+#         resp = requests.get(url, timeout=5)
+#         if resp.status_code == 200:
+#             return resp.json().get("typecode", "").upper() or None
+#     except requests.RequestException:
+#         pass
+#     return None
 
-# def getTrueTracks(states:list[StateVector]) -> list[float]:
-#     tracks:list = []
-#     for state in states:
-#         tracks.append(state.true_track) # True_track, can be null.
-#     return tracks
-   

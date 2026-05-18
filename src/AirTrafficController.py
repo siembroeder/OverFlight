@@ -6,7 +6,7 @@ from datetime import datetime
 
 from opensky_api import OpenSkyStates
 from WindowTracker import WindowTracker
-from utils.OpenSkyUtils import fetchStatesInBbox
+from utils.OpenSkyUtils import fetchStatesInBbox, getTypeCodes
 
 
 class AirTrafficController():
@@ -53,6 +53,9 @@ class AirTrafficController():
             
                 # fetch new states, ratelimiting is handled in .waitWithDeadReckoning
                 newStates:OpenSkyStates|None = fetchStatesInBbox(self.tracker.settings.openSkyApi, self.bboxAtLocation)  
+
+                if newStates is not None and newStates.states is not None:
+                    typecodes = getTypeCodes(states=newStates.states, printCodes=True)
 
                 # skip to next api call if newStates empty.
                 if (newStates is None) or (newStates.states is None):
