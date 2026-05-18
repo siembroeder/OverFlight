@@ -101,7 +101,20 @@ class StateFilter():
             logger.debug(f"Filtering for maxGeoAltitude: {settings.maxGeoAltitude}")
             states = [state for state in states if (state.geo_altitude) and (state.geo_altitude*3.28084 <= settings.maxGeoAltitude)] # convert from meters to feet
         
+        if settings.spi == 1:
+            logger.debug(f"Filtering for spi: {settings.spi}")
+            states = [state for state in states if state.spi == True]
+            
+        if settings.positionSource:
+            logger.debug(f"Filtering for positionSource: {settings.positionSource}")
+            states = [state for state in states if state.position_source in settings.positionSource]
+        
+        if settings.category:
+            logger.debug(f"Filtering for category: {settings.category}")
+            states = self.filterStatesCategory(states)
+            
         return states        
+        
         
     def filterStatesVelocity(self, states:list[StateVector]) -> list[StateVector]:
         """Helper function to filter states by velocity"""
@@ -151,6 +164,28 @@ class StateFilter():
             elif range[0] > range[1]:
                 if (state.true_track >= range[0]) or (state.true_track <= range[1]):
                     filteredStates.append(state) 
+        
+        return filteredStates
+    
+    def filterStatesCategory(self, states:list[StateVector]) -> list[StateVector]:
+        if not self.settings.category:
+            return states
+        
+        excludedCategories = []
+        for cat in self.settings.category:
+            if isinstance(cat, str) and (cat.startswith("!")):
+                num = int(cat.lstrip("!"))
+                excludedCategories.append(num)
+        
+        filteredStates = []
+        for state in states:
+            cat = state.category
+            
+            if excludedCategories and cat not in excludedCategories:
+                filteredStates.append(state)
+                            
+            elif cat in self.settings.category:
+                filteredStates.append(state)
         
         return filteredStates
     

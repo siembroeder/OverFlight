@@ -2,13 +2,13 @@
     "core": {
         "openskyCredentialsPath": ".credentials.json",
         "location": "Schiphol",
-        "bboxSize": "large"
+        "bboxSize": "local"
     },
     "api": {
         "apiCallDelay": 10.0
     },
     "setup": {
-        "maxWindows": 100,
+        "maxWindows": 1000,
         "displayName": ""
     },
     "tracking": {
@@ -27,6 +27,9 @@
         "maxGeoAltitude": 0.0,
         "minBaroAltitude": 0.0,
         "maxBaroAltitude": 0.0,
+        "spi": 0,
+        "positionSource": [0, 1, 2, 3],
+        "category": [],
         "arrivalAirport": "",
         "departureAirport": "",
         "originCountry": ""

@@ -47,6 +47,9 @@ class TrackingSettings:
     maxGeoAltitude: Optional[Meters] = None
     minBaroAltitude: Optional[Meters] = None
     maxBaroAltitude: Optional[Meters] = None
+    spi: Optional[int] = None
+    positionSource: Optional[list[int]] = None
+    category: Optional[list[int]] = None
     arrivalAirport: Optional[str] = None
     departureAirport: Optional[str] = None
     originCountry: Optional[str] = None

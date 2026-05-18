@@ -33,7 +33,7 @@ def getBboxSize(locationName:str, bboxSize:str, displayName:str|None) -> tuple[f
     else:
         raise NameError("Location not found.")
 
-    latitudeOffsets = {"small": 0.10, "medium": 0.30, "large": 0.50}
+    latitudeOffsets = {"local": 0.05, "small": 0.10, "medium": 0.30, "large": 0.50, "veryLarge": 1, "huge": 2}
     
     if bboxSize in latitudeOffsets.keys():
         latitudeOffset = latitudeOffsets[bboxSize]

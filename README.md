@@ -49,7 +49,7 @@ Use the settings.json file in Settings/ to set your preferences for the categori
 |----------------------|------|------------------|-----------|
 |openskyCredentialsPath|string|".credentials.json"|Path to your opensky credentials .json file.|
 |location              |string|"Schiphol"        |Any location in the world that geopy recognizes.|
-|bboxSize              |string|"small"           |Preconfigured bounding box sizes, set to "small", "medium", or "large". May be omitted if both latitudeOffset and LongitudeOffset are used.|
+|bboxSize              |string|"small"           |Preconfigured bounding box sizes, set to "local", "small", "medium", "large", "veryLarge", or "huge". May be omitted if both latitudeOffset and LongitudeOffset are used.|
 |longitudeOffset, latitudeOffset|float,float|None,None|Can be used to set the width and height of the bounding box. Must both be a non-zero, positive float. Do not use if bboxSize is used.|
 
 ##### Configuring for Boundingbox / Area 
@@ -74,19 +74,26 @@ Use the settings.json file in Settings/ to set your preferences for the categori
 #### tracking
 Aircraft are filtered based on these conditions.
 
-| name                  | type       | default | description |
-|-----------------------|------------|---------|-------------|
-| minVelocity           |float       |None     |Display only aircraft with a velocity higher than minVelocity in m/s.|
-| callsign              |string      |None     |Eg "KLM641", case insensitive.|
-| airline               |string      |None     |Filter the three letters in the callsign, eg "KLM" or "DLH".|
-| icao24                |string      |None     |Eg "485F82", case insensitive.|
-| squawk                |string      |None     |Eg "1000" or "7700".|
-| inAir                 |int         |None     |Set to 1 to only show aircraft in the air.|
-| onGround              |int         |None     |Set to 1 to only show aircraft on the ground.|
-| minGeoAltitude        |float       |None     |Eg 30000, units in feet.|
-| maxGeoAltitude        |float       |None     |Eg 30000, units in feet.|
-| minBaroAltitude       |float       |None     |Eg 30000, units in feet.|
-| maxBaroAltitude       |float       |None     |Eg 30000, units in feet.|
+| name                  | type    | default | description |
+|-----------------------|---------|---------|-------------|
+| callsign              |string   |None     |Eg "KLM641", case insensitive.|
+| airline               |string   |None     |Filter the three letters in the callsign, eg "KLM" or "DLH".|
+| icao24                |string   |None     |Eg "485F82", case insensitive.|
+| squawk                |string   |None     |Eg "1000" or "7700".|
+| inAir                 |int      |None     |Set to 1 to only show aircraft in the air. Shouldn't be set together with onGround.|
+| onGround              |int      |None     |Set to 1 to only show aircraft on the ground. Shouldn't be set together with inAir.|
+| minVelocity           |float    |None     |Display only aircraft with a velocity higher than minVelocity in m/s.|
+| maxVelocity           |float    |None     |Display only aircraft with a velocity lower than maxVelocity in m/s.|
+| trueTrackRange        |list     |[0,360]  |Display only aircraft states with a true_track (heading) that's included in the range. Setting [0,90] shows only aircraft flying northeast. Set [350, 10] for aircraft only going north.|
+| minVerticalRate       |float    |None     |Display only aircraft with a vertical rate higher than minVerticalRate in m/s.|
+| maxVerticalRate       |float    |None     |Display only aircraft with a vertical rate lower than maxVerticalRate in m/s.|
+| minGeoAltitude        |float    |None     |Eg 30000, units in feet.|
+| maxGeoAltitude        |float    |None     |Eg 30000, units in feet.|
+| minBaroAltitude       |float    |None     |Eg 30000, units in feet.|
+| maxBaroAltitude       |float    |None     |Eg 30000, units in feet.|
+| spi                   |int      |None     |Set to 1 to only show aircraft with the special purpose indicator flag set to True, eg when squawking ident.|
+| positionSource        |list     |[0,1,2,3]|Origin of this state's position: <br>0 = ADS-B, <br>1 = ASTERIX, <br>2 = MLAT, <br>3 = FLARM.|
+| category              |list     |[0-20]    |Aircraft category (nearly always 0), set to eg [4, 6] to only show Large and Heavy. To exclude certain categories set to ["!0", "!1"], in this case all entries should be strings starting with "!". <br>0 = No information at all, <br>1 = No ADS-B Emitter Category Information, <br>2 = Light (< 5500 lbs), <br>3 = Small (15500 to 75000 lbs), <br>4 = Large (75000 to 300000 lbs), <br>5 = High Vortex Large (aircraft such as B-757), <br>6 = Heavy (> 300000 lbs), <br>7 = High Performance (> 5g acceleration and 400 kts), <br>8 = Rotorcraft, <br>9 = Glider / sailplane, <br>10 = Lighter-than-air, <br>11 = Parachutist / Skydiver, <br>12 = Ultralight / hang-glider / paraglider, <br>13 = Reserved, <br>14 = Unmanned Aerial Vehicle, <br>15 = Space / Trans-atmospheric vehicle, <br>16 = Surface Vehicle – Emergency Vehicle, <br>17 = Surface Vehicle – Service Vehicle, <br>18 = Point Obstacle (includes tethered balloons), <br>19 = Cluster Obstacle, <br>20 = Line Obstacle.|
 | arrivalAirport        |string      |None     |Broken: No reliable way to get this info. Eg "EHAM", case insensitive.|
 | departureAirport      |string      |None     |Eg "EHAM", case insensitive. Might be slow as it calls to the api for every aircraft.|
 | originCountry   |string      |None     |Eg "Kingdom of the Netherlands.|
