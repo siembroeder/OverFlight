@@ -4,9 +4,13 @@ Overflight is a desktop agent that displays nearby aircrafts through icons that 
 
 ## Installation
 
-Before running OverFlight, make sure you have `uv`, a package and project manager. Installation can be found at: https://docs.astral.sh/uv/getting-started/installation/.
+Before running OverFlight, make sure you have `uv`, a package and project manager. Installation can be found at: https://docs.astral.sh/uv/getting-started/installation/. 
 
-To run, use the command `uv run src/main.py`. 
+Clone the directory using `git clone https://github.com/siembroeder/OverFlight`
+
+Then create an account (free) at https://opensky-network.org/, go to 'Account' - 'API client' and click 'Create & Download Credential. Then put the credentials.json into the OverFlight directory.
+
+To start OverFlight, use the command `uv run src/main.py`. 
 
 > **_On windows:_** For the icons to be transparent, the setting `transparency effects` under `Personalisation > Colours` must be turned off. 
 

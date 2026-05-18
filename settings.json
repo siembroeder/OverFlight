@@ -1,7 +1,7 @@
 {
     "core": {
         "openskyCredentialsPath": ".credentials.json",
-        "location": "toronto",
+        "location": "Schiphol",
         "bboxSize": "large"
     },
     "api": {
@@ -17,7 +17,7 @@
         "airline": "",
         "icao24": "",
         "squawk": "",
-        "inAir": 1,
+        "inAir": 0,
         "onGround": 0,
         "minGeoAltitude": 0.0,
         "maxGeoAltitude": 0.0,
