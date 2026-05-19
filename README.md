@@ -66,7 +66,7 @@ Use the settings.json file in Settings/ to set your preferences for the categori
 
 | name         | type | default | description |
 |--------------|------|---------|-------------|
-|apiCallDelay  |float |10.0     | Spacing between consecutive calls to opensky_api.get_states(). Any value smaller than 10.0 results in rate limiting for free OpenSky users.|
+|apiCallDelay  |float |5.0     | Spacing between consecutive calls to opensky_api.get_states(). Any value smaller than 5 seconds results in rate limiting.|
 
 #### setup
 
@@ -120,7 +120,7 @@ Aircraft are filtered based on these conditions.
     "core": {"openskyCredentialsPath": ".credentials.json",
              "location": "Amsterdam",
              "bboxSize": "medium"},
-    "api": { "apiCallDelay": 10.0 },
+    "api": { "apiCallDelay": 5.0 },
     "setup": { "maxWindows": 25, 
                "displayName": "eDP-1" },
     "tracking": {"inAir": 1,
