@@ -2,7 +2,7 @@
     "core": {
         "openskyCredentialsPath": ".credentials.json",
         "location": "Schiphol",
-        "bboxSize": "huge"
+        "bboxSize": "large"
     },
     "api": {
         "apiCallDelay": 10.0
@@ -18,7 +18,7 @@
         "allowedTimePositionLag": 0,
         "allowedLastContactLag": 0,
         "squawk": "",
-        "inAir": 1,
+        "inAir": 0,
         "onGround": 0,
         "minVelocity": 0.0,
         "maxVelocity": 0.0,

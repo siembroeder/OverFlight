@@ -1,12 +1,9 @@
-
-from opensky_api import StateVector
-
-# Core Python imports
+import json
 import logging
 logger = logging.getLogger(__name__)
 from dataclasses import fields
 
-# Custom imports
+from opensky_api import StateVector
 from StateFilter import StateFilter
 from CustomQtWindow import MainWindow
 from utils.QtUtils import windowIsOpen
@@ -77,13 +74,21 @@ class WindowTracker():
         self.windows.clear()        
                 
     def checkNewSettings(self) -> bool:
-        newRawSettings = Settings.loadSettings()
+        try:
+            newRawSettings = Settings.loadSettings()
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in settings file: {e}")
+            return False
         
         isUpdated = False
         if newRawSettings != self.settings.raw:
-            newSettings = Settings.build()
-            self.settings.applyUpdate(newSettings)
-            isUpdated = True
+            try:
+                newSettings = Settings.build()
+                self.settings.applyUpdate(newSettings)
+                isUpdated = True
+            except (KeyError, TypeError, ValueError) as e:
+                logger.error(f"Invalid settings values: {e}")
+                return False
         
         return isUpdated
     

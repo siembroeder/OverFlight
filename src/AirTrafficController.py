@@ -1,17 +1,12 @@
-
-from opensky_api import OpenSkyStates
-
-#Core Python imports
 import time
 import asyncio
 import logging
 logger = logging.getLogger(__name__)
 from datetime import datetime
 
-
-# Custom imports
+from opensky_api import OpenSkyStates
 from WindowTracker import WindowTracker
-from utils.OpenSkyUtils import fetchStatesInBbox
+from utils.OpenSkyUtils import fetchStatesInBbox, getTypeCodes
 
 
 class AirTrafficController():
@@ -89,16 +84,14 @@ class AirTrafficController():
                     await self.waitWithDeadReckoning(self.apiCallDelay)
                     continue    
                 
+                logger.info(f"\n\nAccepted {len(newStates.states)} new states at {datetime.fromtimestamp(int(time.time()))} with timestamp: {datetime.fromtimestamp(newStates.time)}\n")
                 self.newestStateTimestamp = newStates.time
                 self.numApiCallsSkipped   = 0.0  # reset
                 
-                logger.info(f"\n\nAccepted {len(newStates.states)} new states at {datetime.fromtimestamp(int(time.time()))} with timestamp: {datetime.fromtimestamp(newStates.time)}\n")
-                
                 filteredNewStates = self.tracker.filter.filterStates(newStates.states)
-                self.tracker.updateWindows(filteredNewStates)
-                             
-                logger.debug(f"After filtering {len(filteredNewStates)} remain")
-                                
+                logger.debug(f"After filtering {len(filteredNewStates)} remain.")
+
+                self.tracker.updateWindows(filteredNewStates)                
                 await self.waitWithDeadReckoning(self.apiCallDelay)
 
     async def run(self) -> None:
