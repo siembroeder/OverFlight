@@ -122,6 +122,12 @@ class StateFilter():
             logger.debug(f"Filtering for category: {settings.category}")
             states = self.filterStatesCategory(states)
             
+        if settings.sensors:
+            logger.debug(f"Filtering for sensors: {settings.sensors}")
+            logger.warning(f"Untested, because the dev team doesn't have access to a paid openskyapi account")
+            states = [state for state in states if (state.sensors) and any(sensor in settings.sensors for sensor in state.sensors)]
+            
+            
         return states        
         
         

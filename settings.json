@@ -34,7 +34,8 @@
         "category": [],
         "arrivalAirport": "",
         "departureAirport": "",
-        "originCountry": ""
+        "originCountry": "",
+        "sensors": []
     },
     "visuals": {
         "windowTheme": "aircraft",

@@ -55,6 +55,7 @@ class TrackingSettings:
     arrivalAirport: Optional[str] = None
     departureAirport: Optional[str] = None
     originCountry: Optional[str] = None
+    sensors: Optional[list[int]] = None
 
 @dataclass
 class VisualsSettings:
