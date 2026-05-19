@@ -5,7 +5,7 @@
         "bboxSize": "large"
     },
     "api": {
-        "apiCallDelay": 10.0
+        "apiCallDelay": 5.0
     },
     "setup": {
         "maxWindows": 1000,
@@ -22,7 +22,7 @@
         "onGround": 0,
         "minVelocity": 0.0,
         "maxVelocity": 0.0,
-        "trueTrackRange": [0, 360],
+        "trueTrackRange": [],
         "minVerticalRate": 0.0,
         "maxVerticalRate": 0.0,
         "minGeoAltitude": 0.0,
@@ -30,7 +30,7 @@
         "minBaroAltitude": 0.0,
         "maxBaroAltitude": 0.0,
         "spi": 0,
-        "positionSource": [0, 1, 2, 3],
+        "positionSource": [],
         "category": [],
         "arrivalAirport": "",
         "departureAirport": "",

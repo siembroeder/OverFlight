@@ -13,7 +13,7 @@ class AirTrafficController():
     """
     Controls WindowTracker.
     Responsible for fetching aircraft states and for waiting in between api calls for apiCallDelay seconds. 
-    Must be longer than 10 seconds to not be ratelimited by the openskyapi if you're using a free subscription 
+    Must be longer than 5 seconds to not be ratelimited by the openskyapi
     """
     def __init__(self, tracker: WindowTracker):
         self.tracker = tracker
@@ -44,7 +44,7 @@ class AirTrafficController():
         Main asynchronous loop that fetches aircraft states, applies filtering, rate-limits API usage, and updates tracked windows.
         """
         
-        assert self.apiCallDelay >= 10.0, "apiCallDelay must be at least 10 seconds."
+        assert self.apiCallDelay >= 5.0, "apiCallDelay must be at least 5.0 seconds."
         
         while True:
             

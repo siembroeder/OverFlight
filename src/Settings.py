@@ -20,7 +20,7 @@ class CoreSettings:
 
 @dataclass
 class ApiSettings:
-    apiCallDelay: Seconds = Seconds(10.0)
+    apiCallDelay: Seconds = Seconds(5.0)
 
 @dataclass
 class SetupSettings:
