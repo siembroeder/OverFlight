@@ -11,6 +11,7 @@ from PySide6.QtGui import QPixmap, QMovie, QTransform
 from Mover import Mover
 from utils.QtUtils import getWindowSize, getScreenGeometry
 from Settings import Settings, VisualsSettings, TrackingSettings
+from utils.OpenSkyUtils import getTypeCode, getWakeTurbulenceClassification
 from utils.TypeHints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
 
 
@@ -57,6 +58,8 @@ class MainWindow(QMainWindow):
         self.applyState(state)
         self.latitude = asLatitude(state.latitude)
         self.longitude= asLongitude(state.longitude)
+        self.typecode = getTypeCode(state.icao24)
+        self.wakeTurbulenceClassification = getWakeTurbulenceClassification(self.typecode)
         self.lastApiUpdate = time.monotonic()
         
         # Set basic Qt info
@@ -147,7 +150,11 @@ class MainWindow(QMainWindow):
         #     self.movie.stop()
 
         if visuals.windowTheme == "aircraft":
-            image = QPixmap("assets/singleIsleAircraft.png")
+            if self.typecode.upper().startswith("B74"):
+                image = QPixmap("assets/747.png")
+            else:
+                image = QPixmap("assets/singleIsleAircraft.png")
+                
             self.originalPixmap = image  # store original
             self.defaultPixmap = self.originalPixmap.scaled(self.label.size(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
             self.updatePixmapHeading()

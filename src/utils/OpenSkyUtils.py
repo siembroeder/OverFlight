@@ -2,18 +2,17 @@
 
 import csv
 import math
-import json
-import requests
 from typing import cast
 import logging
 logger = logging.getLogger(__name__)
+import requests
 from requests import Response
 
 from geopy.location import Location
 from geopy.geocoders import Nominatim
 
 from utils.QtUtils import getScreenGeometry
-from opensky_api import OpenSkyApi, OpenSkyStates, OpenSkyApi, StateVector
+from opensky_api import OpenSkyApi, OpenSkyStates, OpenSkyApi
 
 
 
@@ -86,16 +85,7 @@ def fetchStatesInBbox(api:OpenSkyApi, bbox:tuple) -> OpenSkyStates|None:
     states:OpenSkyStates|None = api.get_states(bbox = bbox)
     return states
 
-
-
-
-
-
-
-
-# Code that can be used later for getting aircraft's wake turbulence classification
-
-def getAircraftMeta(icao24:str, username:str, password:str) -> dict:
+def getAircraftMeta(icao24:str) -> dict:
     url:str = f"https://opensky-network.org/api/metadata/aircraft/icao/{icao24}"
     # response:Response = requests.get(url, auth=(username, password))
     response:Response = requests.get(url, timeout=5)
@@ -104,22 +94,16 @@ def getAircraftMeta(icao24:str, username:str, password:str) -> dict:
         return response.json()
     return {}
 
-def getTypeCodes(states:list[StateVector], printCodes:bool = False) -> list[str]:
-    typecodes:list = []
-    for state in states:
-        meta:dict = getAircraftMeta(state.icao24, "", "") # The empty strings are the username and password for the api call ... ?!
-        
-        typecode = meta.get("typecode")
-        typecodes.append(typecode)
+def getTypeCode(icao24:str) -> str:
+    meta:dict = getAircraftMeta(icao24)    
+    typecode = meta.get("typecode")
+    
+    if typecode:
+        return typecode
 
-        if isinstance(typecode, str) and printCodes:
-            print(state.callsign, typecode, meta.get("model"), f"{get_wtc(typecode)=}")
+    return ""
 
-    return typecodes
-
-
-def get_wtc(typecode:str) -> str|None:
-    WTC_MAP:dict[str, str] = {} 
+def getWakeTurbulenceClassification(typecode:str) -> str|None:
     with open("data/icao_8643.csv", encoding="utf-8") as f:
         for row in csv.DictReader(f):
             designator = row["Designator"].strip().upper()
@@ -127,33 +111,3 @@ def get_wtc(typecode:str) -> str|None:
             
             if typecode and (designator == typecode.strip().upper()):
                 return wtc
-
-
-# def printClassifications(typecodes:list[str], printClassifications = False) -> None:
-    
-#     with open("Data/AircraftClassifications/AircraftClassifications.json") as file:
-        
-#         aircraftClassifications = json.load(file)
-
-#         if printClassifications: print("\nClassifications:")
-#         for typecode in typecodes:
-#             try:
-#                 classification = aircraftClassifications[typecode]
-#                 wake = classification["wake"]
-#                 if printClassifications: print(f"Type \'{typecode}\' found, classification: {wake}")
-#             except:
-#                 if printClassifications: print(f"Type \'{typecode}\' not found, continuing")
-#                 pass
-            
-            
-            
-# def get_typecode(icao24: str) -> str | None:
-#     try:
-#         url = f"https://opensky-network.org/api/metadata/aircraft/icao/{icao24.lower()}"
-#         resp = requests.get(url, timeout=5)
-#         if resp.status_code == 200:
-#             return resp.json().get("typecode", "").upper() or None
-#     except requests.RequestException:
-#         pass
-#     return None
-
