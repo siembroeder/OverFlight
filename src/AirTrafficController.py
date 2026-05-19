@@ -6,7 +6,7 @@ from datetime import datetime
 
 from opensky_api import OpenSkyStates
 from WindowTracker import WindowTracker
-from utils.OpenSkyUtils import fetchStatesInBbox, getTypeCodes
+from utils.OpenSkyUtils import fetchStatesInBbox
 
 
 class AirTrafficController():
