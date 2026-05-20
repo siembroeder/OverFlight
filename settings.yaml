@@ -1,0 +1,42 @@
+core:
+    openskyCredentialsPath: .credentials.json
+    location: Schiphol
+    bboxSize: large
+
+api:
+    apiCallDelay: 5.0
+
+setup:
+    maxWindows: 1000
+    displayName: 
+
+visuals:
+    windowTheme: aircraft
+    windowSize: small
+    updateInterval: 1.0
+    tooltipFields: [callsign, icao24, true_track]
+
+tracking:
+    icao24:
+    callsign:
+    airline:
+    squawk:
+    inAir:
+    onGround:
+    arrivalAirport:
+    departureAirport:
+    minVelocity:
+    maxVelocity:
+    minGeoAltitude:
+    maxGeoAltitude:
+    minBaroAltitude:
+    maxBaroAltitude:
+    minVerticalRate:
+    maxVerticalRate:
+    trueTrackRange:
+    spi:
+    sensors:
+    category:
+    originCountry:
+    allowedLastContactLag:
+    allowedTimePositionLag: 
