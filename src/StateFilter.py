@@ -1,10 +1,14 @@
 import time
 import logging
 logger = logging.getLogger(__name__)
+import pandas as pd
+from pandas import DataFrame
 from typing import TYPE_CHECKING
     
-from opensky_api import StateVector, OpenSkyApi
 from CustomQtWindow import MainWindow
+from opensky_api import StateVector, OpenSkyApi
+from FlightRadarAPI import FlightRadar24API, Flight
+
 if TYPE_CHECKING:
     from Settings import TrackingSettings
 
@@ -15,19 +19,20 @@ class StateFilter():
     """
     Filters OpenSky aircraft state vectors using opensky_api and local configuration settings.
     """
-    def __init__(self, settings:"TrackingSettings", api:OpenSkyApi, maxWindows:int):
+    def __init__(self, settings:"TrackingSettings", api:OpenSkyApi, maxWindows:int, bbox:tuple):
         """Initialize filter with tracking configuration, OpenSky API client, and maximum number of windows (default=25)"""
         
         self.settings:TrackingSettings = settings
         self.api:OpenSkyApi = api
         self.maxWindows = maxWindows
+        self.bbox = bbox
     
     def filterStates(self, states:list[StateVector]) -> list[StateVector]:
         
         states = self.applyLocalFilters(states)
         
         if self.settings.departureAirport or self.settings.arrivalAirport:
-            states = self.applyApiFilters(states)
+            states = self.applyAirportFilters(states)
         
         assert self.maxWindows > 0.0, "maxWindows should be larger than 0"
         if len(states) >= self.maxWindows: # must be last filter
@@ -127,8 +132,7 @@ class StateFilter():
             
             
         return states        
-        
-        
+           
     def filterStatesVelocity(self, states:list[StateVector]) -> list[StateVector]:
         """Helper function to filter states by velocity"""
         minVelocity = self.settings.minVelocity
@@ -202,32 +206,50 @@ class StateFilter():
         
         return filteredStates
     
-    def applyApiFilters(self, states:list[StateVector]) -> list[StateVector]:
-        """Apply the filters the require another call to the api like departureAirport as this data is not part of StateVector."""
+    def applyAirportFilters(self, states:list[StateVector]) -> list[StateVector]:
+        """Apply arrivalAirport and departureAirport filters, they require an api call since the data isn't part of StateVector."""
         
-        logger.debug(f"Applying API filters")
+        logger.debug(f"Applying airport filters")
+        
+        if not hasattr(self, "fr24api"):
+            self.fr24api = FlightRadar24API()
+            
+        airports:DataFrame = pd.read_csv("data/airports.csv")
+        flights:list[Flight] = self.fr24api.get_flights(bounds=f"{self.bbox[1]},{self.bbox[0]},{self.bbox[2]},{self.bbox[3]}") # fr24api expects north, south, west, east 
+        
+        icao_from_iata = airports.dropna(subset=["iata"]).set_index("iata")["icao"]
+
         filteredStates = []
-        t1 = int(time.time())
-        t0 = t1 - 24*3600 # fetch flights in past 24 hours
-        stateMap = {state.icao24:state for state in states}
-        matchedIcaos = set()
-         
-        if self.settings.departureAirport:
-            departures = self.api.get_departures_by_airport(self.settings.departureAirport, t0, t1)
-            if departures is None:
-                logger.debug("Departure airport request failed — skipping departure filter")
-            else:
-                matchedIcaos.update(flight.icao24 for flight in departures if flight.icao24 in stateMap)
+        for state in states:
+            matchedFlight:Flight|None = next((f for f in flights if f.icao_24bit.lower().strip() == state.icao24.lower().strip()), None)
+            
+            if matchedFlight is None:
+                continue
 
-        if self.settings.arrivalAirport:
-            logger.warning(f"arrivalAirport filtering is broken")
-        
-        if not matchedIcaos:
-            logger.debug("No matching flights found for configured airports")
-            return []
+            # Flight stores its airport codes in IATA format but we need ICAO, convert using airports.csv
+            if self.settings.departureAirport:
+                departure_iata:str = matchedFlight.origin_airport_iata
+                try:
+                    departure_icao:str = icao_from_iata[departure_iata]
+                except:
+                    continue
+                
+                if departure_icao.lower().strip() == self.settings.departureAirport.lower().strip():
+                    filteredStates.append(state)
 
-        filteredStates = [stateMap[icao] for icao in matchedIcaos]
-        return filteredStates
+            if self.settings.arrivalAirport:                
+                destination_iata:str = matchedFlight.destination_airport_iata
+                try:
+                    destination_icao:str = icao_from_iata[destination_iata]
+                except:
+                    logger.debug(f"Arrival airport: {destination_iata} not found, continuing to next flight.")
+                    continue
+                
+                if destination_icao.lower().strip() == self.settings.arrivalAirport.lower().strip():
+                    if state not in filteredStates:
+                        filteredStates.append(state)
+
+        return states
 
     def extractUntrackedStates(self, activeWindows:dict[icao24,MainWindow],  newStates:list[StateVector]) -> list[StateVector]:
         activeIcaos = activeWindows.keys()
@@ -240,67 +262,3 @@ class StateFilter():
             if state.icao24 not in activeIcaos:
                 untrackedStates.append(state)
         return untrackedStates
-        
-        
-        
-        
-        
-        
-        
-        
-        
-    # # Leftover code for trying to make the arrival airport filter work:   
-    
-    # def applyApiFilters(self, states:list[StateVector]) -> list[StateVector]:
-    #     print(f"Applying API filters")
-    #     filteredStates = []
-    #     stateMap = {state.icao24:state for state in states}
-    #     matchedIcaos = set()
-            
-    #     print(self.config.departureAirport, self.config.arrivalAirport)
-    #     if self.config.departureAirport or self.config.arrivalAirport:
-    #         for state in states:
-    #             if state.callsign is None:
-    #                 continue
-                
-    #             callsign = state.callsign.strip()
-    #             route = self.getRouteCallsign(callsign)
-
-    #             if route is None:
-    #                 continue
-                
-    #             if route[0] == self.config.departureAirport or route[1] == self.config.arrivalAirport:
-    #                 print(callsign, state.icao24, route)
-    #                 matchedIcaos.add(state.icao24)
-        
-    #     if not matchedIcaos:
-    #         return []
-
-    #     filteredStates = [stateMap[icao] for icao in matchedIcaos]
-    #     return filteredStates    
-    
-
-        # if self.config.arrivalAirport:
-        #     for icao24 in stateMap:
-        #         if icao24 in matchedIcaos:
-        #             continue  # already matched, skip the API call
-                
-        #         flights = self.api.get_flights_by_aircraft(icao24, t0, t1)
-        #         if not flights:
-        #             continue
-        #         # Most recent flight is last in the list
-        #         current_flight = flights[-1]
-        #         if current_flight.estArrivalAirport == self.config.arrivalAirport:
-        #             matchedIcaos.add(icao24)
-
-    # def getRouteCallsign(self, callsign:str) -> tuple[str, str]|None:
-    #     r = requests.get(f"https://api.adsbdb.com/v0/callsign/{callsign.strip()}")
-        
-    #     if r.status_code != 200:
-    #         return None
-    #     # print(r.json())
-    #     data = r.json().get("response", {}).get("flightroute")
-    #     if not data:
-    #         return None
-        
-    #     return (data["origin"]["icao_code"], data["destination"]["icao_code"])
