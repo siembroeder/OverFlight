@@ -1,3 +1,5 @@
+
+import os
 import json
 
 from typing import Optional, ClassVar, Callable
@@ -76,9 +78,8 @@ class Settings:
     Central configuration combining all config sections, API, boundingbox, callbacks.
     
     Should be initialized via Settings.build()
-    
-    
     """
+    
     openSkyApi: ClassVar[OpenSkyApi]
     bboxAtLocation: tuple
 
@@ -106,8 +107,12 @@ class Settings:
             raise KeyError("Location not defined in settings file.")
 
         # Create API
-        if not hasattr(cls, "api"):
-            cls.openSkyApi = OpenSkyApi(token_manager=TokenManager.from_json_file(core.openskyCredentialsPath))
+        if not hasattr(cls, "openSkyApi"):
+            cls.openSkyApi:OpenSkyApi = cls.getOpenSkyApi(core.openskyCredentialsPath)
+            
+            # if not an authenticated user, set ratelimiting to 10 seconds if not already.
+            if (cls.openSkyApi._token_manager is None) and (api.apiCallDelay < 10.0):
+                api.apiCallDelay = Seconds(10.0)
     
         bboxAtLocation = cls.getBbox(core, setup)
 
@@ -119,6 +124,21 @@ class Settings:
             data = json.load(f)
 
         return data
+    
+    @staticmethod
+    def getOpenSkyApi(customCredentialsPath:str) -> OpenSkyApi:
+        credentialsPaths = ["credentials.json", ".credentials.json", customCredentialsPath]
+
+        # Look for credential files in OverFlight/ directory (not in subdirectories)
+        for file in credentialsPaths:
+            if os.path.isfile(file):
+                try:
+                    return OpenSkyApi(token_manager=TokenManager.from_json_file(file))
+                except(FileNotFoundError, ValueError, OSError):
+                    pass
+        
+        # If no credential files found, use anonymous opensky account, less credits and rate limited to 10 seconds  
+        return OpenSkyApi()
 
     @staticmethod
     def getBbox(core:CoreSettings, setup:SetupSettings) -> tuple[float, float, float, float]:
