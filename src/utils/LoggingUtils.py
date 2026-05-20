@@ -40,3 +40,4 @@ def setupLogging(logLevel:str):
     logging.getLogger("asyncio").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("opensky_api").setLevel(logging.WARNING)
+    logging.getLogger("FlightRadarAPI").setLevel(logging.ERROR)
