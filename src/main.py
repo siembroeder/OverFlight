@@ -25,7 +25,7 @@ def main():
     Starting point.
     
     Create the app, tracker(-settings, -controller) and schedule AirTrafficController.run() through startOverflightApplication
-    All settings should be set in settings.json
+    All settings should be set in settings.yaml
     Read the README.md for more information on settings
     """
     logger.info("Starting OverFlight\n")
@@ -34,9 +34,12 @@ def main():
     app.setQuitOnLastWindowClosed(False)
 
     settings   = Settings.build()
+    if not settings:
+        return
+
     tracker    = WindowTracker(settings)
     controller = AirTrafficController(tracker)
-    
+        
     app.aboutToQuit.connect(tracker.CloseAllWindows)
     
     startOverflightApplication(controller)

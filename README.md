@@ -20,7 +20,7 @@ To start OverFlight, use the command `uv run src/main.py`.
 ## Prototype / Development
 
 Current functionality:
-- Configure in settings.json using below documentation.
+- Configure in settings.yaml using below documentation.
 - spawns windows representing live aircraft at their current location relative to the chosen boundingbox and screen.
 - in between api calls, use deadreckoning to update window position for more a interactive experience
 - When a new api call comes in, deadreckon to predicted next api location.
@@ -48,7 +48,7 @@ Current functionality:
 
 
 ### Settings / Configuration
-Use the settings.json file in Settings/ to set your preferences for the categories core, api, setup, tracking, and visuals. 
+Use the settings.yaml file to set your preferences for the categories core, api, setup, visuals, and tracking. 
 
 #### core
 
@@ -77,6 +77,14 @@ Use the settings.json file in Settings/ to set your preferences for the categori
 |------------|---------|---------|-------------|
 | maxWindows |int      |25       | Maximum number of aircraft windows on the screen.|
 | displayName |string   |First entry in QApplication.screens() | Select the name of display on which to project the windows, eg "eDP-1", "HDMI-1-A", or "DP-1". If "all" use all displays. Depending on scaling of the displays, part of the bounding box may be "outside" the displays.|
+
+#### visuals
+| name       | type    | default | description |
+|------------|---------|---------|-------------|
+| windowTheme|string   |aircraft |Sets the image. Options: "aircraft", "duck". If "aircraft", the windows contain a .png of an aircraft that rotates depending on the heading. If "duck", the windows contain a .gif of a duck walking to the left or right depening on the heading.|
+| windowSize |string or list   | "small" |Set the size of the window. Options: "miniature", "small", "medium", "large", "comicallyLarge", [width, height]. Width and height must be integers|
+|updateInterval|float  |1.0      |Time in seconds between moving windows around. Must be positive and non-zero.|
+|tooltipFields|list     |["callsign"]        |List of fields shown when hovering over a window. May be any field from the tracking conditions or any field from [opensky_api.StateVector](https://openskynetwork.github.io/opensky-api/python.html#opensky_api.StateVector).|
 
 #### tracking
 Aircraft are filtered based on these conditions.
@@ -109,29 +117,30 @@ Aircraft are filtered based on these conditions.
 | sensors               |list[int]   |None     |Must be a list of integers representing the serial numbers of sensors.<br>This filter is only accessible to users with a paid openskyapi account, for free users the vehicle's sensors are always None.    |
 
 
-#### visuals
-| name       | type    | default | description |
-|------------|---------|---------|-------------|
-| windowTheme|string   |aircraft |Sets the image. Options: "aircraft", "duck". If "aircraft", the windows contain a .png of an aircraft that rotates depending on the heading. If "duck", the windows contain a .gif of a duck walking to the left or right depening on the heading.|
-| windowSize |string or list   | "small" |Set the size of the window. Options: "miniature", "small", "medium", "large", "comicallyLarge", [width, height]. Width and height must be integers|
-|updateInterval|float  |1.0      |Time in seconds between moving windows around. Must be positive and non-zero.|
-|tooltipFields|list     |["callsign"]        |List of fields shown when hovering over a window. May be any field from the tracking conditions or any field from [opensky_api.StateVector](https://openskynetwork.github.io/opensky-api/python.html#opensky_api.StateVector).|
-
 #### Example settings file:
-<pre> ```json 
-{ 
-    "core": {"openskyCredentialsPath": "credentials.json",
-             "location": "Amsterdam",
-             "bboxSize": "medium"},
-    "api": { "apiCallDelay": 5.0 },
-    "setup": { "maxWindows": 25, 
-               "displayName": "eDP-1" },
-    "tracking": {"inAir": 1,
-                 "departureAirport": "EHAM"},
-    "visuals": {"windowTheme": "duck",
-                "windowSize": "small",
-                "tooltipFields": ["callsign", "true_track", "baro_altitude"]}
-} 
+<pre> ```yaml 
+core:
+  openskyCredentialsPath: credentials.json
+  location: Amsterdam
+  bboxSize: medium
+
+api:
+  apiCallDelay: 5.0
+
+setup:
+  maxWindows: 25
+
+visuals:
+  windowTheme: duck
+  windowSize: small
+  tooltipFields:
+    - callsign
+    - icao24
+    - true_track
+
+tracking:
+  inAir: 1
+  departureAirport: EHAM
 ``` </pre>
 
 #### Runtime settings updating
