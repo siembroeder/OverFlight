@@ -228,6 +228,7 @@ class StateFilter():
 
             # Flight stores its airport codes in IATA format but we need ICAO, convert using airports.csv
             if self.settings.departureAirport:
+                print("hello")
                 departure_iata:str = matchedFlight.origin_airport_iata
                 try:
                     departure_icao:str = icao_from_iata[departure_iata]
@@ -246,10 +247,11 @@ class StateFilter():
                     continue
                 
                 if destination_icao.lower().strip() == self.settings.arrivalAirport.lower().strip():
+                    print("adding state to filtered states")
                     if state not in filteredStates:
                         filteredStates.append(state)
 
-        return states
+        return filteredStates
 
     def extractUntrackedStates(self, activeWindows:dict[icao24,MainWindow],  newStates:list[StateVector]) -> list[StateVector]:
         activeIcaos = activeWindows.keys()
