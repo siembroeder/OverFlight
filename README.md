@@ -8,7 +8,10 @@ Before running OverFlight, make sure you have `uv`, a package and project manage
 
 Clone the directory using `git clone https://github.com/siembroeder/OverFlight`
 
-Then create an account (free) at https://opensky-network.org/, go to 'Account' - 'API client' and click 'Create & Download Credential. Then put the credentials.json into the OverFlight directory.
+Optional:<br>
+Create an account (free) at https://opensky-network.org/, go to 'Account' - 'API client' and click 'Create & Download Credential, and put the credentials.json into the OverFlight directory. <br>
+
+You can use OverFlight without an opensky account but creating an account gives more api credits (you can use OverFlight for longer) and rate limiting drops from 10 to 5 seconds.
 
 To start OverFlight, use the command `uv run src/main.py`. 
 
@@ -117,7 +120,7 @@ Aircraft are filtered based on these conditions.
 #### Example settings file:
 <pre> ```json 
 { 
-    "core": {"openskyCredentialsPath": ".credentials.json",
+    "core": {"openskyCredentialsPath": "credentials.json",
              "location": "Amsterdam",
              "bboxSize": "medium"},
     "api": { "apiCallDelay": 5.0 },
