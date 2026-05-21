@@ -148,6 +148,8 @@ class MainWindow(QMainWindow):
         if visuals.windowTheme == "aircraft":
             if self.typecode.upper().startswith("B74"):
                 image = QPixmap("assets/747.png")
+            elif self.typecode.upper() == "C172":
+                image = QPixmap("assets/C172.png")
             else:
                 image = QPixmap("assets/singleIsleAircraft.png")
                 
