@@ -87,16 +87,11 @@ class WindowTracker():
             logger.error(f"Invalid yaml settings file: {e}")
             return False
         
-        isUpdated = False
         if newRawSettings != self.settings.raw:
-            try:
-                newSettings = Settings.build()
-                if newSettings:
-                    self.settings.applyUpdate(newSettings)
-                    isUpdated = True
-            except (KeyError, TypeError, ValueError) as e:
-                logger.error(f"Invalid settings values: {e}")
-                return False
+            newSettings = Settings.build()
+            if newSettings:
+                self.settings.applyUpdate(newSettings)
+                return True
         
-        return isUpdated
+        return False
     

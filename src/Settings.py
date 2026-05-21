@@ -95,12 +95,8 @@ class Settings:
     callbacks: dict[str, list[Callable]] = field(default_factory=dict)
     
     @classmethod
-    def build(cls) -> "Settings|None":
-        try:
-            settings = cls.loadSettings()
-        except yaml.YAMLError as e:
-            logger.error(f"Invalid yaml settings file: {e}")
-            return
+    def build(cls) -> "Settings":
+        settings = cls.loadSettings()
             
         cls.raw = settings # include raw data dictionary in class
         
@@ -128,10 +124,13 @@ class Settings:
 
     @staticmethod
     def loadSettings() -> dict:
-        with open(SETTINGS_PATH) as f:
-            data = yaml.safe_load(f)
-
-        return data
+        try:
+            with open(SETTINGS_PATH) as f:
+                return yaml.safe_load(f)
+                
+        except yaml.YAMLError as e:
+            logger.error(f"Invalid yaml settings file: {e}")
+            return dict()
     
     @staticmethod
     def getOpenSkyApi(customCredentialsPath:str) -> OpenSkyApi:
