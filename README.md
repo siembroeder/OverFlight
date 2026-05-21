@@ -116,6 +116,7 @@ Aircraft are filtered based on these conditions.
 | windowSize |string or list   | "small" |Set the size of the window. Options: "miniature", "small", "medium", "large", "comicallyLarge", [width, height]. Width and height must be integers|
 |updateInterval|float  |1.0      |Time in seconds between moving windows around. Must be positive and non-zero.|
 |tooltipFields|list     |["callsign"]        |List of fields shown when hovering over a window. May be any field from the tracking conditions or any field from [opensky_api.StateVector](https://openskynetwork.github.io/opensky-api/python.html#opensky_api.StateVector).|
+|fallbackTypecode|string|C172    |When data/icao24_typecode_aircraft and opensky api can't find the typecode associated with a certain icao24, use this typecode instead.|
 
 #### Example settings file:
 <pre> ```json 

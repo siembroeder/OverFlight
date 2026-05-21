@@ -88,7 +88,6 @@ def fetchStatesInBbox(api:OpenSkyApi, bbox:tuple) -> OpenSkyStates|None:
 
 def getAircraftMeta(icao24:str) -> dict:
     url:str = f"https://opensky-network.org/api/metadata/aircraft/icao/{icao24.lower().strip()}"
-    # response:Response = requests.get(url, auth=(username, password))
     response:Response = requests.get(url)
     
     if response.status_code == 200:
