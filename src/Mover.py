@@ -41,6 +41,9 @@ class Mover():
         
         if "windows" in userPlatform:
             return WindowsMover()
+        
+        elif "darwin" in userPlatform:
+            return MacOSMover()
             
         elif "linux" in userPlatform:
             self.userSession  = getSessionType() 
@@ -195,3 +198,7 @@ class HyprlandMover:
 class SwayMover:
     def move(self, x:int, y:int, window:"MainWindow"):
         subprocess.run(['swaymsg', f'[title="^{window.windowTitle()}$"] move absolute position {x} {y}'], capture_output=True)
+
+class MacOSMover:
+    def move(self, x:int, y:int, window:"MainWindow"):
+        window.move(x, y)
