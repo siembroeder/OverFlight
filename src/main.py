@@ -34,12 +34,9 @@ def main():
     app.setQuitOnLastWindowClosed(False)
 
     settings   = Settings.build()
-    if not settings:
-        return
-
     tracker    = WindowTracker(settings)
     controller = AirTrafficController(tracker)
-        
+    
     app.aboutToQuit.connect(tracker.CloseAllWindows)
     
     startOverflightApplication(controller)

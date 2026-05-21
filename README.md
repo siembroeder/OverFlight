@@ -169,14 +169,7 @@ There are three different tiers of settings:
 
 
 ## Dependencies
-- OpenSkyApi
-- PySide6
-- geopy
-- wmctrl, if on linux
-
-
-
-
+See [`pyproject.toml`](pyproject.toml)
 
 ## Contributors
 
