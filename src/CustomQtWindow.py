@@ -10,8 +10,8 @@ from PySide6.QtGui import QPixmap, QMovie, QTransform
 # Custom imports 
 from Mover import Mover
 from utils.QtUtils import getWindowSize, getScreenGeometry
+from utils.OpenSkyUtils import getWakeTurbulenceClassification
 from Settings import Settings, VisualsSettings, TrackingSettings
-from utils.OpenSkyUtils import getTypeCode, getWakeTurbulenceClassification
 from utils.TypeHints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
 
 
@@ -49,7 +49,7 @@ class MainWindow(QMainWindow):
     position_source: int = 0
     category: int = 0
     
-    def __init__(self, state:StateVector, settings:Settings):
+    def __init__(self, state:StateVector, settings:Settings, typecode:str):
         super().__init__()
         
         self.settings = settings
@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
         self.applyState(state)
         self.latitude = asLatitude(state.latitude)
         self.longitude= asLongitude(state.longitude)
-        self.typecode = getTypeCode(state.icao24)
+        self.typecode = typecode
         self.wakeTurbulenceClassification = getWakeTurbulenceClassification(self.typecode)
         self.lastApiUpdate = time.monotonic()
         
@@ -104,10 +104,8 @@ class MainWindow(QMainWindow):
         
         Default = f'callsign = {self.callsign}'
         """
-        
-        lines = []
-        
         trackingSettings:TrackingSettings = self.settings.tracking
+        lines = []
         for field in self.settings.visuals.tooltipFields:
            # Check self and trackingSettings for field
             if hasattr(self, field):
@@ -141,8 +139,6 @@ class MainWindow(QMainWindow):
             Can walk to the left or right depending on if the heading broadly points left or right.
             Not rotated yet because every frame of the .gif should be rotated as you go (more difficult than eg .png) 
         """
-        
-        
         visuals:VisualsSettings = self.settings.visuals
         
         # Stop movie if running when switching from theme duck to aircraft.
@@ -180,8 +176,6 @@ class MainWindow(QMainWindow):
         
         Default: 'small'
         """
-        
-        
         size:QSize = getWindowSize(self.settings.visuals.windowSize)
         self.label.setFixedSize(size)
         self.setFixedSize(size)
@@ -200,8 +194,6 @@ class MainWindow(QMainWindow):
         Rotates the image in the direction of self.heading
         Can be used for any theme that uses a still image and maybe in the future also for movies.
         """
-        
-        
         if hasattr(self, "defaultPixmap") and (self.true_track is not None):
             transform = QTransform().rotate(self.true_track)
             rotated   = self.defaultPixmap.transformed(transform, Qt.TransformationMode.SmoothTransformation)

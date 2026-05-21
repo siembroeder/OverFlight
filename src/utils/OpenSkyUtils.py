@@ -6,6 +6,7 @@ from typing import cast
 import logging
 logger = logging.getLogger(__name__)
 import requests
+import pandas as pd
 from requests import Response
 
 from geopy.location import Location
@@ -86,22 +87,38 @@ def fetchStatesInBbox(api:OpenSkyApi, bbox:tuple) -> OpenSkyStates|None:
     return states
 
 def getAircraftMeta(icao24:str) -> dict:
-    url:str = f"https://opensky-network.org/api/metadata/aircraft/icao/{icao24}"
+    url:str = f"https://opensky-network.org/api/metadata/aircraft/icao/{icao24.lower().strip()}"
     # response:Response = requests.get(url, auth=(username, password))
-    response:Response = requests.get(url, timeout=5)
+    response:Response = requests.get(url)
     
     if response.status_code == 200:
         return response.json()
     return {}
 
-def getTypeCode(icao24:str) -> str:
-    meta:dict = getAircraftMeta(icao24)    
+def getSingleTypeCode(icao24:str) -> str:
+    meta:dict = getAircraftMeta(icao24) 
     typecode = meta.get("typecode")
     
     if typecode:
         return typecode
 
     return ""
+
+def getAllTypeCodes(icao24s:list[str]) -> dict:
+    icao24_df = pd.read_csv("data/icao24_typecode_aircraft.csv")
+    typecode_from_icao24 = icao24_df.set_index("icao24")["typecode"]
+
+    typecodes = {}
+    for icao24 in icao24s:
+        try:
+            typecode = typecode_from_icao24[icao24]
+        except:
+            typecode = getSingleTypeCode(icao24)
+            
+        if typecode:
+            typecodes.update({icao24:typecode})
+            
+    return typecodes
 
 def getWakeTurbulenceClassification(typecode:str) -> str|None:
     with open("data/icao_8643.csv", encoding="utf-8") as f:
