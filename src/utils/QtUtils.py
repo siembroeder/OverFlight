@@ -1,6 +1,9 @@
 
+from PySide6.QtGui import QPixmap
 from PySide6.QtCore import QRect, QSize
 from PySide6.QtWidgets import QApplication
+
+from utils.Icao8643Utils import Icao8643Entry
 
 
 
@@ -58,4 +61,14 @@ def getTypecodeScaleFactor(typecode:str) -> float:
     
     return 1.0
 
+def getAircraftImage(typecode:str, entry:Icao8643Entry) -> QPixmap:
+    if entry.aircraftDescription and (entry.aircraftDescription.lower() == "helicopter"):
+        image = QPixmap("assets/helicopter.png")
+    elif typecode.upper().startswith("B74"):
+        image = QPixmap("assets/747.png")
+    elif typecode.upper() == "C172":
+        image = QPixmap("assets/C172.png")
+    else:
+        image = QPixmap("assets/singleIsleAircraft.png")
         
+    return image

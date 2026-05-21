@@ -1,18 +1,25 @@
 import time
 import logging
 logger = logging.getLogger(__name__)
+from dataclasses import dataclass
 
 from opensky_api import StateVector
+from PySide6.QtGui import QMovie, QTransform
 from PySide6.QtCore import Qt, QTimer, QSize
 from PySide6.QtWidgets import QMainWindow, QLabel
-from PySide6.QtGui import QPixmap, QMovie, QTransform
 
 # Custom imports 
 from Mover import Mover
-from utils.OpenSkyUtils import getWakeTurbulenceClassification
+from utils.Icao8643Utils import Icao8643Entry
 from Settings import Settings, VisualsSettings, TrackingSettings
-from utils.QtUtils import getWindowSize, getScreenGeometry, getTypecodeScaleFactor
+from utils.QtUtils import getWindowSize, getScreenGeometry, getTypecodeScaleFactor, getAircraftImage
 from utils.TypeHints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
+
+@dataclass
+class WindowConfig():
+    state:StateVector
+    typecode:str
+    icao8643entry:Icao8643Entry
 
 
 class MainWindow(QMainWindow): 
@@ -28,8 +35,6 @@ class MainWindow(QMainWindow):
     
     When new api data is fetched, MainWindow.updateState(state) is executed
     """
-        
-    
     icao24: str = ""
     callsign: str | None = None
     origin_country: str = ""
@@ -49,18 +54,18 @@ class MainWindow(QMainWindow):
     position_source: int = 0
     category: int = 0
     
-    def __init__(self, state:StateVector, settings:Settings, typecode:str):
+    def __init__(self, settings:Settings, windowConfig:WindowConfig):
         super().__init__()
         
         self.settings = settings
+        self.windowConfig = windowConfig
         
         # Extract state data, manually write self.lat/lon. All other lat/lon logic is handled by mover
+        state = windowConfig.state
         self.applyState(state)
         self.latitude = asLatitude(state.latitude)
         self.longitude= asLongitude(state.longitude)
-        self.typecode = typecode
-        self.wakeTurbulenceClassification = getWakeTurbulenceClassification(self.typecode)
-        self.lastApiUpdate = time.monotonic()
+        self.lastApiUpdate = time.monotonic()        
         
         # Set basic Qt info
         self.setWindowTitle(f"OverFlightWindow_{state.icao24}")
@@ -146,12 +151,7 @@ class MainWindow(QMainWindow):
         #     self.movie.stop()
 
         if visuals.windowTheme == "aircraft":
-            if self.typecode.upper().startswith("B74"):
-                image = QPixmap("assets/747.png")
-            elif self.typecode.upper() == "C172":
-                image = QPixmap("assets/C172.png")
-            else:
-                image = QPixmap("assets/singleIsleAircraft.png")
+            image = getAircraftImage(self.windowConfig.typecode, self.windowConfig.icao8643entry)
                 
             self.originalPixmap = image  # store original
             self.defaultPixmap = self.originalPixmap.scaled(self.label.size(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
@@ -179,7 +179,7 @@ class MainWindow(QMainWindow):
         Default: 'small'
         """
         size:QSize = getWindowSize(self.settings.visuals.windowSize)
-        scaleFactor = getTypecodeScaleFactor(self.typecode)
+        scaleFactor = getTypecodeScaleFactor(self.windowConfig.typecode)
         if scaleFactor != 1.0:
             size = QSize(round(scaleFactor * size.width()), round(scaleFactor * size.height()))
 

@@ -6,11 +6,13 @@ from dataclasses import fields
 from Settings import Settings
 from opensky_api import StateVector
 from StateFilter import StateFilter
-from CustomQtWindow import MainWindow
 from utils.QtUtils import windowIsOpen
 from utils.OpenSkyUtils import getAllTypeCodes
+from CustomQtWindow import MainWindow, WindowConfig
+from utils.Icao8643Utils import findIcao8643Entry, Icao8643Entry
 
-type icao24 = str
+type Icao24 = str
+type Typecode = str
 
         
 class WindowTracker():
@@ -21,7 +23,7 @@ class WindowTracker():
     
     def __init__(self, settings:Settings):
         self.settings = settings
-        self.windows:dict[icao24, MainWindow] = {}
+        self.windows:dict[Icao24, MainWindow] = {}
         self.filter = StateFilter(settings.tracking, settings.openSkyApi, settings.setup.maxWindows, settings.bboxAtLocation)
         
         for f in fields(settings.tracking): # if any field in settings.tracking changes, rebuild the filter completely
@@ -30,14 +32,12 @@ class WindowTracker():
         # Register callback for settings that require WindowTracker method to execute
         settings.onChange("windowSize", lambda _: self.CloseAllWindows()) # Windows are rebuild on next api call with updated windowSize
 
-    def spawnWindow(self, state:StateVector, typecode) -> None:
+    def spawnWindow(self, windowConfig:WindowConfig) -> None:
         """Use spawns a window titled f\"OverFlightWindow_{state.icao24}\", also stores the  window in the windows dict with icao24 as key"""
-        icao24 = state.icao24
-        
-        window = MainWindow(state, self.settings, typecode)
+        window = MainWindow(self.settings, windowConfig)
         window.mover.moveToLoc(window.latitude, window.longitude)
         window.show()  # triggers QMainWindow.showEvent() 
-        self.windows[icao24] = window                       # print(f"Now tracking {state.callsign}, {icao24=}")
+        self.windows[windowConfig.state.icao24] = window                       # print(f"Now tracking {state.callsign}, {icao24=}")
 
     def updateWindows(self, newStates:list[StateVector], delete:bool = True) -> None:
         """Spawn, update, or close windows based on current aircraft states.
@@ -45,7 +45,7 @@ class WindowTracker():
                 
         newIcaos = [state.icao24 for state in newStates]
         spawningIcaos = [icao for icao in newIcaos if icao not in self.windows.keys()]
-        spawningTypecodes:dict = getAllTypeCodes(spawningIcaos)
+        spawningTypecodes:dict[Icao24, Typecode] = getAllTypeCodes(spawningIcaos)
         
         # Update existing windows and spawn new windows
         for state in newStates:
@@ -54,10 +54,14 @@ class WindowTracker():
                 
             elif not state.icao24 in self.windows and len(self.windows) < self.settings.setup.maxWindows:
                 try:
-                    self.spawnWindow(state, spawningTypecodes[state.icao24])
+                    typecode = spawningTypecodes[state.icao24]
                 except KeyError:
-                    self.spawnWindow(state, self.settings.visuals.fallbackTypecode)
-                
+                    typecode = self.settings.visuals.fallbackTypecode
+                    
+                entry:Icao8643Entry = findIcao8643Entry(typecode)
+                config = WindowConfig(state = state, typecode = typecode, icao8643entry = entry)
+                self.spawnWindow(config)
+
         # Delete windows that are no longer being tracked. 
         if delete:
             for icao24 in list(self.windows.keys()):

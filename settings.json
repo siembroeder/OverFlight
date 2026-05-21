@@ -39,7 +39,7 @@
     },
     "visuals": {
         "windowTheme": "aircraft",
-        "windowSize": "medium",
+        "windowSize": "small",
         "updateInterval": 1.0,
         "tooltipFields": [
             "callsign",
