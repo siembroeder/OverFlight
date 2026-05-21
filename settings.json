@@ -39,13 +39,14 @@
     },
     "visuals": {
         "windowTheme": "aircraft",
-        "windowSize": "small",
+        "windowSize": "medium",
         "updateInterval": 1.0,
         "tooltipFields": [
             "callsign",
             "icao24",
             "true_track",
             "baro_altitude"
-        ]
+        ],
+        "fallbackTypecode": "C172"
     }
 }
