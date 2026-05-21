@@ -9,9 +9,9 @@ from PySide6.QtGui import QPixmap, QMovie, QTransform
 
 # Custom imports 
 from Mover import Mover
-from utils.QtUtils import getWindowSize, getScreenGeometry
 from utils.OpenSkyUtils import getWakeTurbulenceClassification
 from Settings import Settings, VisualsSettings, TrackingSettings
+from utils.QtUtils import getWindowSize, getScreenGeometry, getTypecodeScaleFactor
 from utils.TypeHints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
 
 
@@ -179,6 +179,10 @@ class MainWindow(QMainWindow):
         Default: 'small'
         """
         size:QSize = getWindowSize(self.settings.visuals.windowSize)
+        scaleFactor = getTypecodeScaleFactor(self.typecode)
+        if scaleFactor != 1.0:
+            size = QSize(round(scaleFactor * size.width()), round(scaleFactor * size.height()))
+
         self.label.setFixedSize(size)
         self.setFixedSize(size)
         
