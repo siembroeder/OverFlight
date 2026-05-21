@@ -124,13 +124,8 @@ class Settings:
 
     @staticmethod
     def loadSettings() -> dict:
-        try:
-            with open(SETTINGS_PATH) as f:
-                return yaml.safe_load(f)
-                
-        except yaml.YAMLError as e:
-            logger.error(f"Invalid yaml settings file: {e}")
-            return dict()
+        with open(SETTINGS_PATH) as f:
+            return yaml.safe_load(f)
     
     @staticmethod
     def getOpenSkyApi(customCredentialsPath:str) -> OpenSkyApi:
