@@ -48,3 +48,14 @@ def getWindowSize(windowSize:str|list) -> QSize:
     return defaultSizes[windowSize] 
 
 
+def getTypecodeScaleFactor(typecode:str) -> float:
+    typecode = typecode.upper()
+    
+    if typecode.startswith("B74"):
+        return 1.3
+    elif typecode == "C172":
+        return 0.5
+    
+    return 1.0
+
+        
