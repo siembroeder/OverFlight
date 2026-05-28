@@ -30,6 +30,8 @@ def setupLogging(logLevel:str):
         level = logging.INFO
     elif logLevel.lower() == "warning":
         level = logging.WARNING
+    elif logLevel.lower() == "error":
+        level = logging.ERROR
     else:
         level = logging.INFO
 
