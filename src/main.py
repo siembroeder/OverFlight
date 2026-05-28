@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 from ApiHandler import ApiHandler
 from utils.LoggingUtils import setupLogging
-loggingLevel = "debug" # Set the logging level. Options : 'debug', 'info', 'warning', 'critical'
+loggingLevel = "debug" # Set the logging level. Options : 'debug', 'info', 'warning', 'critical', 'error'
 setupLogging(loggingLevel)
 
 from WindowTracker import WindowTracker
