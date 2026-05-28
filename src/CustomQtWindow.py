@@ -18,8 +18,7 @@ from utils.TypeHints import Meters, Degrees, Seconds, MetersPerSecond, Latitude,
 @dataclass
 class WindowConfig():
     state:StateVector
-    typecode:str
-    icao8643entry:Icao8643Entry
+    entry:Icao8643Entry
 
 
 class MainWindow(QMainWindow): 
@@ -151,7 +150,7 @@ class MainWindow(QMainWindow):
         #     self.movie.stop()
 
         if visuals.windowTheme == "aircraft":
-            image = getAircraftImage(self.windowConfig.typecode, self.windowConfig.icao8643entry)
+            image = getAircraftImage(self.windowConfig.entry.typecode, self.windowConfig.entry)
                 
             self.originalPixmap = image  # store original
             self.defaultPixmap = self.originalPixmap.scaled(self.label.size(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
@@ -179,7 +178,7 @@ class MainWindow(QMainWindow):
         Default: 'small'
         """
         size:QSize = getWindowSize(self.settings.visuals.windowSize)
-        scaleFactor = getTypecodeScaleFactor(self.windowConfig.typecode)
+        scaleFactor = getTypecodeScaleFactor(self.windowConfig.entry.typecode)
         if scaleFactor != 1.0:
             size = QSize(round(scaleFactor * size.width()), round(scaleFactor * size.height()))
 

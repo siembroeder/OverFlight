@@ -104,20 +104,20 @@ def getSingleTypeCode(icao24:str) -> str:
 
     return ""
 
-type Icao24 = str
-type Typecode = str
-def getAllTypeCodes(icao24s:list[str]) -> dict[Icao24, Typecode]:
-    icao24_df = pd.read_csv("data/icao24_typecode_aircraft.csv")
-    typecode_from_icao24 = icao24_df.set_index("icao24")["typecode"]
+# type Icao24 = str
+# type Typecode = str
+# def getAllTypeCodes(icao24s:list[str]) -> dict[Icao24, Typecode]:
+#     icao24_df = pd.read_csv("data/icao24_typecode_aircraft.csv")
+#     typecode_from_icao24 = icao24_df.set_index("icao24")["typecode"]
 
-    typecodes = {}
-    for icao24 in icao24s:
-        try:
-            typecode = typecode_from_icao24[icao24]
-        except:
-            typecode = getSingleTypeCode(icao24)
+#     typecodes = {}
+#     for icao24 in icao24s:
+#         try:
+#             typecode = typecode_from_icao24[icao24]
+#         except:
+#             typecode = getSingleTypeCode(icao24)
             
-        if typecode:
-            typecodes.update({icao24:typecode})
+#         if typecode:
+#             typecodes.update({icao24:typecode})
             
-    return typecodes
+#     return typecodes
