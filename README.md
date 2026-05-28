@@ -117,6 +117,15 @@ Aircraft are filtered based on these conditions.
 | sensors               |list[int]   |None     |Must be a list of integers representing the serial numbers of sensors.<br>This filter is only accessible to users with a paid openskyapi account, for free users the vehicle's sensors are always None.    |
 
 
+#### visuals
+| name       | type    | default | description |
+|------------|---------|---------|-------------|
+| windowTheme|string   |aircraft |Sets the image. Options: "aircraft", "duck". If "aircraft", the windows contain a .png of an aircraft that rotates depending on the heading. If "duck", the windows contain a .gif of a duck walking to the left or right depening on the heading.|
+| windowSize |string or list   | "small" |Set the size of the window. Options: "miniature", "small", "medium", "large", "comicallyLarge", [width, height]. Width and height must be integers|
+|updateInterval|float  |1.0      |Time in seconds between moving windows around. Must be positive and non-zero.|
+|tooltipFields|list     |["callsign"]        |List of fields shown when hovering over a window. May be any field from the tracking conditions or any field from [opensky_api.StateVector](https://openskynetwork.github.io/opensky-api/python.html#opensky_api.StateVector).|
+|fallbackTypecode|string|C172    |When data/icao24_typecode_aircraft and opensky api can't find the typecode associated with a certain icao24, use this typecode instead.|
+
 #### Example settings file:
 <pre> ```yaml 
 core:
@@ -140,53 +149,54 @@ tracking:
   departureAirport: EHAM
 ``` </pre>
 
-><details>
-><summary>Complete settings template</summary>
-><pre>```yaml
->core:
->    openskyCredentialsPath:
->    location:
->    bboxSize:
->
->api:
->    apiCallDelay:
->
->setup:
->    maxWindows:
->    displayName:
->
->visuals:
->    windowTheme:
->    windowSize:
->    updateInterval:
->    tooltipFields:
->
->tracking:
->    icao24:
->    callsign:
->    airline:
->    squawk:
->    inAir:
->    onGround:
->    arrivalAirport:
->    departureAirport:
->    minVelocity:
->    maxVelocity:
->    minGeoAltitude:
->    maxGeoAltitude:
->    minBaroAltitude:
->    maxBaroAltitude:
->    minVerticalRate:
->    maxVerticalRate:
->    trueTrackRange:
->    spi:
->    sensors:
->    category:
->    originCountry:
->    allowedLastContactLag:
->    allowedTimePositionLag: ```
-></pre>
-></details>
+<details>
+<summary>Complete settings template</summary>
+
+``` yaml
+core:
+    openskyCredentialsPath:
+    location:
+    bboxSize
+
+api:
+    apiCallDelay:
+
+setup:
+    maxWindows:
+    displayName:
+
+visuals:
+    windowTheme:
+    windowSize:
+    updateInterval:
+    tooltipFields:
+
+tracking:
+    icao24:
+    callsign:
+    airline:
+    squawk:
+    inAir:
+    onGround:
+    arrivalAirport:
+    departureAirport:
+    minVelocity:
+    maxVelocity:
+    minGeoAltitude:
+    maxGeoAltitude:
+    minBaroAltitude:
+    maxBaroAltitude:
+    minVerticalRate:
+    maxVerticalRate:
+    trueTrackRange:
+    spi:
+    sensors:
+    category:
+    originCountry:
+    allowedLastContactLag:
+    allowedTimePositionLag: 
+```
+</details>
 
 #### Runtime settings updating
 There are three different tiers of settings:

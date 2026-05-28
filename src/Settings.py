@@ -65,7 +65,7 @@ class VisualsSettings:
     windowSize:str = "small"
     updateInterval:Seconds = Seconds(1.0)
     tooltipFields:list = field(default_factory=lambda: ["callsign"])
-
+    fallbackTypecode:str = "C172"
 
 
 
