@@ -1,4 +1,5 @@
-import json
+
+import yaml
 import logging
 logger = logging.getLogger(__name__)
 from dataclasses import fields
@@ -83,19 +84,15 @@ class WindowTracker():
     def checkNewSettings(self) -> bool:
         try:
             newRawSettings = Settings.loadSettings()
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON in settings file: {e}")
+        except yaml.YAMLError as e:
+            logger.error(f"Invalid yaml settings file: {e}")
             return False
         
-        isUpdated = False
         if newRawSettings != self.settings.raw:
-            try:
-                newSettings = Settings.build()
+            newSettings = Settings.build()
+            if newSettings:
                 self.settings.applyUpdate(newSettings)
-                isUpdated = True
-            except (KeyError, TypeError, ValueError) as e:
-                logger.error(f"Invalid settings values: {e}")
-                return False
+                return True
         
-        return isUpdated
+        return False
     
