@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
     
 from CustomQtWindow import MainWindow
 from opensky_api import StateVector, OpenSkyApi
+from utils.AircraftRecord import AircraftRecord
 from FlightRadarAPI import FlightRadar24API, Flight
 
 if TYPE_CHECKING:
@@ -29,19 +30,39 @@ class StateFilter():
     
     def filterStates(self, states:list[StateVector]) -> list[StateVector]:
         
-        states = self.applyLocalFilters(states)
+        # states = self.applyLocalFilters(states)
         
         if self.settings.departureAirport or self.settings.arrivalAirport:
             states = self.applyAirportFilters(states)
         
-        assert self.maxWindows > 0.0, "maxWindows should be larger than 0"
-        if len(states) >= self.maxWindows: # must be last filter
-            logger.debug(f"Restricting number of windows to: {self.maxWindows}")
-            states = states[:self.maxWindows]
 
         return states    
+    
+    def filterAircraft(self, aircraft:list[AircraftRecord]) -> list[AircraftRecord]:
+        
+        # Filter by opensky statevector information
+        states = [ac.state for ac in aircraft]
+        states = self.applyLocalStateFilters(states)
+        if self.settings.departureAirport or self.settings.arrivalAirport:
+            states = self.applyAirportFilters(states)
+
+        # Filter by icao8643 entry
+        aircraft = [ac for ac in aircraft if ac.state in states]
+        aircraft = self.applyIcaoEntryFilter(aircraft)
+
+        assert self.maxWindows > 0.0, "maxWindows should be larger than 0"
+        if len(aircraft) >= self.maxWindows: # must be last filter
+            logger.debug(f"Restricting number of windows to: {self.maxWindows}")
+            aircraft = aircraft[:self.maxWindows]
+        
+        return aircraft
+    
+    def applyIcaoEntryFilter(self, aircraft:list[AircraftRecord]) -> list[AircraftRecord]:
+        
+        
+        return aircraft
          
-    def applyLocalFilters(self, states:list[StateVector]) -> list[StateVector]:
+    def applyLocalStateFilters(self, states:list[StateVector]) -> list[StateVector]:
         settings = self.settings
         filterTimestamp = time.monotonic()
         

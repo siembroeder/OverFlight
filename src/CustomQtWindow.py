@@ -10,16 +10,10 @@ from PySide6.QtWidgets import QMainWindow, QLabel
 
 # Custom imports 
 from Mover import Mover
-from utils.Icao8643Utils import Icao8643Entry
+from utils.AircraftRecord import AircraftRecord
 from Settings import Settings, VisualsSettings, TrackingSettings
 from utils.QtUtils import getWindowSize, getScreenGeometry, getTypecodeScaleFactor, getAircraftImage
 from utils.TypeHints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
-
-@dataclass
-class WindowConfig():
-    state:StateVector
-    entry:Icao8643Entry
-
 
 class MainWindow(QMainWindow): 
     """
@@ -53,14 +47,14 @@ class MainWindow(QMainWindow):
     position_source: int = 0
     category: int = 0
     
-    def __init__(self, settings:Settings, windowConfig:WindowConfig):
+    def __init__(self, settings:Settings, aircraft:AircraftRecord):
         super().__init__()
         
         self.settings = settings
-        self.windowConfig = windowConfig
+        self.aircraft = aircraft
         
         # Extract state data, manually write self.lat/lon. All other lat/lon logic is handled by mover
-        state = windowConfig.state
+        state = aircraft.state
         self.applyState(state)
         self.latitude = asLatitude(state.latitude)
         self.longitude= asLongitude(state.longitude)
@@ -150,7 +144,7 @@ class MainWindow(QMainWindow):
         #     self.movie.stop()
 
         if visuals.windowTheme == "aircraft":
-            image = getAircraftImage(self.windowConfig.entry.typecode, self.windowConfig.entry)
+            image = getAircraftImage(self.aircraft.entry)
                 
             self.originalPixmap = image  # store original
             self.defaultPixmap = self.originalPixmap.scaled(self.label.size(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
@@ -178,7 +172,7 @@ class MainWindow(QMainWindow):
         Default: 'small'
         """
         size:QSize = getWindowSize(self.settings.visuals.windowSize)
-        scaleFactor = getTypecodeScaleFactor(self.windowConfig.entry.typecode)
+        scaleFactor = getTypecodeScaleFactor(self.aircraft.entry.typecode)
         if scaleFactor != 1.0:
             size = QSize(round(scaleFactor * size.width()), round(scaleFactor * size.height()))
 
