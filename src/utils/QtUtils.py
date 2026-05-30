@@ -63,17 +63,19 @@ def getTypecodeScaleFactor(typecode:str) -> float:
 
 def getAircraftImage(entry:Icao8643Entry) -> QPixmap:
     typecode = entry.typecode
+    image = None
     
-    if entry.aircraftDescription and (entry.aircraftDescription.lower() == "helicopter"):
+    if entry.aircraftDescription.lower() == "helicopter":
         image = QPixmap("assets/helicopter.png")
-    elif typecode.upper().startswith("B74"):
+        
+    if typecode.upper().startswith("B74"):
         image = QPixmap("assets/747.png")
-    elif typecode.upper() == "C172":
+        
+    if typecode.upper() == "C172":
         image = QPixmap("assets/C172.png")
-    else:
-        image = QPixmap("assets/singleIsleAircraft.png")
         
     if entry.engineCount == 3:
         image = QPixmap("assets/md11.png")
-        
-    return image
+    
+    
+    return image or QPixmap("assets/singleIsleAircraft.png")
