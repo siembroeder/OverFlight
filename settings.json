@@ -42,12 +42,12 @@
         "typecode": "",
         "manufacturer": "",
         "description": "",
-        "engineCount": 1,
+        "engineCount": 0,
         "engineType": ""
     },
     "visuals": {
         "windowTheme": "aircraft",
-        "windowSize": "small",
+        "windowSize": "medium",
         "updateInterval": 1.0,
         "tooltipFields": [
             "callsign",

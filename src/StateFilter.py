@@ -114,7 +114,7 @@ class StateFilter():
             logger.debug(f"Filtering for registration country: {settings.originCountry}")
             states = [state for state in states if state.origin_country.lower().strip() == settings.originCountry.lower().strip()]
                 
-        if (settings.minVelocity is not None) or (settings.maxVelocity is not None):
+        if (settings.minVelocity) or (settings.maxVelocity):
             logger.debug(f"Filtering for velocity: minVelocity: {settings.minVelocity}, maxVelocity: {settings.maxVelocity}")
             states = self.filterStatesVelocity(states)
             
@@ -142,7 +142,7 @@ class StateFilter():
             logger.debug(f"Filtering for aircraft in the air")
             states = [state for state in states if state.on_ground == False]
         
-        if settings.minBaroAltitude is not None:
+        if settings.minBaroAltitude:
             logger.debug(f"Filtering for minBaroAltitude: {settings.minBaroAltitude}")            
             states = [state for state in states if (state.baro_altitude is not None) and (state.baro_altitude*3.28084 >= settings.minBaroAltitude)] # convert from meters to feet
         
@@ -150,7 +150,7 @@ class StateFilter():
             logger.debug(f"Filtering for maxBaroAltitude: {settings.maxBaroAltitude}")
             states = [state for state in states if (state.baro_altitude is not None) and (state.baro_altitude*3.28084 <= settings.maxBaroAltitude)] # convert from meters to feet   
                  
-        if settings.minGeoAltitude is not None:
+        if settings.minGeoAltitude:
             logger.debug(f"Filtering for minGeoAltitude: {settings.minGeoAltitude}")
             states = [state for state in states if (state.geo_altitude) and (state.geo_altitude*3.28084 >= settings.minGeoAltitude)] # convert from meters to feet
 

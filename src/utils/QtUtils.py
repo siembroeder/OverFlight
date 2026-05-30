@@ -73,4 +73,7 @@ def getAircraftImage(entry:Icao8643Entry) -> QPixmap:
     else:
         image = QPixmap("assets/singleIsleAircraft.png")
         
+    if entry.engineCount == 3:
+        image = QPixmap("assets/md11.png")
+        
     return image
