@@ -35,12 +35,9 @@ def main():
     app.setQuitOnLastWindowClosed(False)
 
     settings   = Settings.build()
-    if not settings:
-        return
-
     apiHandler = ApiHandler(settings)
     tracker    = WindowTracker(settings)
-    controller = AirTrafficController(settings,apiHandler, tracker)
+    controller = AirTrafficController(settings, apiHandler, tracker)
     
     app.aboutToQuit.connect(tracker.CloseAllWindows)
     
