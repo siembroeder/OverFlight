@@ -149,53 +149,54 @@ tracking:
   departureAirport: EHAM
 ``` </pre>
 
-><details>
-><summary>Complete settings template</summary>
-><pre>```yaml
->core:
->    openskyCredentialsPath:
->    location:
->    bboxSize:
->
->api:
->    apiCallDelay:
->
->setup:
->    maxWindows:
->    displayName:
->
->visuals:
->    windowTheme:
->    windowSize:
->    updateInterval:
->    tooltipFields:
->
->tracking:
->    icao24:
->    callsign:
->    airline:
->    squawk:
->    inAir:
->    onGround:
->    arrivalAirport:
->    departureAirport:
->    minVelocity:
->    maxVelocity:
->    minGeoAltitude:
->    maxGeoAltitude:
->    minBaroAltitude:
->    maxBaroAltitude:
->    minVerticalRate:
->    maxVerticalRate:
->    trueTrackRange:
->    spi:
->    sensors:
->    category:
->    originCountry:
->    allowedLastContactLag:
->    allowedTimePositionLag: ```
-></pre>
-></details>
+<details>
+<summary>Complete settings template</summary>
+
+``` yaml
+core:
+    openskyCredentialsPath:
+    location:
+    bboxSize
+
+api:
+    apiCallDelay:
+
+setup:
+    maxWindows:
+    displayName:
+
+visuals:
+    windowTheme:
+    windowSize:
+    updateInterval:
+    tooltipFields:
+
+tracking:
+    icao24:
+    callsign:
+    airline:
+    squawk:
+    inAir:
+    onGround:
+    arrivalAirport:
+    departureAirport:
+    minVelocity:
+    maxVelocity:
+    minGeoAltitude:
+    maxGeoAltitude:
+    minBaroAltitude:
+    maxBaroAltitude:
+    minVerticalRate:
+    maxVerticalRate:
+    trueTrackRange:
+    spi:
+    sensors:
+    category:
+    originCountry:
+    allowedLastContactLag:
+    allowedTimePositionLag: 
+```
+</details>
 
 #### Runtime settings updating
 There are three different tiers of settings:
