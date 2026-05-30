@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QApplication
 
 import logging
 logger = logging.getLogger(__name__)
+from ApiHandler import ApiHandler
 from utils.LoggingUtils import setupLogging
 loggingLevel = "debug" # Set the logging level. Options : 'debug', 'info', 'warning', 'critical', 'error'
 setupLogging(loggingLevel)
@@ -34,8 +35,9 @@ def main():
     app.setQuitOnLastWindowClosed(False)
 
     settings   = Settings.build()
+    apiHandler = ApiHandler(settings)
     tracker    = WindowTracker(settings)
-    controller = AirTrafficController(tracker)
+    controller = AirTrafficController(settings, apiHandler, tracker)
     
     app.aboutToQuit.connect(tracker.CloseAllWindows)
     
