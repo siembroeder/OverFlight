@@ -17,6 +17,7 @@ class ApiHandler():
         self.bboxAtLocation = self.settings.bboxAtLocation
         self.apiCallDelay   = self.settings.api.apiCallDelay
 
+        self.lastApiCallTimestamp = 0.0
         self.newestStateTimestamp = 0.0
         self.numApiCallsSkipped   = 0.0
 
@@ -28,6 +29,7 @@ class ApiHandler():
         untracked_filtered_states is non-empty only on too-frequent calls.
         """
         newStates: OpenSkyStates | None = fetchStatesInBbox(self.settings.openSkyApi, self.bboxAtLocation)
+        self.lastApiCallTimestamp = time.monotonic()
 
         # skip to next api call if newStates empty.
         if (newStates is None) or (newStates.states is None):
@@ -55,8 +57,11 @@ class ApiHandler():
     async def fetchStatesLoop(self, queue: asyncio.Queue, trackerWindows, filterObj) -> None:
         """Fetches states on a fixed interval and puts results onto the queue."""
         assert self.apiCallDelay >= 5.0, "apiCallDelay must be at least 5.0 seconds."
-
         while True:
             result = self.fetchStates(trackerWindows, filterObj)
             await queue.put(result)
-            await asyncio.sleep(self.apiCallDelay)
+
+            now = time.monotonic()
+            next_allowed = self.lastApiCallTimestamp + self.apiCallDelay
+            wait = max(0.0, next_allowed - now)
+            await asyncio.sleep(wait)

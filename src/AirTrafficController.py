@@ -25,7 +25,7 @@ class AirTrafficController():
 
     async def _consumeStatesLoop(self) -> None:
         """Consumes fetched states from the queue and updates windows."""
-        queue = asyncio.Queue()
+        queue = asyncio.Queue(maxsize=1)
 
         asyncio.create_task(
             self.apiHandler.fetchStatesLoop(
