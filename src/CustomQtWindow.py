@@ -2,13 +2,13 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 
-from opensky_api import StateVector
 from PySide6.QtCore import Qt, QTimer, QSize
 from PySide6.QtWidgets import QMainWindow, QLabel
 from PySide6.QtGui import QPixmap, QMovie, QTransform
 
 # Custom imports 
 from Mover import Mover
+from opensky_api import StateVector 
 from utils.QtUtils import getWindowSize, getScreenGeometry
 from utils.OpenSkyUtils import getWakeTurbulenceClassification
 from Settings import Settings, VisualsSettings, TrackingSettings
@@ -31,23 +31,24 @@ class MainWindow(QMainWindow):
         
     
     icao24: str = ""
+    squawk: str | None = None
     callsign: str | None = None
     origin_country: str = ""
-    time_position: Seconds | None = None
-    last_contact: Seconds = Seconds(0)
-    longitude: Longitude | None = None
     latitude: Latitude | None = None
-    geo_altitude: Meters | None = None
-    on_ground: bool = False
+    longitude: Longitude | None = None
+    last_contact: Seconds = Seconds(0)
+    time_position: Seconds | None = None
     velocity: MetersPerSecond | None = None
+    on_ground: bool = False
     true_track: Degrees | None = None
     vertical_rate: MetersPerSecond | None = None
-    sensors: list[int] | None = None
+    geo_altitude: Meters | None = None
     baro_altitude: Meters | None = None
-    squawk: str | None = None
     spi: bool = False
-    position_source: int = 0
+    sensors: list[int] | None = None
     category: int = 0
+    position_source: int = 0
+    
     
     def __init__(self, state:StateVector, settings:Settings, typecode:str):
         super().__init__()
@@ -86,7 +87,7 @@ class MainWindow(QMainWindow):
                
     def setScreenParams(self):
         """
-        Set the widht, height and topLeft coordinates in pixels of the displayName from settings.setup
+        Set the width, height and topLeft coordinates in pixels of the displayName from settings.setup
         If settings.setup.displayName == None, return the first screen from QApplication.screens()
         """
         displayName = self.settings.setup.displayName
@@ -235,16 +236,30 @@ class MainWindow(QMainWindow):
         self.position_source    = state.position_source
         self.category           = state.category
 
+    def headingFlipped(self, previousHeading:Degrees|None) -> bool:
+        if previousHeading is None:
+            return False
+            
+        currentHeading  = self.true_track
+        
+        if previousHeading is None or currentHeading is None:
+            return False
+        
+        return (previousHeading // 180) != (currentHeading // 180)        
+
     def updateState(self, state:StateVector) -> None:
         """Redefine window properties when new a state becomes available"""
-       
+        previousHeading = self.true_track
+        
+        # update window with new state
         self.applyState(state)                        
         self.lastApiUpdate = time.monotonic()
+        
         self.mover.updateDeadReckonIncrements()
-        self.buildTooltip()
+        self.buildTooltip() # Some values like heading or altitude (might) change every api call
         
         if self.settings.visuals.windowTheme == "aircraft": # ducks use movie, don't rotate to heading
             self.updatePixmapHeading()
                  
-
-    
+        if (self.settings.visuals.windowTheme == "duck") and self.headingFlipped(previousHeading): # for aircraft changing directions, update duck direction accordingly
+            self.setWindowTheme()
