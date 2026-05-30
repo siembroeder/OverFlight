@@ -58,8 +58,32 @@ class StateFilter():
         return aircraft
     
     def applyIcaoEntryFilter(self, aircraft:list[AircraftRecord]) -> list[AircraftRecord]:
+        settings = self.settings
         
+        if settings.modelName:
+            aircraft = [ac for ac in aircraft if ac.entry.modelFullName == settings.modelName]
+            
+        if settings.wtc:
+            aircraft = [ac for ac in aircraft if ac.entry.wtc == settings.wtc]
+            
+        if settings.wtg:
+            aircraft = [ac for ac in aircraft if ac.entry.wtg == settings.wtg]
+            
+        if settings.typecode:
+            aircraft = [ac for ac in aircraft if ac.entry.typecode == settings.typecode]
         
+        if settings.manufacturer:
+            aircraft = [ac for ac in aircraft if ac.entry.manufacturerCode == settings.manufacturer]
+        
+        if settings.description:
+            aircraft = [ac for ac in aircraft if ac.entry.aircraftDescription == settings.description]
+        
+        if settings.engineCount:
+            aircraft = [ac for ac in aircraft if ac.entry.engineCount == settings.engineCount]
+        
+        if settings.engineType:
+            aircraft = [ac for ac in aircraft if ac.entry.engineType == settings.engineType]
+
         return aircraft
          
     def applyLocalStateFilters(self, states:list[StateVector]) -> list[StateVector]:

@@ -35,7 +35,15 @@
         "arrivalAirport": "",
         "departureAirport": "",
         "originCountry": "",
-        "sensors": []
+        "sensors": [],
+        "modelName": "",
+        "wtc": "",
+        "wtg": "",
+        "typecode": "",
+        "manufacturer": "",
+        "description": "",
+        "engineCount": 1,
+        "engineType": ""
     },
     "visuals": {
         "windowTheme": "aircraft",

@@ -55,6 +55,14 @@ class TrackingSettings:
     departureAirport: Optional[str] = None
     originCountry: Optional[str] = None
     sensors: Optional[list[int]] = None
+    modelName: Optional[str] = None
+    wtc: Optional[str] = None
+    wtg: Optional[str] = None
+    typecode: Optional[str] = None
+    manufacturer: Optional[str] = None
+    description: Optional[str] = None
+    engineCount: Optional[int] = None
+    engineType: Optional[str] = None
 
 @dataclass
 class VisualsSettings:
