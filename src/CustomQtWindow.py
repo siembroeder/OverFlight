@@ -62,7 +62,6 @@ class MainWindow(QMainWindow):
         self.typecode = getTypeCode(state.icao24)
         self.wakeTurbulenceClassification = getWakeTurbulenceClassification(self.typecode)
         self.lastApiUpdate = time.monotonic()
-        self.previousState:StateVector|None = None
         
         # Set basic Qt info
         self.setWindowTitle(f"OverFlightWindow_{state.icao24}")
@@ -243,43 +242,20 @@ class MainWindow(QMainWindow):
         self.position_source    = state.position_source
         self.category           = state.category
 
-    def headingFlipped(self) -> bool:
-        if self.previousState is None:
+    def headingFlipped(self, previousHeading:Degrees|None) -> bool:
+        if previousHeading is None:
             return False
             
         currentHeading  = self.true_track
-        previousHeading = self.previousState.true_track
         
         if previousHeading is None or currentHeading is None:
             return False
         
         return (previousHeading // 180) != (currentHeading // 180)        
 
-    def takeSnapshot(self) -> StateVector:
-        return StateVector([
-            self.icao24,
-            self.callsign,
-            self.origin_country,
-            self.time_position,
-            self.last_contact,
-            self.longitude,
-            self.latitude,
-            self.geo_altitude,
-            self.on_ground,
-            self.velocity,
-            self.true_track,
-            self.vertical_rate,
-            self.sensors,
-            self.baro_altitude,
-            self.squawk,
-            self.spi,
-            self.position_source,
-            self.category
-        ])
-
     def updateState(self, state:StateVector) -> None:
         """Redefine window properties when new a state becomes available"""
-        self.previousState = self.takeSnapshot()
+        previousHeading = self.true_track
         
         # update window with new state
         self.applyState(state)                        
@@ -291,5 +267,5 @@ class MainWindow(QMainWindow):
         if self.settings.visuals.windowTheme == "aircraft": # ducks use movie, don't rotate to heading
             self.updatePixmapHeading()
                  
-        if (self.settings.visuals.windowTheme == "duck") and self.headingFlipped(): # for aircraft changing directions, update duck direction accordingly
+        if (self.settings.visuals.windowTheme == "duck") and self.headingFlipped(previousHeading): # for aircraft changing directions, update duck direction accordingly
             self.setWindowTheme()
