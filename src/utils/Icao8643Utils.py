@@ -1,5 +1,3 @@
-
-
 import csv
 import logging
 logger = logging.getLogger(__name__)
@@ -17,13 +15,14 @@ class Icao8643Entry():
     engineType:str
     
     @classmethod
-    def loadIcao24Typecodes(cls) -> dict[str, str]:
+    def loadIcao24ToTypecode(cls) -> dict[str, str]:
         """Load icao24 to typecode dict, 500k lines but two columns."""
         with open("data/icao24_typecode_aircraft.csv", encoding="utf-8") as f:
-            return {row["icao24"]: row["typecode"] for row in csv.DictReader(f)}
+            reader = csv.reader(f)
+            return dict(reader)
 
     @classmethod
-    def loadTypecodes(cls) -> dict[str, "Icao8643Entry"]:
+    def loadTypecodesToIcao8643Entry(cls) -> dict[str, "Icao8643Entry"]:
         """Load typecode to Icao8643Entry dict from icao_8643.csv."""
         with open("data/icao_8643.csv", encoding="utf-8") as f:
             return {row["Designator"].strip().upper(): cls(modelFullName       = row["ModelFullName"],
