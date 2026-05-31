@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 import requests
 import pandas as pd
 from requests import Response
+from dataclasses import dataclass
 
 from geopy.location import Location
 from geopy.geocoders import Nominatim
@@ -103,27 +104,20 @@ def getSingleTypeCode(icao24:str) -> str:
 
     return ""
 
-def getAllTypeCodes(icao24s:list[str]) -> dict:
-    icao24_df = pd.read_csv("data/icao24_typecode_aircraft.csv")
-    typecode_from_icao24 = icao24_df.set_index("icao24")["typecode"]
+# type Icao24 = str
+# type Typecode = str
+# def getAllTypeCodes(icao24s:list[str]) -> dict[Icao24, Typecode]:
+#     icao24_df = pd.read_csv("data/icao24_typecode_aircraft.csv")
+#     typecode_from_icao24 = icao24_df.set_index("icao24")["typecode"]
 
-    typecodes = {}
-    for icao24 in icao24s:
-        try:
-            typecode = typecode_from_icao24[icao24]
-        except:
-            typecode = getSingleTypeCode(icao24)
+#     typecodes = {}
+#     for icao24 in icao24s:
+#         try:
+#             typecode = typecode_from_icao24[icao24]
+#         except:
+#             typecode = getSingleTypeCode(icao24)
             
-        if typecode:
-            typecodes.update({icao24:typecode})
+#         if typecode:
+#             typecodes.update({icao24:typecode})
             
-    return typecodes
-
-def getWakeTurbulenceClassification(typecode:str) -> str|None:
-    with open("data/icao_8643.csv", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            designator = row["Designator"].strip().upper()
-            wtc = row["WTC"].strip()
-            
-            if typecode and (designator == typecode.strip().upper()):
-                return wtc
+#     return typecodes
