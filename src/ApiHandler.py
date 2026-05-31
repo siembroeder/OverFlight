@@ -48,7 +48,7 @@ class ApiHandler():
             logger.debug("New api call spacing too short, continuing\n")
             self.numApiCallsSkipped += 1
             untracked = filter.extractUntrackedStates(trackerWindows, newStates.states)
-            return None, filter.filterStates(untracked)
+            return None, untracked
 
         self.newestStateTimestamp = newStates.time
         self.numApiCallsSkipped   = 0.0

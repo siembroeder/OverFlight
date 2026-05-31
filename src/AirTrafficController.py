@@ -48,7 +48,8 @@ class AirTrafficController():
 
             if untracked:
                 untrackedAircraft = self.toAircraftRecords(untracked)
-                self.tracker.updateWindows(untrackedAircraft, delete=False)
+                filteredUntrackedAircraft = self.tracker.filter.filterAircraft(untrackedAircraft)
+                self.tracker.updateWindows(filteredUntrackedAircraft, delete=False)
 
             if accepted is None:
                 continue
