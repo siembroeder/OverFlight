@@ -1,6 +1,9 @@
 
 import os
-import json
+import yaml
+
+import logging
+logger = logging.getLogger(__name__)
 
 from typing import Optional, ClassVar, Callable
 from dataclasses import dataclass, field, fields
@@ -9,7 +12,7 @@ from utils.OpenSkyUtils import getBboxSize, getBboxOffset
 from utils.TypeHints import Seconds, Latitude, Longitude, MetersPerSecond, Meters
 
 SETTINGS_SECTIONS = ("core", "api", "setup", "tracking", "visuals")
-SETTINGS_PATH = "settings.json"
+SETTINGS_PATH = "settings.yaml"
 
 
 @dataclass
@@ -100,8 +103,9 @@ class Settings:
     callbacks: dict[str, list[Callable]] = field(default_factory=dict)
     
     @classmethod
-    def build(cls):
+    def build(cls) -> "Settings":
         settings = cls.loadSettings()
+            
         cls.raw = settings # include raw data dictionary in class
         
         # Build settings sections
@@ -129,9 +133,7 @@ class Settings:
     @staticmethod
     def loadSettings() -> dict:
         with open(SETTINGS_PATH) as f:
-            data = json.load(f)
-
-        return data
+            return yaml.safe_load(f)
     
     @staticmethod
     def getOpenSkyApi(customCredentialsPath:str) -> OpenSkyApi:
