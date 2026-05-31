@@ -47,7 +47,7 @@ class AirTrafficController():
             accepted, untracked = await queue.get()
 
             if untracked:
-                untrackedAircraft = self.toAircraftRecord(untracked)
+                untrackedAircraft = self.toAircraftRecords(untracked)
                 self.tracker.updateWindows(untrackedAircraft, delete=False)
 
             if accepted is None:
@@ -57,7 +57,7 @@ class AirTrafficController():
                         f"{datetime.fromtimestamp(int(time.time()))} with timestamp: "
                         f"{datetime.fromtimestamp(accepted.time)}\n")
 
-            acceptedAircraft = self.toAircraftRecord(accepted.states)
+            acceptedAircraft = self.toAircraftRecords(accepted.states)
             filteredAircraft = self.tracker.filter.filterAircraft(acceptedAircraft)
             logger.debug(f"After filtering {len(filteredAircraft)} remain.\n")
             self.tracker.updateWindows(filteredAircraft)
@@ -68,7 +68,7 @@ class AirTrafficController():
             tg.create_task(self._consumeStatesLoop())
         logger.critical("Main loop stopped.\n")
 
-    def toAircraftRecord(self, states:list[StateVector], fallbackTypecode:str = "C172") -> list[AircraftRecord]:
+    def toAircraftRecords(self, states:list[StateVector], fallbackTypecode:str = "C172") -> list[AircraftRecord]:
 
         records = []
         for state in states:
