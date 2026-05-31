@@ -51,27 +51,39 @@ def getWindowSize(windowSize:str|list) -> QSize:
     return defaultSizes[windowSize] 
 
 
-def getTypecodeScaleFactor(typecode:str) -> float:
-    typecode = typecode.upper()
+def getTypecodeScaleFactor(entry:Icao8643Entry) -> float:
+    description = entry.aircraftDescription.lower()
+    typecode = entry.typecode.upper()
+    factor = None
     
     if typecode.startswith("B74"):
-        return 1.3
-    elif typecode == "C172":
-        return 0.5
+        factor = 1.2
+        
+    if typecode == "A388":
+        factor = 1.4
+        
+    if typecode == "C172":
+        factor = 0.5
+        
+    if description == "helicopter":
+        factor = 0.5
     
-    return 1.0
+    return factor or 1.0
 
 def getAircraftImage(entry:Icao8643Entry) -> QPixmap:
-    typecode = entry.typecode
+    typecode = entry.typecode.upper()
     image = None
     
     if entry.aircraftDescription.lower() == "helicopter":
         image = QPixmap("assets/helicopter.png")
         
-    if typecode.upper().startswith("B74"):
+    if typecode.startswith("B74"):
         image = QPixmap("assets/747.png")
         
-    if typecode.upper() == "C172":
+    if typecode == "A388":
+        image = QPixmap("assets/A380.png")
+        
+    if typecode == "C172":
         image = QPixmap("assets/C172.png")
         
     if entry.engineCount == 3:

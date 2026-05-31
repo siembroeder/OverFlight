@@ -172,7 +172,7 @@ class MainWindow(QMainWindow):
         Default: 'small'
         """
         size:QSize = getWindowSize(self.settings.visuals.windowSize)
-        scaleFactor = getTypecodeScaleFactor(self.aircraft.entry.typecode)
+        scaleFactor = getTypecodeScaleFactor(self.aircraft.entry)
         if scaleFactor != 1.0:
             size = QSize(round(scaleFactor * size.width()), round(scaleFactor * size.height()))
 
