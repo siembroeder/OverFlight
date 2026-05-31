@@ -1,7 +1,6 @@
 import time
 import logging
 logger = logging.getLogger(__name__)
-from dataclasses import dataclass
 
 from opensky_api import StateVector
 from PySide6.QtGui import QMovie, QTransform
@@ -11,8 +10,8 @@ from PySide6.QtWidgets import QMainWindow, QLabel
 # Custom imports 
 from Mover import Mover
 from utils.AircraftRecord import AircraftRecord
+from utils.QtUtils import getWindowSize, getScreenGeometry
 from Settings import Settings, VisualsSettings, TrackingSettings
-from utils.QtUtils import getWindowSize, getScreenGeometry, getTypecodeScaleFactor, getAircraftImage
 from utils.TypeHints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
 
 class MainWindow(QMainWindow): 
@@ -69,6 +68,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.label)
         
         # Set custom Qt info
+        self.image, self.imageScaleFactor = aircraft.getVisualInfo()
         self.setWindowSize()
         self.setWindowTheme()
         self.buildTooltip()
@@ -139,14 +139,8 @@ class MainWindow(QMainWindow):
         """
         visuals:VisualsSettings = self.settings.visuals
         
-        # Stop movie if running when switching from theme duck to aircraft.
-        # if hasattr(self, "movie") and (self.movie.state() == QMovie.MovieState.Running):
-        #     self.movie.stop()
-
-        if visuals.windowTheme == "aircraft":
-            image = getAircraftImage(self.aircraft.entry)
-                
-            self.originalPixmap = image  # store original
+        if visuals.windowTheme == "aircraft":                
+            self.originalPixmap = self.image  # store original
             self.defaultPixmap = self.originalPixmap.scaled(self.label.size(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
             self.updatePixmapHeading()
             
@@ -172,9 +166,8 @@ class MainWindow(QMainWindow):
         Default: 'small'
         """
         size:QSize = getWindowSize(self.settings.visuals.windowSize)
-        scaleFactor = getTypecodeScaleFactor(self.aircraft.entry)
-        if scaleFactor != 1.0:
-            size = QSize(round(scaleFactor * size.width()), round(scaleFactor * size.height()))
+        if self.imageScaleFactor != 1.0:
+            size = QSize(round(self.imageScaleFactor * size.width()), round(self.imageScaleFactor * size.height()))
 
         self.label.setFixedSize(size)
         self.setFixedSize(size)

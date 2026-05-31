@@ -1,16 +1,9 @@
-
-from PySide6.QtGui import QPixmap
 from PySide6.QtCore import QRect, QSize
 from PySide6.QtWidgets import QApplication
-
-from utils.Icao8643Utils import Icao8643Entry
-
-
 
 def windowIsOpen(icao24:str) -> bool:
     title = f"OverFlightWindow_{icao24}"
     return any((w.windowTitle() == title) and w.isVisible() for w in QApplication.topLevelWidgets())
-
 
 def getScreenGeometry(displayName:str|None) -> QRect:
     if displayName == "all":
@@ -32,7 +25,6 @@ def getScreenGeometry(displayName:str|None) -> QRect:
 
     return geom
 
-
 def getWindowSize(windowSize:str|list) -> QSize:
     defaultSizes = {"miniature": QSize(25, 25),
                     "small":     QSize(50, 50),
@@ -49,45 +41,3 @@ def getWindowSize(windowSize:str|list) -> QSize:
         windowSize = "small"
 
     return defaultSizes[windowSize] 
-
-
-def getTypecodeScaleFactor(entry:Icao8643Entry) -> float:
-    description = entry.aircraftDescription.lower()
-    typecode = entry.typecode.upper()
-    factor = None
-    
-    if typecode.startswith("B74"):
-        factor = 1.2
-        
-    if typecode == "A388":
-        factor = 1.4
-        
-    if typecode == "C172":
-        factor = 0.5
-        
-    if description == "helicopter":
-        factor = 0.5
-    
-    return factor or 1.0
-
-def getAircraftImage(entry:Icao8643Entry) -> QPixmap:
-    typecode = entry.typecode.upper()
-    image = None
-    
-    if entry.aircraftDescription.lower() == "helicopter":
-        image = QPixmap("assets/helicopter.png")
-        
-    if typecode.startswith("B74"):
-        image = QPixmap("assets/747.png")
-        
-    if typecode == "A388":
-        image = QPixmap("assets/A380.png")
-        
-    if typecode == "C172":
-        image = QPixmap("assets/C172.png")
-        
-    if entry.engineCount == 3:
-        image = QPixmap("assets/md11.png")
-    
-    
-    return image or QPixmap("assets/singleIsleAircraft.png")
