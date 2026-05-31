@@ -12,23 +12,16 @@ from utils.Icao8643Utils import Icao8643Entry
 from utils.AircraftRecord import AircraftRecord
 from opensky_api import StateVector
 
-def toAircraftRecord(states:list[StateVector], fallbackTypecode:str = "C172") -> list[AircraftRecord]:
-    icao24ToTypecode:dict[str, str]          = Icao8643Entry.loadIcao24Typecodes()
-    typecodeToEntry:dict[str, Icao8643Entry] = Icao8643Entry.loadTypecodes()
-
-    records = []
-    for state in states:
-        typecode = icao24ToTypecode.get(state.icao24, fallbackTypecode)
-        entry = typecodeToEntry.get(typecode) or Icao8643Entry.findByIcao24(state.icao24)
-        records.append(AircraftRecord(state=state, entry=entry))
-
-    return records
 
 class AirTrafficController():
     def __init__(self, settings:Settings, apiHandler: ApiHandler, tracker: WindowTracker):
         self.settings   = settings
         self.apiHandler = apiHandler
         self.tracker    = tracker
+        
+        # load dicts of aircraft data into memory
+        self.typecodeToEntry:dict[str, Icao8643Entry] = Icao8643Entry.loadTypecodes()
+        self.icao24ToTypecode:dict[str, str]          = Icao8643Entry.loadIcao24Typecodes()
 
     async def _deadReckonLoop(self) -> None:
         """Continuously applies dead reckoning at the visual update interval."""
@@ -54,7 +47,7 @@ class AirTrafficController():
             accepted, untracked = await queue.get()
 
             if untracked:
-                untrackedAircraft = toAircraftRecord(untracked)
+                untrackedAircraft = self.toAircraftRecord(untracked)
                 self.tracker.updateWindows(untrackedAircraft, delete=False)
 
             if accepted is None:
@@ -64,7 +57,7 @@ class AirTrafficController():
                         f"{datetime.fromtimestamp(int(time.time()))} with timestamp: "
                         f"{datetime.fromtimestamp(accepted.time)}\n")
 
-            acceptedAircraft = toAircraftRecord(accepted.states)
+            acceptedAircraft = self.toAircraftRecord(accepted.states)
             filteredAircraft = self.tracker.filter.filterAircraft(acceptedAircraft)
             logger.debug(f"After filtering {len(filteredAircraft)} remain.\n")
             self.tracker.updateWindows(filteredAircraft)
@@ -75,26 +68,12 @@ class AirTrafficController():
             tg.create_task(self._consumeStatesLoop())
         logger.critical("Main loop stopped.\n")
 
-# # use these to test / if no internet is available
+    def toAircraftRecord(self, states:list[StateVector], fallbackTypecode:str = "C172") -> list[AircraftRecord]:
 
-# sVector = [["icao24",
-#             "KLM123",
-#             "NL",
-#             123456789,
-#             987654321,
-#             52.3,
-#             4.89,
-#             10000,
-#             False,
-#             300,
-#             270.4,
-#             None,
-#             None,
-#             11000,
-#             "7700",
-#             False,
-#             0,
-#             0]]
+        records = []
+        for state in states:
+            typecode = self.icao24ToTypecode.get(state.icao24) or fallbackTypecode
+            entry    = self.typecodeToEntry[typecode]
+            records.append(AircraftRecord(state=state, entry=entry))
 
-# NEW_STATES = OpenSkyStates({"time": time.time(), "states": sVector})
-
+        return records
