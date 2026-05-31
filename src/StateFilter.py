@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
     
 from CustomQtWindow import MainWindow
 from opensky_api import StateVector, OpenSkyApi
+from utils.AircraftRecord import AircraftRecord
 from FlightRadarAPI import FlightRadar24API, Flight
 
 if TYPE_CHECKING:
@@ -29,19 +30,63 @@ class StateFilter():
     
     def filterStates(self, states:list[StateVector]) -> list[StateVector]:
         
-        states = self.applyLocalFilters(states)
+        # states = self.applyLocalFilters(states)
         
         if self.settings.departureAirport or self.settings.arrivalAirport:
             states = self.applyAirportFilters(states)
         
-        assert self.maxWindows > 0.0, "maxWindows should be larger than 0"
-        if len(states) >= self.maxWindows: # must be last filter
-            logger.debug(f"Restricting number of windows to: {self.maxWindows}")
-            states = states[:self.maxWindows]
 
         return states    
+    
+    def filterAircraft(self, aircraft:list[AircraftRecord]) -> list[AircraftRecord]:
+        
+        # Filter by opensky statevector information
+        states = [ac.state for ac in aircraft]
+        states = self.applyLocalStateFilters(states)
+        if self.settings.departureAirport or self.settings.arrivalAirport:
+            states = self.applyAirportFilters(states)
+
+        # Filter by icao8643 entry
+        aircraft = [ac for ac in aircraft if ac.state in states]
+        aircraft = self.applyIcaoEntryFilter(aircraft)
+
+        assert self.maxWindows > 0.0, "maxWindows should be larger than 0"
+        if len(aircraft) >= self.maxWindows: # must be last filter
+            logger.debug(f"Restricting number of windows to: {self.maxWindows}")
+            aircraft = aircraft[:self.maxWindows]
+        
+        return aircraft
+    
+    def applyIcaoEntryFilter(self, aircraft:list[AircraftRecord]) -> list[AircraftRecord]:
+        settings = self.settings
+        
+        if settings.modelName:
+            aircraft = [ac for ac in aircraft if ac.entry.modelFullName == settings.modelName]
+            
+        if settings.wtc:
+            aircraft = [ac for ac in aircraft if ac.entry.wtc == settings.wtc]
+            
+        if settings.wtg:
+            aircraft = [ac for ac in aircraft if ac.entry.wtg == settings.wtg]
+            
+        if settings.typecode:
+            aircraft = [ac for ac in aircraft if ac.entry.typecode == settings.typecode]
+        
+        if settings.manufacturer:
+            aircraft = [ac for ac in aircraft if ac.entry.manufacturerCode == settings.manufacturer]
+        
+        if settings.description:
+            aircraft = [ac for ac in aircraft if ac.entry.aircraftDescription == settings.description]
+        
+        if settings.engineCount:
+            aircraft = [ac for ac in aircraft if ac.entry.engineCount == settings.engineCount]
+        
+        if settings.engineType:
+            aircraft = [ac for ac in aircraft if ac.entry.engineType == settings.engineType]
+
+        return aircraft
          
-    def applyLocalFilters(self, states:list[StateVector]) -> list[StateVector]:
+    def applyLocalStateFilters(self, states:list[StateVector]) -> list[StateVector]:
         settings = self.settings
         filterTimestamp = time.monotonic()
         
@@ -69,7 +114,7 @@ class StateFilter():
             logger.debug(f"Filtering for registration country: {settings.originCountry}")
             states = [state for state in states if state.origin_country.lower().strip() == settings.originCountry.lower().strip()]
                 
-        if (settings.minVelocity is not None) or (settings.maxVelocity is not None):
+        if (settings.minVelocity) or (settings.maxVelocity):
             logger.debug(f"Filtering for velocity: minVelocity: {settings.minVelocity}, maxVelocity: {settings.maxVelocity}")
             states = self.filterStatesVelocity(states)
             
@@ -97,7 +142,7 @@ class StateFilter():
             logger.debug(f"Filtering for aircraft in the air")
             states = [state for state in states if state.on_ground == False]
         
-        if settings.minBaroAltitude is not None:
+        if settings.minBaroAltitude:
             logger.debug(f"Filtering for minBaroAltitude: {settings.minBaroAltitude}")            
             states = [state for state in states if (state.baro_altitude is not None) and (state.baro_altitude*3.28084 >= settings.minBaroAltitude)] # convert from meters to feet
         
@@ -105,7 +150,7 @@ class StateFilter():
             logger.debug(f"Filtering for maxBaroAltitude: {settings.maxBaroAltitude}")
             states = [state for state in states if (state.baro_altitude is not None) and (state.baro_altitude*3.28084 <= settings.maxBaroAltitude)] # convert from meters to feet   
                  
-        if settings.minGeoAltitude is not None:
+        if settings.minGeoAltitude:
             logger.debug(f"Filtering for minGeoAltitude: {settings.minGeoAltitude}")
             states = [state for state in states if (state.geo_altitude) and (state.geo_altitude*3.28084 >= settings.minGeoAltitude)] # convert from meters to feet
 

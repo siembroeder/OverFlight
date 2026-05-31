@@ -2,18 +2,17 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 
+from opensky_api import StateVector
+from PySide6.QtGui import QMovie, QTransform
 from PySide6.QtCore import Qt, QTimer, QSize
 from PySide6.QtWidgets import QMainWindow, QLabel
-from PySide6.QtGui import QPixmap, QMovie, QTransform
 
 # Custom imports 
 from Mover import Mover
-from opensky_api import StateVector 
+from utils.AircraftRecord import AircraftRecord
 from utils.QtUtils import getWindowSize, getScreenGeometry
-from utils.OpenSkyUtils import getWakeTurbulenceClassification
 from Settings import Settings, VisualsSettings, TrackingSettings
 from utils.TypeHints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
-
 
 class MainWindow(QMainWindow): 
     """
@@ -28,8 +27,6 @@ class MainWindow(QMainWindow):
     
     When new api data is fetched, MainWindow.updateState(state) is executed
     """
-        
-    
     icao24: str = ""
     squawk: str | None = None
     callsign: str | None = None
@@ -50,18 +47,18 @@ class MainWindow(QMainWindow):
     position_source: int = 0
     
     
-    def __init__(self, state:StateVector, settings:Settings, typecode:str):
+    def __init__(self, settings:Settings, aircraft:AircraftRecord):
         super().__init__()
         
         self.settings = settings
+        self.aircraft = aircraft
         
         # Extract state data, manually write self.lat/lon. All other lat/lon logic is handled by mover
+        state = aircraft.state
         self.applyState(state)
         self.latitude = asLatitude(state.latitude)
         self.longitude= asLongitude(state.longitude)
-        self.typecode = typecode
-        self.wakeTurbulenceClassification = getWakeTurbulenceClassification(self.typecode)
-        self.lastApiUpdate = time.monotonic()
+        self.lastApiUpdate = time.monotonic()        
         
         # Set basic Qt info
         self.setWindowTitle(f"OverFlightWindow_{state.icao24}")
@@ -72,6 +69,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.label)
         
         # Set custom Qt info
+        self.image, self.imageScaleFactor = aircraft.getVisualInfo()
         self.setWindowSize()
         self.setWindowTheme()
         self.buildTooltip()
@@ -142,19 +140,8 @@ class MainWindow(QMainWindow):
         """
         visuals:VisualsSettings = self.settings.visuals
         
-        # Stop movie if running when switching from theme duck to aircraft.
-        # if hasattr(self, "movie") and (self.movie.state() == QMovie.MovieState.Running):
-        #     self.movie.stop()
-
-        if visuals.windowTheme == "aircraft":
-            if self.typecode.upper().startswith("B74"):
-                image = QPixmap("assets/747.png")
-            elif self.typecode.upper() == "C172":
-                image = QPixmap("assets/C172.png")
-            else:
-                image = QPixmap("assets/singleIsleAircraft.png")
-                
-            self.originalPixmap = image  # store original
+        if visuals.windowTheme == "aircraft":                
+            self.originalPixmap = self.image  # store original
             self.defaultPixmap = self.originalPixmap.scaled(self.label.size(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
             self.updatePixmapHeading()
             
@@ -180,6 +167,9 @@ class MainWindow(QMainWindow):
         Default: 'small'
         """
         size:QSize = getWindowSize(self.settings.visuals.windowSize)
+        if self.imageScaleFactor != 1.0:
+            size = QSize(round(self.imageScaleFactor * size.width()), round(self.imageScaleFactor * size.height()))
+
         self.label.setFixedSize(size)
         self.setFixedSize(size)
         

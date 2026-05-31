@@ -6,7 +6,7 @@ from Settings import Settings
 from StateFilter import StateFilter
 logger = logging.getLogger(__name__)
 
-from opensky_api import OpenSkyStates
+from opensky_api import OpenSkyStates, StateVector
 from utils.OpenSkyUtils import fetchStatesInBbox
 
 
@@ -21,7 +21,7 @@ class ApiHandler():
         self.newestStateTimestamp = 0.0
         self.numApiCallsSkipped   = 0.0
 
-    def fetchStates(self, trackerWindows, filter:StateFilter) -> tuple[OpenSkyStates | None, list]:
+    def fetchStates(self, trackerWindows, filter:StateFilter) -> tuple[OpenSkyStates | None, list[StateVector]]:
         """
         Fetches and validates new states.
         Returns (accepted_states, untracked_filtered_states).

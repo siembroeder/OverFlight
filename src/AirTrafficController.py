@@ -8,6 +8,9 @@ from datetime import datetime
 
 from ApiHandler import ApiHandler
 from WindowTracker import WindowTracker
+from utils.Icao8643Utils import Icao8643Entry
+from utils.AircraftRecord import AircraftRecord
+from opensky_api import StateVector
 
 
 class AirTrafficController():
@@ -15,6 +18,10 @@ class AirTrafficController():
         self.settings   = settings
         self.apiHandler = apiHandler
         self.tracker    = tracker
+        
+        # load dicts of aircraft data into memory
+        self.icao24ToTypecode:dict[str, str]          = Icao8643Entry.loadIcao24ToTypecode()
+        self.typecodeToEntry:dict[str, Icao8643Entry] = Icao8643Entry.loadTypecodesToIcao8643Entry()
 
     async def _deadReckonLoop(self) -> None:
         """Continuously applies dead reckoning at the visual update interval."""
@@ -40,7 +47,8 @@ class AirTrafficController():
             accepted, untracked = await queue.get()
 
             if untracked:
-                self.tracker.updateWindows(untracked, delete=False)
+                untrackedAircraft = self.toAircraftRecords(untracked)
+                self.tracker.updateWindows(untrackedAircraft, delete=False)
 
             if accepted is None:
                 continue
@@ -49,9 +57,10 @@ class AirTrafficController():
                         f"{datetime.fromtimestamp(int(time.time()))} with timestamp: "
                         f"{datetime.fromtimestamp(accepted.time)}\n")
 
-            filtered = self.tracker.filter.filterStates(accepted.states)
-            logger.debug(f"After filtering {len(filtered)} remain.\n")
-            self.tracker.updateWindows(filtered)
+            acceptedAircraft = self.toAircraftRecords(accepted.states)
+            filteredAircraft = self.tracker.filter.filterAircraft(acceptedAircraft)
+            logger.debug(f"After filtering {len(filteredAircraft)} remain.\n")
+            self.tracker.updateWindows(filteredAircraft)
 
     async def run(self) -> None:
         async with asyncio.TaskGroup() as tg:
@@ -59,26 +68,12 @@ class AirTrafficController():
             tg.create_task(self._consumeStatesLoop())
         logger.critical("Main loop stopped.\n")
 
-# # use these to test / if no internet is available
+    def toAircraftRecords(self, states:list[StateVector], fallbackTypecode:str = "C172") -> list[AircraftRecord]:
 
-# sVector = [["icao24",
-#             "KLM123",
-#             "NL",
-#             123456789,
-#             987654321,
-#             52.3,
-#             4.89,
-#             10000,
-#             False,
-#             300,
-#             270.4,
-#             None,
-#             None,
-#             11000,
-#             "7700",
-#             False,
-#             0,
-#             0]]
+        records = []
+        for state in states:
+            typecode = self.icao24ToTypecode.get(state.icao24) or fallbackTypecode
+            entry    = self.typecodeToEntry[typecode]
+            records.append(AircraftRecord(state=state, entry=entry))
 
-# NEW_STATES = OpenSkyStates({"time": time.time(), "states": sVector})
-
+        return records

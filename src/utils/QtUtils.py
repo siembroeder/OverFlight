@@ -1,13 +1,9 @@
-
 from PySide6.QtCore import QRect, QSize
 from PySide6.QtWidgets import QApplication
-
-
 
 def windowIsOpen(icao24:str) -> bool:
     title = f"OverFlightWindow_{icao24}"
     return any((w.windowTitle() == title) and w.isVisible() for w in QApplication.topLevelWidgets())
-
 
 def getScreenGeometry(displayName:str|None) -> QRect:
     if displayName == "all":
@@ -29,7 +25,6 @@ def getScreenGeometry(displayName:str|None) -> QRect:
 
     return geom
 
-
 def getWindowSize(windowSize:str|list) -> QSize:
     defaultSizes = {"miniature": QSize(25, 25),
                     "small":     QSize(50, 50),
@@ -46,5 +41,3 @@ def getWindowSize(windowSize:str|list) -> QSize:
         windowSize = "small"
 
     return defaultSizes[windowSize] 
-
-

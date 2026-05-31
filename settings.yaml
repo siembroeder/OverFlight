@@ -39,4 +39,12 @@ tracking:
     category:
     originCountry:
     allowedLastContactLag:
-    allowedTimePositionLag: 
+    allowedTimePositionLag:
+    modelName:
+    wtc:
+    wtg:
+    typecode:
+    manufacturer:
+    description:
+    engineCount:
+    engineType:
