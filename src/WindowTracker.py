@@ -1,15 +1,12 @@
-
 import yaml
 import logging
 logger = logging.getLogger(__name__)
 from dataclasses import fields
 
 from Settings import Settings
-from opensky_api import StateVector
 from StateFilter import StateFilter
 from CustomQtWindow import MainWindow
 from utils.QtUtils import windowIsOpen
-from utils.Icao8643Utils import Icao8643Entry
 from utils.AircraftRecord import AircraftRecord
 
 type Icao24 = str
