@@ -39,7 +39,7 @@ Current functionality:
   - windowrule = no_shadow on, match:title ^OverFlightWindow_.*
   - windowrule = no_initial_focus on, match:title ^OverFlightWindow_.*
   - windowrule = pin on, match:title ^OverFlightWindow_.*
-    - Hyprland 0.55 (lua) support is coming.
+> - Hyprland 0.55 (lua) support is coming.
 
 - Windows
 - X11 like xfce
@@ -115,6 +115,14 @@ Aircraft are filtered based on these conditions.
 | departureAirport      |string      |None     |Airport ICAO code, eg "EHAM", case insensitive.|
 | originCountry         |string      |None     |Eg "Kingdom of the Netherlands.|
 | sensors               |list[int]   |None     |Must be a list of integers representing the serial numbers of sensors.<br>This filter is only accessible to users with a paid openskyapi account, for free users the vehicle's sensors are always None.    |
+|modelName|string|None|Full aircraftmodel, should exactly match the icao8643 database, eg 777-300ER, or Dornier 328JET Envoy|
+|wtc|string|None|ICAO Wake turbulence classification (L, M, H, J).|
+|wtg|string|None|ICAO Wake turbulence group (A-G).|
+|typecode|string|None|Aircraft's model typecode or designator, eg A320, or MD82.|
+|manufacturer|string|None|Aircraft manufacturer code like Airbus, Boeing, or Fokker.|
+|description|string|None|Description of the aircraft like LandPlane, Helicopter, or Glider.|
+|engineCount|int|None|Number of engines.|
+|engineType|string|None|Type of engine, eg Jet or Piston.|
 
 
 #### visuals
