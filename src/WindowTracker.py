@@ -29,9 +29,8 @@ class WindowTracker():
             
         # Register callback for settings that require WindowTracker method to execute
         settings.onChange("windowSize", lambda _: self.CloseAllWindows()) # Windows are rebuild on next api call with updated windowSize
-
-        # self.icao24ToTypecode:dict[str, str]          = Icao8643Entry.loadIcao24Typecodes()
-        # self.typecodeToEntry:dict[str, Icao8643Entry] = Icao8643Entry.loadTypecodes()
+        settings.onChange("location", lambda _: self.CloseAllWindows())
+        settings.onChange("bboxSize", lambda _: self.CloseAllWindows())
 
     def spawnWindow(self, aircraft:AircraftRecord) -> None:
         """Use spawns a window titled f\"OverFlightWindow_{state.icao24}\", also stores the  window in the windows dict with icao24 as key"""
