@@ -2687,3 +2687,12 @@ LAK-19,L,,LAK19,LAK,Glider,0,None
 Jonker JS-1,L,,JONK,JONKER,Glider,0,None
 Jonker JS-3,L,,JONK3,JONKER,Glider,0,None
 HPH 304,L,,HPH,HPH,Glider,0,None
+Ground Vehicle,,,GRND,,, 0,None
+Airship,L,,SHIP,,Airship,0,None
+Glider,L,,GLID,,Glider,0,None
+Motorglider,L,,GLIM,,Glider,1,Piston
+Balloon,L,,BALL,,Balloon,0, None
+Ultralight Aircraft,L,,ULAC,,Ultralight Aircraft,1,Piston
+Ultralight Helicopter,L,,UHEL,,Ultralight Helicopter,1,Piston
+Ultralight Autogyro,L,,GYRO,,Ultralight Autogyro,1,Piston
+Powered Parachute,L,,PARA,, "Powered Parachute",1,Piston
