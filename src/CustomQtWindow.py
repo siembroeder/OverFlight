@@ -106,14 +106,18 @@ class MainWindow(QMainWindow):
         trackingSettings:TrackingSettings = self.settings.tracking
         lines = []
         for field in self.settings.visuals.tooltipFields:
-           # Check self and trackingSettings for field
+            value = None
+            # Check self, entry, trackingSettings for field (order matters)
             if hasattr(self, field):
                 value = getattr(self, field)
+            elif hasattr(self.aircraft.entry, field):
+                value = getattr(self.aircraft.entry, field)
             elif hasattr(trackingSettings, field):
                 value = getattr(trackingSettings, field)
-            else:
-                continue
-
+            
+            if value is None:
+                continue # if field isn't found, don't show it in the tooltip
+            
             if isinstance(value, str): # Clean string
                 value = value.strip()
                 
