@@ -273,7 +273,7 @@ class StateFilter():
 
             # Flight stores its airport codes in IATA format but we need ICAO, convert using airports.csv
             if self.settings.departureAirport:
-                print("hello")
+
                 departure_iata:str = matchedFlight.origin_airport_iata
                 try:
                     departure_icao:str = icao_from_iata[departure_iata]
