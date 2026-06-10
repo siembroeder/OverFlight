@@ -25,19 +25,25 @@ def getScreenGeometry(displayName:str|None) -> QRect:
 
     return geom
 
-def getWindowSize(windowSize:str|list) -> QSize:
-    defaultSizes = {"miniature": QSize(25, 25),
-                    "small":     QSize(50, 50),
-                    "medium":    QSize(100, 100),
-                    "large":     QSize(200, 200),
-                    "comicallyLarge": QSize(500, 500)}
+def getWindowSize(windowSize:str|list, nypixels:int) -> QSize:
+
+    defaultSizes = {"miniature": 25,
+                    "small": 50,
+                    "medium": 100,
+                    "large": 200,
+                    "comicallyLarge": 500}
+    
+    factor = nypixels / 1080
     
     if isinstance(windowSize, list):
-        if len(windowSize) == 2:
-            return QSize(windowSize[0], windowSize[1])
-        raise IndexError("imageSize should have exactly 2 items")
+        if len(windowSize) != 2:
+            raise IndexError("windowSize should have exactly 2 items, or use one of the defaults: 'miniature', 'small', 'medium', 'large', 'comicallyLarge'.")
+        
+        if (windowSize[0] <= 0) or (windowSize[1] <= 0):
+            raise ValueError("windowSize should be a positive, non-zero integer.")
+        
+        return QSize(windowSize[0], windowSize[1])
     
-    if windowSize not in defaultSizes.keys():
-        windowSize = "small"
-
-    return defaultSizes[windowSize] 
+    size = int(factor * defaultSizes.get(windowSize, defaultSizes["small"]))
+    return QSize(size, size)
+    

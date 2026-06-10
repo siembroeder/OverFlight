@@ -70,10 +70,10 @@ class MainWindow(QMainWindow):
         
         # Set custom Qt info
         self.image, self.imageScaleFactor = aircraft.getVisualInfo()
-        self.setWindowSize()
+        self.setScreenParams()  
+        self.setWindowSize() # must be called after setScreenParams(), else nypixels undefined
         self.setWindowTheme()
         self.buildTooltip()
-        self.setScreenParams()
         
         self.mover:"Mover" = Mover(self)
         self.mover.updateDeadReckonIncrements()
@@ -170,7 +170,7 @@ class MainWindow(QMainWindow):
         
         Default: 'small'
         """
-        size:QSize = getWindowSize(self.settings.visuals.windowSize)
+        size:QSize = getWindowSize(self.settings.visuals.windowSize, self.Nypixels)
         if self.imageScaleFactor != 1.0:
             size = QSize(round(self.imageScaleFactor * size.width()), round(self.imageScaleFactor * size.height()))
 
