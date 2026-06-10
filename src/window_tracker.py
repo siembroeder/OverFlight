@@ -3,11 +3,11 @@ import logging
 logger = logging.getLogger(__name__)
 from dataclasses import fields
 
-from Settings import Settings
-from StateFilter import StateFilter
-from CustomQtWindow import MainWindow
-from utils.QtUtils import windowIsOpen
-from utils.AircraftRecord import AircraftRecord
+from settings import Settings
+from state_filter import StateFilter
+from custom_qt_window import MainWindow
+from utils.qt_utils import windowIsOpen
+from utils.aircraft_record import AircraftRecord
 
 type Icao24 = str
 type Typecode = str

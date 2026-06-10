@@ -5,14 +5,14 @@ from PySide6.QtWidgets import QApplication
 
 import logging
 logger = logging.getLogger(__name__)
-from ApiHandler import ApiHandler
-from utils.LoggingUtils import setupLogging
+from api_handler import ApiHandler
+from utils.logging_utils import setupLogging
 loggingLevel = "debug" # Set the logging level. Options : 'debug', 'info', 'warning', 'critical', 'error'
 setupLogging(loggingLevel)
 
-from WindowTracker import WindowTracker
-from Settings import Settings
-from AirTrafficController import AirTrafficController
+from window_tracker import WindowTracker
+from settings import Settings
+from air_traffic_controller import AirTrafficController
 
 
 def startOverflightApplication(controller:AirTrafficController):

@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from geopy.location import Location
 from geopy.geocoders import Nominatim
 
-from utils.QtUtils import getScreenGeometry
+from utils.qt_utils import getScreenGeometry
 from opensky_api import OpenSkyApi, OpenSkyStates, OpenSkyApi
 
 

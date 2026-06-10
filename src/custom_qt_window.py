@@ -8,11 +8,11 @@ from PySide6.QtCore import Qt, QTimer, QSize
 from PySide6.QtWidgets import QMainWindow, QLabel
 
 # Custom imports 
-from Mover import Mover
-from utils.AircraftRecord import AircraftRecord
-from utils.QtUtils import getWindowSize, getScreenGeometry
-from Settings import Settings, VisualsSettings, TrackingSettings
-from utils.TypeHints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
+from mover import Mover
+from utils.aircraft_record import AircraftRecord
+from utils.qt_utils import getWindowSize, getScreenGeometry
+from settings import Settings, VisualsSettings, TrackingSettings
+from utils.type_hints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
 
 class MainWindow(QMainWindow): 
     """

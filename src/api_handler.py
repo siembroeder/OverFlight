@@ -2,12 +2,12 @@ import time
 import asyncio
 import logging
 
-from Settings import Settings
-from StateFilter import StateFilter
+from settings import Settings
+from state_filter import StateFilter
 logger = logging.getLogger(__name__)
 
 from opensky_api import OpenSkyStates, StateVector
-from utils.OpenSkyUtils import fetchStatesInBbox
+from utils.open_sky_utils import fetchStatesInBbox
 
 
 class ApiHandler():

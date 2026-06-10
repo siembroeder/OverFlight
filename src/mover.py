@@ -7,10 +7,10 @@ import subprocess
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from CustomQtWindow import MainWindow
+    from custom_qt_window import MainWindow
     
-from utils.PlatformUtils import getUserPlatform, getSessionType, getWindowManager
-from utils.TypeHints import Meters, Degrees, Radians, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
+from utils.platform_utils import getUserPlatform, getSessionType, getWindowManager
+from utils.type_hints import Meters, Degrees, Radians, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
 
 
 class Mover():
