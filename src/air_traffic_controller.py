@@ -2,14 +2,14 @@ import time
 import asyncio
 import logging
 
-from Settings import Settings
+from settings import Settings
 logger = logging.getLogger(__name__)
 from datetime import datetime
 
-from ApiHandler import ApiHandler
-from WindowTracker import WindowTracker
-from utils.Icao8643Utils import Icao8643Entry
-from utils.AircraftRecord import AircraftRecord
+from api_handler import ApiHandler
+from window_tracker import WindowTracker
+from utils.icao8643_utils import Icao8643Entry
+from utils.aircraft_record import AircraftRecord
 from opensky_api import StateVector
 
 

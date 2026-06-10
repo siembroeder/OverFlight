@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from PySide6.QtGui import QPixmap
 
 from opensky_api import StateVector
-from utils.Icao8643Utils import Icao8643Entry
+from utils.icao8643_utils import Icao8643Entry
 
 @dataclass
 class AircraftRecord():

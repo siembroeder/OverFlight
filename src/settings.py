@@ -8,8 +8,8 @@ logger = logging.getLogger(__name__)
 from typing import Optional, ClassVar, Callable
 from dataclasses import dataclass, field, fields
 from opensky_api import OpenSkyApi, TokenManager
-from utils.OpenSkyUtils import getBboxSize, getBboxOffset
-from utils.TypeHints import Seconds, Latitude, Longitude, MetersPerSecond, Meters
+from utils.open_sky_utils import getBboxSize, getBboxOffset
+from utils.type_hints import Seconds, Latitude, Longitude, MetersPerSecond, Meters
 
 SETTINGS_SECTIONS = ("core", "api", "setup", "tracking", "visuals")
 SETTINGS_PATH = "settings.yaml"
