@@ -20,6 +20,22 @@ class AircraftRecord():
         factor = 1.0
         image = QPixmap("assets/A321.png")
 
+        # Filter wtc
+        if entry.wtc == "L":
+            image = QPixmap("assets/C172.png")
+            factor = 0.5
+            
+        if entry.wtc == "M":
+            pass # default settings
+        
+        if entry.wtc == "H":
+            image = QPixmap("assets/B777.png")
+            factor = 1.1
+            
+        # Filter number of engines
+        if entry.engineCount == 3:
+            image = QPixmap("assets/md11.png")
+
         # Filter specific typecodes
         if typecode.startswith("B74"):
             image = QPixmap("assets/B747.png")
@@ -47,22 +63,6 @@ class AircraftRecord():
         if description == "glider":
             image = QPixmap("assets/glider.png")
             factor = 0.6
-        
-        # Filter wtc
-        if entry.wtc == "L":
-            image = QPixmap("assets/C172.png")
-            factor = 0.5
-            
-        if entry.wtc == "M":
-            pass # default settings
-        
-        if entry.wtc == "H":
-            image = QPixmap("assets/B777.png")
-            factor = 1.1
-        
-        # Filter number of engines
-        if entry.engineCount == 3:
-            image = QPixmap("assets/md11.png")
         
         return (image, factor)
 
