@@ -48,7 +48,7 @@ class AirTrafficController():
 
             if untracked:
                 untrackedAircraft = self.toAircraftRecords(untracked)
-                filteredUntrackedAircraft = self.tracker.filter.filterAircraft(untrackedAircraft)
+                filteredUntrackedAircraft = self.tracker.filter.filter_aircraft(untrackedAircraft)
                 self.tracker.update_windows(filteredUntrackedAircraft, delete=False)
 
             if accepted is None:
@@ -59,7 +59,7 @@ class AirTrafficController():
                         f"{datetime.fromtimestamp(accepted.time)}\n")
 
             acceptedAircraft = self.toAircraftRecords(accepted.states)
-            filteredAircraft = self.tracker.filter.filterAircraft(acceptedAircraft)
+            filteredAircraft = self.tracker.filter.filter_aircraft(acceptedAircraft)
             logger.debug(f"After filtering {len(filteredAircraft)} remain.\n")
             self.tracker.update_windows(filteredAircraft)
 

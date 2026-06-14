@@ -20,44 +20,44 @@ class StateFilter():
     """
     Filters OpenSky aircraft state vectors using opensky_api and local configuration settings.
     """
-    def __init__(self, settings:"TrackingSettings", api:OpenSkyApi, maxWindows:int, bbox:tuple):
+    def __init__(self, settings:"TrackingSettings", api:OpenSkyApi, max_windows:int, bbox:tuple):
         """Initialize filter with tracking configuration, OpenSky API client, and maximum number of windows (default=25)"""
         
         self.settings:TrackingSettings = settings
         self.api:OpenSkyApi = api
-        self.maxWindows = maxWindows
+        self.max_windows = max_windows
         self.bbox = bbox
     
-    def filterStates(self, states:list[StateVector]) -> list[StateVector]:
+    def filter_states(self, states:list[StateVector]) -> list[StateVector]:
         
         # states = self.applyLocalFilters(states)
         
         if self.settings.departureAirport or self.settings.arrivalAirport:
-            states = self.applyAirportFilters(states)
+            states = self.apply_airport_filters(states)
         
 
         return states    
     
-    def filterAircraft(self, aircraft:list[AircraftRecord]) -> list[AircraftRecord]:
+    def filter_aircraft(self, aircraft:list[AircraftRecord]) -> list[AircraftRecord]:
         
         # Filter by opensky statevector information
         states = [ac.state for ac in aircraft]
-        states = self.applyLocalStateFilters(states)
+        states = self.apply_local_state_filters(states)
         if self.settings.departureAirport or self.settings.arrivalAirport:
-            states = self.applyAirportFilters(states)
+            states = self.apply_airport_filters(states)
 
         # Filter by icao8643 entry
         aircraft = [ac for ac in aircraft if ac.state in states]
-        aircraft = self.applyIcaoEntryFilter(aircraft)
+        aircraft = self.apply_icao_entry_filter(aircraft)
 
-        assert self.maxWindows > 0.0, "maxWindows should be larger than 0"
-        if len(aircraft) >= self.maxWindows: # must be last filter
-            logger.debug(f"Restricting number of windows to: {self.maxWindows}")
-            aircraft = aircraft[:self.maxWindows]
+        assert self.max_windows > 0.0, "maxWindows should be larger than 0"
+        if len(aircraft) >= self.max_windows: # must be last filter
+            logger.debug(f"Restricting number of windows to: {self.max_windows}")
+            aircraft = aircraft[:self.max_windows]
         
         return aircraft
     
-    def applyIcaoEntryFilter(self, aircraft:list[AircraftRecord]) -> list[AircraftRecord]:
+    def apply_icao_entry_filter(self, aircraft:list[AircraftRecord]) -> list[AircraftRecord]:
         settings = self.settings
         
         if settings.modelName:
@@ -86,9 +86,9 @@ class StateFilter():
 
         return aircraft
          
-    def applyLocalStateFilters(self, states:list[StateVector]) -> list[StateVector]:
+    def apply_local_state_filters(self, states:list[StateVector]) -> list[StateVector]:
         settings = self.settings
-        filterTimestamp = time.monotonic()
+        filter_timestamp = time.monotonic()
         
         if settings.icao24:
             logger.debug(f"Filtering for icao24: {settings.icao24}")
@@ -104,11 +104,11 @@ class StateFilter():
             
         if settings.allowedTimePositionLag:
             logger.debug(f"Filtering for timePositionLag: {settings.allowedTimePositionLag}")
-            states = [state for state in states if (state.time_position is not None) and (state.time_position > (filterTimestamp - settings.allowedTimePositionLag))]
+            states = [state for state in states if (state.time_position is not None) and (state.time_position > (filter_timestamp - settings.allowedTimePositionLag))]
             
         if settings.allowedLastContactLag:
             logger.debug(f"Filtering for lastContactLag: {settings.allowedLastContactLag}")
-            states = [state for state in states if state.last_contact > (filterTimestamp - settings.allowedLastContactLag)]
+            states = [state for state in states if state.last_contact > (filter_timestamp - settings.allowedLastContactLag)]
             
         if settings.originCountry:
             logger.debug(f"Filtering for registration country: {settings.originCountry}")
@@ -116,11 +116,11 @@ class StateFilter():
                 
         if (settings.minVelocity) or (settings.maxVelocity):
             logger.debug(f"Filtering for velocity: minVelocity: {settings.minVelocity}, maxVelocity: {settings.maxVelocity}")
-            states = self.filterStatesVelocity(states)
+            states = self.filter_states_velocity(states)
             
         if settings.trueTrackRange:
             logger.debug(f"Filtering for true track range: {settings.trueTrackRange}")
-            states = self.filterStatesTrueTrackRange(states)
+            states = self.filter_states_true_track_range(states)
             
         if settings.minVerticalRate:
             logger.debug(f"Filtering for minimum vertical range: {settings.minVerticalRate}")
@@ -168,7 +168,7 @@ class StateFilter():
         
         if settings.category:
             logger.debug(f"Filtering for category: {settings.category}")
-            states = self.filterStatesCategory(states)
+            states = self.filter_states_category(states)
             
         if settings.sensors:
             logger.debug(f"Filtering for sensors: {settings.sensors}")
@@ -178,41 +178,41 @@ class StateFilter():
             
         return states        
            
-    def filterStatesVelocity(self, states:list[StateVector]) -> list[StateVector]:
+    def filter_states_velocity(self, states:list[StateVector]) -> list[StateVector]:
         """Helper function to filter states by velocity"""
-        minVelocity = self.settings.minVelocity
-        maxVelocity = self.settings.maxVelocity
+        min_velocity = self.settings.minVelocity
+        max_velocity = self.settings.maxVelocity
         
-        if (minVelocity is None) and (maxVelocity is None):
+        if (min_velocity is None) and (max_velocity is None):
             return states
         
-        filteredStates = []
+        filtered_states = []
         for state in states:
             
             if state.velocity is None:
                 continue
                 
             # apply minimum velocity filtering
-            if (minVelocity is not None) and (state.velocity < minVelocity):
+            if (min_velocity is not None) and (state.velocity < min_velocity):
                 # logger.debug(f"Filtered out callsign {state.callsign} because velocity too slow")
                 continue
             
             # apply maximum velocity filtering
-            if (maxVelocity is not None) and (maxVelocity > 0.0) and (state.velocity > maxVelocity):
+            if (max_velocity is not None) and (max_velocity > 0.0) and (state.velocity > max_velocity):
                 # logger.debug(f"Filtered out callsign {state.callsign} because velocity too fast")
                 continue
 
             # logger.debug(f"Callsign {state.callsign} passed velocity filter: {state.velocity}")  
-            filteredStates.append(state)
+            filtered_states.append(state)
                 
-        return filteredStates
+        return filtered_states
 
-    def filterStatesTrueTrackRange(self, states:list[StateVector]) -> list[StateVector]:
+    def filter_states_true_track_range(self, states:list[StateVector]) -> list[StateVector]:
         range = self.settings.trueTrackRange
         assert range is not None
         assert range[0] != range[1]
 
-        filteredStates = []
+        filtered_states = []
         for state in states:
             if state.true_track is None:
                 continue
@@ -220,38 +220,38 @@ class StateFilter():
             # Eg if range is [0, 90]
             if range[0] < range[1]:
                 if (state.true_track >= range[0]) and (state.true_track <= range[1]):
-                    filteredStates.append(state)
+                    filtered_states.append(state)
 
             # Eg if range is [350, 10], notice the 'or' conditional instead of 'and'
             elif range[0] > range[1]:
                 if (state.true_track >= range[0]) or (state.true_track <= range[1]):
-                    filteredStates.append(state) 
+                    filtered_states.append(state) 
         
-        return filteredStates
+        return filtered_states
     
-    def filterStatesCategory(self, states:list[StateVector]) -> list[StateVector]:
+    def filter_states_category(self, states:list[StateVector]) -> list[StateVector]:
         if not self.settings.category:
             return states
         
-        excludedCategories = []
+        excluded_categories = []
         for cat in self.settings.category:
             if isinstance(cat, str) and (cat.startswith("!")):
                 num = int(cat.lstrip("!"))
-                excludedCategories.append(num)
+                excluded_categories.append(num)
         
-        filteredStates = []
+        filtered_states = []
         for state in states:
             cat = state.category
             
-            if excludedCategories and cat not in excludedCategories:
-                filteredStates.append(state)
+            if excluded_categories and cat not in excluded_categories:
+                filtered_states.append(state)
                             
             elif cat in self.settings.category:
-                filteredStates.append(state)
+                filtered_states.append(state)
         
-        return filteredStates
+        return filtered_states
     
-    def applyAirportFilters(self, states:list[StateVector]) -> list[StateVector]:
+    def apply_airport_filters(self, states:list[StateVector]) -> list[StateVector]:
         """Apply arrivalAirport and departureAirport filters, they require an api call since the data isn't part of StateVector."""
         
         logger.debug(f"Applying airport filters")
@@ -264,27 +264,27 @@ class StateFilter():
         
         icao_from_iata = airports.dropna(subset=["iata"]).set_index("iata")["icao"]
 
-        filteredStates = []
+        filtered_states = []
         for state in states:
-            matchedFlight:Flight|None = next((f for f in flights if f.icao_24bit.lower().strip() == state.icao24.lower().strip()), None)
+            matched_flight:Flight|None = next((f for f in flights if f.icao_24bit.lower().strip() == state.icao24.lower().strip()), None)
             
-            if matchedFlight is None:
+            if matched_flight is None:
                 continue
 
             # Flight stores its airport codes in IATA format but we need ICAO, convert using airports.csv
             if self.settings.departureAirport:
 
-                departure_iata:str = matchedFlight.origin_airport_iata
+                departure_iata:str = matched_flight.origin_airport_iata
                 try:
                     departure_icao:str = icao_from_iata[departure_iata]
                 except:
                     continue
                 
                 if departure_icao.lower().strip() == self.settings.departureAirport.lower().strip():
-                    filteredStates.append(state)
+                    filtered_states.append(state)
 
             if self.settings.arrivalAirport:                
-                destination_iata:str = matchedFlight.destination_airport_iata
+                destination_iata:str = matched_flight.destination_airport_iata
                 try:
                     destination_icao:str = icao_from_iata[destination_iata]
                 except:
@@ -293,19 +293,19 @@ class StateFilter():
                 
                 if destination_icao.lower().strip() == self.settings.arrivalAirport.lower().strip():
                     print("adding state to filtered states")
-                    if state not in filteredStates:
-                        filteredStates.append(state)
+                    if state not in filtered_states:
+                        filtered_states.append(state)
 
-        return filteredStates
+        return filtered_states
 
-    def extractUntrackedStates(self, activeWindows:dict[icao24,MainWindow],  newStates:list[StateVector]) -> list[StateVector]:
-        activeIcaos = activeWindows.keys()
+    def extract_untracked_states(self, active_windows:dict[icao24,MainWindow],  new_states:list[StateVector]) -> list[StateVector]:
+        active_icaos = active_windows.keys()
         
-        untrackedStates = []
-        for state in newStates:
+        untracked_states = []
+        for state in new_states:
             if not state.icao24:
                 continue
             
-            if state.icao24 not in activeIcaos:
-                untrackedStates.append(state)
-        return untrackedStates
+            if state.icao24 not in active_icaos:
+                untracked_states.append(state)
+        return untracked_states

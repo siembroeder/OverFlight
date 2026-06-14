@@ -47,7 +47,7 @@ class ApiHandler():
         if newStates.time - self.newestStateTimestamp <= 0.9 * (self.numApiCallsSkipped + 1) * self.apiCallDelay:
             logger.debug("New api call spacing too short, continuing\n")
             self.numApiCallsSkipped += 1
-            untracked = filter.extractUntrackedStates(trackerWindows, newStates.states)
+            untracked = filter.extract_untracked_states(trackerWindows, newStates.states)
             return None, untracked
 
         self.newestStateTimestamp = newStates.time
