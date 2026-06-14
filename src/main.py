@@ -39,7 +39,7 @@ def main():
     tracker    = WindowTracker(settings)
     controller = AirTrafficController(settings, apiHandler, tracker)
     
-    app.aboutToQuit.connect(tracker.CloseAllWindows)
+    app.aboutToQuit.connect(tracker.close_all_windows)
     
     startOverflightApplication(controller)
 

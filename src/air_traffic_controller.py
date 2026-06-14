@@ -28,7 +28,7 @@ class AirTrafficController():
         dt = self.tracker.settings.visuals.updateInterval
         while True:
             await asyncio.sleep(dt)
-            self.tracker.deadReckonWindows()
+            self.tracker.dead_reckon_windows()
 
     async def _consumeStatesLoop(self) -> None:
         """Consumes fetched states from the queue and updates windows."""
@@ -43,13 +43,13 @@ class AirTrafficController():
         )
 
         while True:
-            self.tracker.checkNewSettings()
+            self.tracker.check_new_settings()
             accepted, untracked = await queue.get()
 
             if untracked:
                 untrackedAircraft = self.toAircraftRecords(untracked)
                 filteredUntrackedAircraft = self.tracker.filter.filterAircraft(untrackedAircraft)
-                self.tracker.updateWindows(filteredUntrackedAircraft, delete=False)
+                self.tracker.update_windows(filteredUntrackedAircraft, delete=False)
 
             if accepted is None:
                 continue
@@ -61,7 +61,7 @@ class AirTrafficController():
             acceptedAircraft = self.toAircraftRecords(accepted.states)
             filteredAircraft = self.tracker.filter.filterAircraft(acceptedAircraft)
             logger.debug(f"After filtering {len(filteredAircraft)} remain.\n")
-            self.tracker.updateWindows(filteredAircraft)
+            self.tracker.update_windows(filteredAircraft)
 
     async def run(self) -> None:
         async with asyncio.TaskGroup() as tg:

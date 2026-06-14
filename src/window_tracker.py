@@ -25,37 +25,37 @@ class WindowTracker():
         self.filter = StateFilter(settings.tracking, settings.openSkyApi, settings.setup.maxWindows, settings.bboxAtLocation)
         
         for f in fields(settings.tracking): # if any field in settings.tracking changes, rebuild the filter completely
-            settings.onChange(f.name, lambda _: self.rebuildFilter())
+            settings.onChange(f.name, lambda _: self.rebuild_filter())
             
         # Register callback for settings that require WindowTracker method to execute
-        settings.onChange("windowSize", lambda _: self.CloseAllWindows()) # Windows are rebuild on next api call with updated windowSize
-        settings.onChange("location", lambda _: self.CloseAllWindows())
-        settings.onChange("bboxSize", lambda _: self.CloseAllWindows())
+        settings.onChange("windowSize", lambda _: self.close_all_windows()) # Windows are rebuild on next api call with updated windowSize
+        settings.onChange("location", lambda _: self.close_all_windows())
+        settings.onChange("bboxSize", lambda _: self.close_all_windows())
 
-    def spawnWindow(self, aircraft:AircraftRecord) -> None:
+    def spawn_window(self, aircraft:AircraftRecord) -> None:
         """Use spawns a window titled f\"OverFlightWindow_{state.icao24}\", also stores the  window in the windows dict with icao24 as key"""
         window = MainWindow(self.settings, aircraft)
         window.mover.moveToLoc(window.latitude, window.longitude)
         window.show()  # triggers QMainWindow.showEvent() 
         self.windows[aircraft.state.icao24] = window
 
-    def updateWindows(self, newAircraft:list[AircraftRecord], delete:bool = True) -> None:
+    def update_windows(self, new_aircraft:list[AircraftRecord], delete:bool = True) -> None:
     # def updateWindows(self, newStates:list[StateVector], delete:bool = True) -> None:
         """Spawn, update, or close windows based on current aircraft states.
            The delete flag can be set to False to prevent windows from being closed""" 
             
         # Delete windows that are no longer being tracked.
-        newIcaos = [ac.state.icao24 for ac in newAircraft]
+        new_icaos = [ac.state.icao24 for ac in new_aircraft]
         # newIcaos = [state.icao24 for state in newAircraft]
         if delete:
             for icao24 in list(self.windows.keys()):
-                if icao24 not in newIcaos:
+                if icao24 not in new_icaos:
                     self.windows[icao24].close()
                     logger.debug(f"Stopped tracking {icao24}")
                     del self.windows[icao24] 
                     
         # Update existing windows and spawn new windows
-        for ac in newAircraft:
+        for ac in new_aircraft:
             state = ac.state
             icao24 = state.icao24
             if icao24 in self.windows:
@@ -65,36 +65,36 @@ class WindowTracker():
                     del self.windows[icao24]
 
             if icao24 not in self.windows and len(self.windows) < self.settings.setup.maxWindows:
-                self.spawnWindow(ac)
+                self.spawn_window(ac)
                 # typecode = self.icao24ToTypecode.get(icao24, self.settings.visuals.fallbackTypecode)
                 # entry = self.typecodeToEntry.get(typecode) or Icao8643Entry.findByIcao24(icao24)
                 # self.spawnWindow(AircraftRecord(state=state, entry=entry))
        
-    def deadReckonWindows(self):
+    def dead_reckon_windows(self):
         """Execute dead reckon increment for every open window currently being tracked"""
         for icao24, window in list(self.windows.items()):
             if windowIsOpen(icao24):
                 window.mover.deadReckonIncrement()
                 
-    def rebuildFilter(self):
+    def rebuild_filter(self):
         self.filter = StateFilter(self.settings.tracking, self.settings.openSkyApi, self.settings.setup.maxWindows, self.settings.bboxAtLocation)
 
-    def CloseAllWindows(self):
+    def close_all_windows(self):
         for window in self.windows.values():
             window.close()
         self.windows.clear()        
                 
-    def checkNewSettings(self) -> bool:
+    def check_new_settings(self) -> bool:
         try:
-            newRawSettings = Settings.loadSettings()
+            new_raw_settings = Settings.loadSettings()
         except yaml.YAMLError as e:
             logger.error(f"Invalid yaml settings file: {e}")
             return False
         
-        if newRawSettings != self.settings.raw:
-            newSettings = Settings.build()
-            if newSettings:
-                self.settings.applyUpdate(newSettings)
+        if new_raw_settings != self.settings.raw:
+            new_settings = Settings.build()
+            if new_settings:
+                self.settings.applyUpdate(new_settings)
                 return True
         
         return False
