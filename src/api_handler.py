@@ -14,8 +14,8 @@ class ApiHandler():
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
-        self.bboxAtLocation = self.settings.bboxAtLocation
-        self.apiCallDelay   = self.settings.api.apiCallDelay
+        self.bboxAtLocation = self.settings.bbox_at_location
+        self.apiCallDelay   = self.settings.api.api_call_delay
 
         self.lastApiCallTimestamp = 0.0
         self.newestStateTimestamp = 0.0
@@ -28,7 +28,7 @@ class ApiHandler():
         accepted_states is None if this call should be skipped.
         untracked_filtered_states is non-empty only on too-frequent calls.
         """
-        newStates: OpenSkyStates | None = fetchStatesInBbox(self.settings.openSkyApi, self.bboxAtLocation)
+        newStates: OpenSkyStates | None = fetchStatesInBbox(self.settings.open_sky_api, self.bboxAtLocation)
         self.lastApiCallTimestamp = time.monotonic()
 
         # skip to next api call if newStates empty.

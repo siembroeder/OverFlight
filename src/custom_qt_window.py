@@ -79,16 +79,16 @@ class MainWindow(QMainWindow):
         self.mover.updateDeadReckonIncrements()
         
         # Register callbacks for settings that require a MainWindow method to execute
-        settings.onChange("windowTheme", lambda _: self.setWindowTheme())
-        settings.onChange("tooltipFields", lambda _: self.buildTooltip())
-        settings.onChange("bboxAtLocation", lambda _: self.mover.moveToLoc(self.latitude, self.longitude))
+        settings.on_change("window_theme", lambda _: self.setWindowTheme())
+        settings.on_change("tooltip_fields", lambda _: self.buildTooltip())
+        settings.on_change("bbox_at_location", lambda _: self.mover.moveToLoc(self.latitude, self.longitude))
                
     def setScreenParams(self):
         """
         Set the width, height and topLeft coordinates in pixels of the displayName from settings.setup
         If settings.setup.displayName == None, return the first screen from QApplication.screens()
         """
-        displayName = self.settings.setup.displayName
+        displayName = self.settings.setup.display_name
         geom = getScreenGeometry(displayName)
         
         self.Nxpixels     = geom.width()
@@ -105,7 +105,7 @@ class MainWindow(QMainWindow):
         """
         trackingSettings:TrackingSettings = self.settings.tracking
         lines = []
-        for field in self.settings.visuals.tooltipFields:
+        for field in self.settings.visuals.tooltip_fields:
             value = None
             # Check self, entry, trackingSettings for field (order matters)
             if hasattr(self, field):
@@ -144,12 +144,12 @@ class MainWindow(QMainWindow):
         """
         visuals:VisualsSettings = self.settings.visuals
         
-        if visuals.windowTheme == "aircraft":                
+        if visuals.window_theme == "aircraft":                
             self.originalPixmap = self.image  # store original
             self.defaultPixmap = self.originalPixmap.scaled(self.label.size(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
             self.updatePixmapHeading()
             
-        if visuals.windowTheme == "duck":
+        if visuals.window_theme == "duck":
             if self.true_track is not None:
                 if (self.true_track >= 0.0) and (self.true_track <= 180.0): 
                     self.movie = QMovie("assets/duck-right.gif")
@@ -170,7 +170,7 @@ class MainWindow(QMainWindow):
         
         Default: 'small'
         """
-        size:QSize = getWindowSize(self.settings.visuals.windowSize)
+        size:QSize = getWindowSize(self.settings.visuals.window_size)
         if self.imageScaleFactor != 1.0:
             size = QSize(round(self.imageScaleFactor * size.width()), round(self.imageScaleFactor * size.height()))
 
@@ -178,12 +178,12 @@ class MainWindow(QMainWindow):
         self.setFixedSize(size)
         
         # resize what is currently being displayed
-        if (self.settings.visuals.windowTheme == "aircraft") and hasattr(self, "defaultPixmap"):
+        if (self.settings.visuals.window_theme == "aircraft") and hasattr(self, "defaultPixmap"):
             self.defaultPixmap = self.originalPixmap.scaled(size,  # scale from original to preserve resolution
                                                             Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
             self.updatePixmapHeading()
 
-        elif (self.settings.visuals.windowTheme == "duck") and (hasattr(self, "movie")):
+        elif (self.settings.visuals.window_theme == "duck") and (hasattr(self, "movie")):
             self.movie.setScaledSize(size)
             
     def updatePixmapHeading(self):
@@ -252,8 +252,8 @@ class MainWindow(QMainWindow):
         self.mover.updateDeadReckonIncrements()
         self.buildTooltip() # Some values like heading or altitude (might) change every api call
         
-        if self.settings.visuals.windowTheme == "aircraft": # ducks use movie, don't rotate to heading
+        if self.settings.visuals.window_theme == "aircraft": # ducks use movie, don't rotate to heading
             self.updatePixmapHeading()
                  
-        if (self.settings.visuals.windowTheme == "duck") and self.headingFlipped(previousHeading): # for aircraft changing directions, update duck direction accordingly
+        if (self.settings.visuals.window_theme == "duck") and self.headingFlipped(previousHeading): # for aircraft changing directions, update duck direction accordingly
             self.setWindowTheme()

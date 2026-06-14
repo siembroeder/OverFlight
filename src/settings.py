@@ -17,63 +17,63 @@ SETTINGS_PATH = "settings.yaml"
 
 @dataclass
 class CoreSettings:
-    bboxSize: Optional[str]
+    bbox_size: Optional[str]
     location: str = "Schiphol"
-    openskyCredentialsPath: str = ".credentials.json"
-    latitudeOffset: Optional[Latitude] = None
-    longitudeOffset: Optional[Longitude] = None
+    opensky_credentials_path: str = ".credentials.json"
+    latitude_offset: Optional[Latitude] = None
+    longitude_offset: Optional[Longitude] = None
 
 @dataclass
 class ApiSettings:
-    apiCallDelay: Seconds = Seconds(5.0)
+    api_call_delay: Seconds = Seconds(5.0)
 
 @dataclass
 class SetupSettings:
-    maxWindows: int = 25
-    displayName: Optional[str] = None
+    max_windows: int = 25
+    display_name: Optional[str] = None
 
 @dataclass
 class TrackingSettings:
     icao24: Optional[str] = None
     callsign: Optional[str] = None
     airline: Optional[str] = None
-    allowedTimePositionLag: Optional[int] = None
-    allowedLastContactLag: Optional[int] = None
+    allowed_time_position_lag: Optional[int] = None
+    allowed_last_contact_lag: Optional[int] = None
     squawk: Optional[str] = None
-    inAir: Optional[bool] = None
-    onGround: Optional[bool] = None
-    minVelocity: Optional[MetersPerSecond] = None
-    maxVelocity: Optional[MetersPerSecond] = None
-    trueTrackRange: Optional[list[float]] = None
-    minVerticalRate: Optional[float] = None
-    maxVerticalRate: Optional[float] = None
-    minGeoAltitude: Optional[Meters] = None
-    maxGeoAltitude: Optional[Meters] = None
-    minBaroAltitude: Optional[Meters] = None
-    maxBaroAltitude: Optional[Meters] = None
+    in_air: Optional[bool] = None
+    on_ground: Optional[bool] = None
+    min_velocity: Optional[MetersPerSecond] = None
+    max_velocity: Optional[MetersPerSecond] = None
+    true_track_range: Optional[list[float]] = None
+    min_vertical_Rate: Optional[float] = None
+    max_vertical_rate: Optional[float] = None
+    minGeo_altitude: Optional[Meters] = None
+    maxGeo_altitude: Optional[Meters] = None
+    minBaro_altitude: Optional[Meters] = None
+    maxBaro_altitude: Optional[Meters] = None
     spi: Optional[int] = None
-    positionSource: Optional[list[int]] = None
+    position_source: Optional[list[int]] = None
     category: Optional[list[int]] = None
-    arrivalAirport: Optional[str] = None
-    departureAirport: Optional[str] = None
-    originCountry: Optional[str] = None
+    arrival_airport: Optional[str] = None
+    departure_airport: Optional[str] = None
+    origin_country: Optional[str] = None
     sensors: Optional[list[int]] = None
-    modelName: Optional[str] = None
+    model_name: Optional[str] = None
     wtc: Optional[str] = None
     wtg: Optional[str] = None
     typecode: Optional[str] = None
     manufacturer: Optional[str] = None
     description: Optional[str] = None
-    engineCount: Optional[int] = None
-    engineType: Optional[str] = None
+    engine_count: Optional[int] = None
+    engine_type: Optional[str] = None
 
 @dataclass
 class VisualsSettings:
-    windowTheme:str = "aircraft"
-    windowSize:str = "small"
-    updateInterval:Seconds = Seconds(1.0)
-    tooltipFields:list = field(default_factory=lambda: ["callsign"])
-    fallbackTypecode:str = "C172"
+    window_theme:str = "aircraft"
+    window_size:str = "small"
+    update_interval:Seconds = Seconds(1.0)
+    tooltip_fields:list = field(default_factory=lambda: ["callsign"])
+    fallback_typecode:str = "C172"
 
 
 
@@ -91,8 +91,8 @@ class Settings:
     Should be initialized via Settings.build()
     """
     
-    openSkyApi: ClassVar[OpenSkyApi]
-    bboxAtLocation: tuple
+    open_sky_api: ClassVar[OpenSkyApi]
+    bbox_at_location: tuple
 
     core:       CoreSettings
     api:        ApiSettings
@@ -104,7 +104,7 @@ class Settings:
     
     @classmethod
     def build(cls) -> "Settings":
-        settings = cls.loadSettings()
+        settings = cls.load_settings()
             
         cls.raw = settings # include raw data dictionary in class
         
@@ -119,28 +119,28 @@ class Settings:
             raise KeyError("Location not defined in settings file.")
 
         # Create API
-        if not hasattr(cls, "openSkyApi"):
-            cls.openSkyApi:OpenSkyApi = cls.getOpenSkyApi(core.openskyCredentialsPath)
+        if not hasattr(cls, "open_sky_api"):
+            cls.open_sky_api:OpenSkyApi = cls.get_open_sky_api(core.opensky_credentials_path)
             
             # if not an authenticated user, set ratelimiting to 10 seconds if not already.
-            if (cls.openSkyApi._token_manager is None) and (api.apiCallDelay < 10.0):
-                api.apiCallDelay = Seconds(10.0)
+            if (cls.open_sky_api._token_manager is None) and (api.api_call_delay < 10.0):
+                api.api_call_delay = Seconds(10.0)
     
-        bboxAtLocation = cls.getBbox(core, setup)
+        bbox_at_location = cls.get_bbox(core, setup)
 
-        return cls(bboxAtLocation, core, api, setup, tracking, visuals)
+        return cls(bbox_at_location, core, api, setup, tracking, visuals)
 
     @staticmethod
-    def loadSettings() -> dict:
+    def load_settings() -> dict:
         with open(SETTINGS_PATH) as f:
             return yaml.safe_load(f)
     
     @staticmethod
-    def getOpenSkyApi(customCredentialsPath:str) -> OpenSkyApi:
-        credentialsPaths = ["credentials.json", ".credentials.json", customCredentialsPath]
+    def get_open_sky_api(custom_credentials_path:str) -> OpenSkyApi:
+        credentials_paths = ["credentials.json", ".credentials.json", custom_credentials_path]
 
         # Look for credential files in OverFlight/ directory (not in subdirectories)
-        for file in credentialsPaths:
+        for file in credentials_paths:
             if os.path.isfile(file):
                 try:
                     return OpenSkyApi(token_manager=TokenManager.from_json_file(file))
@@ -151,67 +151,67 @@ class Settings:
         return OpenSkyApi()
 
     @staticmethod
-    def getBbox(core:CoreSettings, setup:SetupSettings) -> tuple[float, float, float, float]:
+    def get_bbox(core:CoreSettings, setup:SetupSettings) -> tuple[float, float, float, float]:
         """Helper function for finding boundingbox. settings should include either bboxSize or BOTH lat/lonOffset"""
         location  = core.location
-        bboxSize  = core.bboxSize
-        latOffset = core.latitudeOffset
-        lonOffset = core.longitudeOffset
+        bbox_size  = core.bbox_size
+        lat_offset = core.latitude_offset
+        lon_offset = core.longitude_offset
 
-        hasBbox = (bboxSize not in (None, ""))
-        hasLatOffset = (latOffset is not None)
-        hasLonOffset = (lonOffset is not None)
+        has_bbox = (bbox_size not in (None, ""))
+        has_lat_offset = (lat_offset is not None)
+        has_lon_offset = (lon_offset is not None)
         
-        if hasBbox and (hasLonOffset or hasLatOffset):
+        if has_bbox and (has_lon_offset or has_lat_offset):
             raise KeyError("Invalid configuration, use either bboxSize or the offsets, not both.")
         
-        if hasBbox:
-            return getBboxSize(location, bboxSize, setup.displayName)
+        if has_bbox:
+            return getBboxSize(location, bbox_size, setup.display_name)
             
-        if hasLatOffset and hasLonOffset:
-            if latOffset <= 0.0 or lonOffset <= 0.0:
+        if has_lat_offset and has_lon_offset:
+            if lat_offset <= 0.0 or lon_offset <= 0.0:
                 raise KeyError("longitudeOffset and latitudeOffset should both be non-zero.")
-            return getBboxOffset(location, latOffset, lonOffset)
+            return getBboxOffset(location, lat_offset, lon_offset)
         
-        if hasLatOffset or hasLonOffset:
+        if has_lat_offset or has_lon_offset:
             raise KeyError("Both offsets should be set together.")
         
         raise KeyError("Missing bbox configuration, set bboxSize or both latitudeOffset and LongitudeOffset in your settings file.")
     
-    def onChange(self, key: str, func: Callable) -> None:
+    def on_change(self, key: str, func: Callable) -> None:
         """
         Registers a callback function to be triggered when a setting changes
         Should be used in __init__ functions like in WindowTracker: settings.onChange("windowSize", lambda _: self.CloseAllWindows())
         """
         self.callbacks.setdefault(key, []).append(func)
 
-    def applyUpdate(self, newSettings:"Settings") -> None:
+    def apply_update(self, new_settings:"Settings") -> None:
         """Executes the registered callbacks for each field that changed values in newSetings"""
         
         # Some fields can not be changed during runtime, if they're changed the change is ignored.
         RESTART_REQUIRED = {"openskyCredentialsPath", "displayName"}
         
-        for sectionName in SETTINGS_SECTIONS:
-            oldSection = getattr(self, sectionName)
-            newSection = getattr(newSettings, sectionName)
+        for section_name in SETTINGS_SECTIONS:
+            old_section = getattr(self, section_name)
+            new_section = getattr(new_settings, section_name)
             
-            for field in fields(oldSection):
+            for field in fields(old_section):
                 if field.name in RESTART_REQUIRED:
                     continue
-                oldVal = getattr(oldSection, field.name)
-                newVal = getattr(newSection, field.name)
-                if oldVal == newVal:
+                old_val = getattr(old_section, field.name)
+                new_val = getattr(new_section, field.name)
+                if old_val == new_val:
                     continue
                 
                 # Set the new value in the oldSection and execute the callback
-                setattr(oldSection, field.name, newVal)
+                setattr(old_section, field.name, new_val)
                 for callback in self.callbacks.get(field.name, []):
-                    callback(newVal)
+                    callback(new_val)
 
-        if newSettings.bboxAtLocation != self.bboxAtLocation:
-            self.bboxAtLocation = newSettings.bboxAtLocation
+        if new_settings.bbox_at_location != self.bbox_at_location:
+            self.bbox_at_location = new_settings.bbox_at_location
             for cb in self.callbacks.get("bboxAtLocation", []):
-                cb(newSettings.bboxAtLocation)
+                cb(new_settings.bbox_at_location)
 
         # update raw data dictionary
-        self.raw = newSettings.raw
+        self.raw = new_settings.raw

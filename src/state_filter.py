@@ -32,7 +32,7 @@ class StateFilter():
         
         # states = self.applyLocalFilters(states)
         
-        if self.settings.departureAirport or self.settings.arrivalAirport:
+        if self.settings.departure_airport or self.settings.arrival_airport:
             states = self.apply_airport_filters(states)
         
 
@@ -43,7 +43,7 @@ class StateFilter():
         # Filter by opensky statevector information
         states = [ac.state for ac in aircraft]
         states = self.apply_local_state_filters(states)
-        if self.settings.departureAirport or self.settings.arrivalAirport:
+        if self.settings.departure_airport or self.settings.arrival_airport:
             states = self.apply_airport_filters(states)
 
         # Filter by icao8643 entry
@@ -60,8 +60,8 @@ class StateFilter():
     def apply_icao_entry_filter(self, aircraft:list[AircraftRecord]) -> list[AircraftRecord]:
         settings = self.settings
         
-        if settings.modelName:
-            aircraft = [ac for ac in aircraft if ac.entry.modelFullName.lower() == settings.modelName.lower()]
+        if settings.model_name:
+            aircraft = [ac for ac in aircraft if ac.entry.modelFullName.lower() == settings.model_name.lower()]
             
         if settings.wtc:
             aircraft = [ac for ac in aircraft if ac.entry.wtc == settings.wtc.upper()]
@@ -78,11 +78,11 @@ class StateFilter():
         if settings.description:
             aircraft = [ac for ac in aircraft if ac.entry.aircraftDescription.lower() == settings.description.lower()]
         
-        if settings.engineCount:
-            aircraft = [ac for ac in aircraft if ac.entry.engineCount == settings.engineCount]
+        if settings.engine_count:
+            aircraft = [ac for ac in aircraft if ac.entry.engineCount == settings.engine_count]
         
-        if settings.engineType:
-            aircraft = [ac for ac in aircraft if ac.entry.engineType.lower() == settings.engineType.lower()]
+        if settings.engine_type:
+            aircraft = [ac for ac in aircraft if ac.entry.engineType.lower() == settings.engine_type.lower()]
 
         return aircraft
          
@@ -102,69 +102,69 @@ class StateFilter():
             logger.debug(f"Filtering for airline: {settings.airline}")
             states = [state for state in states if (state.callsign is not None) and (state.callsign.lower().startswith(settings.airline.strip().lower()))]
             
-        if settings.allowedTimePositionLag:
-            logger.debug(f"Filtering for timePositionLag: {settings.allowedTimePositionLag}")
-            states = [state for state in states if (state.time_position is not None) and (state.time_position > (filter_timestamp - settings.allowedTimePositionLag))]
+        if settings.allowed_time_position_lag:
+            logger.debug(f"Filtering for timePositionLag: {settings.allowed_time_position_lag}")
+            states = [state for state in states if (state.time_position is not None) and (state.time_position > (filter_timestamp - settings.allowed_time_position_lag))]
             
-        if settings.allowedLastContactLag:
-            logger.debug(f"Filtering for lastContactLag: {settings.allowedLastContactLag}")
-            states = [state for state in states if state.last_contact > (filter_timestamp - settings.allowedLastContactLag)]
+        if settings.allowed_last_contact_lag:
+            logger.debug(f"Filtering for lastContactLag: {settings.allowed_last_contact_lag}")
+            states = [state for state in states if state.last_contact > (filter_timestamp - settings.allowed_last_contact_lag)]
             
-        if settings.originCountry:
-            logger.debug(f"Filtering for registration country: {settings.originCountry}")
-            states = [state for state in states if state.origin_country.lower().strip() == settings.originCountry.lower().strip()]
+        if settings.origin_country:
+            logger.debug(f"Filtering for registration country: {settings.origin_country}")
+            states = [state for state in states if state.origin_country.lower().strip() == settings.origin_country.lower().strip()]
                 
-        if (settings.minVelocity) or (settings.maxVelocity):
-            logger.debug(f"Filtering for velocity: minVelocity: {settings.minVelocity}, maxVelocity: {settings.maxVelocity}")
+        if (settings.min_velocity) or (settings.max_velocity):
+            logger.debug(f"Filtering for velocity: minVelocity: {settings.min_velocity}, maxVelocity: {settings.max_velocity}")
             states = self.filter_states_velocity(states)
             
-        if settings.trueTrackRange:
-            logger.debug(f"Filtering for true track range: {settings.trueTrackRange}")
+        if settings.true_track_range:
+            logger.debug(f"Filtering for true track range: {settings.true_track_range}")
             states = self.filter_states_true_track_range(states)
             
-        if settings.minVerticalRate:
-            logger.debug(f"Filtering for minimum vertical range: {settings.minVerticalRate}")
-            states = [state for state in states if (state.vertical_rate is not None) and (state.vertical_rate >= settings.minVerticalRate)]
+        if settings.min_vertical_Rate:
+            logger.debug(f"Filtering for minimum vertical range: {settings.min_vertical_Rate}")
+            states = [state for state in states if (state.vertical_rate is not None) and (state.vertical_rate >= settings.min_vertical_Rate)]
              
-        if (settings.maxVerticalRate is not None) and (settings.maxVerticalRate > 0.0):
-            logger.debug(f"Filtering for maximum vertical range: {settings.maxVerticalRate}")
-            states = [state for state in states if (state.vertical_rate is not None) and (state.vertical_rate <= settings.maxVerticalRate)]
+        if (settings.max_vertical_rate is not None) and (settings.max_vertical_rate > 0.0):
+            logger.debug(f"Filtering for maximum vertical range: {settings.max_vertical_rate}")
+            states = [state for state in states if (state.vertical_rate is not None) and (state.vertical_rate <= settings.max_vertical_rate)]
 
         if settings.squawk:
             logger.debug(f"Filtering for squawk: {settings.squawk}")
             states = [state for state in states if (state.squawk is not None) and (state.squawk.lower().strip() == settings.squawk.lower().strip())]
         
-        if settings.onGround == 1:
+        if settings.on_ground == 1:
             logger.debug(f"Filtering for aircraft on the ground")
             states = [state for state in states if state.on_ground == True]
             
-        if settings.inAir == 1:
+        if settings.in_air == 1:
             logger.debug(f"Filtering for aircraft in the air")
             states = [state for state in states if state.on_ground == False]
         
-        if settings.minBaroAltitude:
-            logger.debug(f"Filtering for minBaroAltitude: {settings.minBaroAltitude}")            
-            states = [state for state in states if (state.baro_altitude is not None) and (state.baro_altitude*3.28084 >= settings.minBaroAltitude)] # convert from meters to feet
+        if settings.minBaro_altitude:
+            logger.debug(f"Filtering for minBaroAltitude: {settings.minBaro_altitude}")            
+            states = [state for state in states if (state.baro_altitude is not None) and (state.baro_altitude*3.28084 >= settings.minBaro_altitude)] # convert from meters to feet
         
-        if (settings.maxBaroAltitude is not None) and (settings.maxBaroAltitude > 0.0):
-            logger.debug(f"Filtering for maxBaroAltitude: {settings.maxBaroAltitude}")
-            states = [state for state in states if (state.baro_altitude is not None) and (state.baro_altitude*3.28084 <= settings.maxBaroAltitude)] # convert from meters to feet   
+        if (settings.maxBaro_altitude is not None) and (settings.maxBaro_altitude > 0.0):
+            logger.debug(f"Filtering for maxBaroAltitude: {settings.maxBaro_altitude}")
+            states = [state for state in states if (state.baro_altitude is not None) and (state.baro_altitude*3.28084 <= settings.maxBaro_altitude)] # convert from meters to feet   
                  
-        if settings.minGeoAltitude:
-            logger.debug(f"Filtering for minGeoAltitude: {settings.minGeoAltitude}")
-            states = [state for state in states if (state.geo_altitude) and (state.geo_altitude*3.28084 >= settings.minGeoAltitude)] # convert from meters to feet
+        if settings.minGeo_altitude:
+            logger.debug(f"Filtering for minGeoAltitude: {settings.minGeo_altitude}")
+            states = [state for state in states if (state.geo_altitude) and (state.geo_altitude*3.28084 >= settings.minGeo_altitude)] # convert from meters to feet
 
-        if (settings.maxGeoAltitude is not None) and (settings.maxGeoAltitude > 0.0):
-            logger.debug(f"Filtering for maxGeoAltitude: {settings.maxGeoAltitude}")
-            states = [state for state in states if (state.geo_altitude) and (state.geo_altitude*3.28084 <= settings.maxGeoAltitude)] # convert from meters to feet
+        if (settings.maxGeo_altitude is not None) and (settings.maxGeo_altitude > 0.0):
+            logger.debug(f"Filtering for maxGeoAltitude: {settings.maxGeo_altitude}")
+            states = [state for state in states if (state.geo_altitude) and (state.geo_altitude*3.28084 <= settings.maxGeo_altitude)] # convert from meters to feet
         
         if settings.spi == 1:
             logger.debug(f"Filtering for spi: {settings.spi}")
             states = [state for state in states if state.spi == True]
             
-        if settings.positionSource:
-            logger.debug(f"Filtering for positionSource: {settings.positionSource}")
-            states = [state for state in states if state.position_source in settings.positionSource]
+        if settings.position_source:
+            logger.debug(f"Filtering for positionSource: {settings.position_source}")
+            states = [state for state in states if state.position_source in settings.position_source]
         
         if settings.category:
             logger.debug(f"Filtering for category: {settings.category}")
@@ -180,8 +180,8 @@ class StateFilter():
            
     def filter_states_velocity(self, states:list[StateVector]) -> list[StateVector]:
         """Helper function to filter states by velocity"""
-        min_velocity = self.settings.minVelocity
-        max_velocity = self.settings.maxVelocity
+        min_velocity = self.settings.min_velocity
+        max_velocity = self.settings.max_velocity
         
         if (min_velocity is None) and (max_velocity is None):
             return states
@@ -208,7 +208,7 @@ class StateFilter():
         return filtered_states
 
     def filter_states_true_track_range(self, states:list[StateVector]) -> list[StateVector]:
-        range = self.settings.trueTrackRange
+        range = self.settings.true_track_range
         assert range is not None
         assert range[0] != range[1]
 
@@ -272,7 +272,7 @@ class StateFilter():
                 continue
 
             # Flight stores its airport codes in IATA format but we need ICAO, convert using airports.csv
-            if self.settings.departureAirport:
+            if self.settings.departure_airport:
 
                 departure_iata:str = matched_flight.origin_airport_iata
                 try:
@@ -280,10 +280,10 @@ class StateFilter():
                 except:
                     continue
                 
-                if departure_icao.lower().strip() == self.settings.departureAirport.lower().strip():
+                if departure_icao.lower().strip() == self.settings.departure_airport.lower().strip():
                     filtered_states.append(state)
 
-            if self.settings.arrivalAirport:                
+            if self.settings.arrival_airport:                
                 destination_iata:str = matched_flight.destination_airport_iata
                 try:
                     destination_icao:str = icao_from_iata[destination_iata]
@@ -291,7 +291,7 @@ class StateFilter():
                     logger.debug(f"Arrival airport: {destination_iata} not found, continuing to next flight.")
                     continue
                 
-                if destination_icao.lower().strip() == self.settings.arrivalAirport.lower().strip():
+                if destination_icao.lower().strip() == self.settings.arrival_airport.lower().strip():
                     print("adding state to filtered states")
                     if state not in filtered_states:
                         filtered_states.append(state)
