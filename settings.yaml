@@ -1,50 +1,50 @@
 core:
-    openskyCredentialsPath: .credentials.json
+    opensky_credentials_path: .credentials.json
     location: Schiphol
-    bboxSize: large
+    bbox_size: large
 
 api:
-    apiCallDelay: 5.0
+    api_call_delay: 5.0
 
 setup:
-    maxWindows: 1000
-    displayName: 
+    max_windows: 1000
+    display_name: 
 
 visuals:
-    windowTheme: aircraft
-    windowSize: small
-    updateInterval: 1.0
-    tooltipFields: [callsign, icao24, true_track, typecode, kaas]
+    window_theme: aircraft
+    window_size: small
+    update_interval: 1.0
+    tooltip_fields: [callsign, icao24, true_track, typecode, kaas]
 
 tracking:
     icao24:
     callsign:
     airline:
     squawk:
-    inAir:
-    onGround:
-    arrivalAirport:
-    departureAirport:
-    minVelocity:
-    maxVelocity:
-    minGeoAltitude:
-    maxGeoAltitude:
-    minBaroAltitude:
-    maxBaroAltitude:
-    minVerticalRate:
-    maxVerticalRate:
-    trueTrackRange:
+    in_air:
+    on_ground:
+    arrival_airport:
+    departure_airport:
+    min_velocity:
+    max_velocity:
+    min_geo_altitude:
+    max_geo_altitude:
+    min_baro_altitude:
+    max_baro_altitude:
+    min_vertical_rate:
+    max_vertical_rate:
+    true_track_range:
     spi:
     sensors:
     category:
-    originCountry:
-    allowedLastContactLag:
-    allowedTimePositionLag:
-    modelName:
+    origin_country:
+    allowed_last_contact_lag:
+    allowed_time_position_lag:
+    model_name:
     wtc:
     wtg:
     typecode:
     manufacturer:
     description:
-    engineCount:
-    engineType:
+    engine_count:
+    engine_type:

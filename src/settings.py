@@ -45,12 +45,12 @@ class TrackingSettings:
     min_velocity: Optional[MetersPerSecond] = None
     max_velocity: Optional[MetersPerSecond] = None
     true_track_range: Optional[list[float]] = None
-    min_vertical_Rate: Optional[float] = None
+    min_vertical_rate: Optional[float] = None
     max_vertical_rate: Optional[float] = None
-    minGeo_altitude: Optional[Meters] = None
-    maxGeo_altitude: Optional[Meters] = None
-    minBaro_altitude: Optional[Meters] = None
-    maxBaro_altitude: Optional[Meters] = None
+    min_geo_altitude: Optional[Meters] = None
+    max_geo_altitude: Optional[Meters] = None
+    min_baro_altitude: Optional[Meters] = None
+    max_baro_altitude: Optional[Meters] = None
     spi: Optional[int] = None
     position_source: Optional[list[int]] = None
     category: Optional[list[int]] = None
@@ -189,7 +189,7 @@ class Settings:
         """Executes the registered callbacks for each field that changed values in newSetings"""
         
         # Some fields can not be changed during runtime, if they're changed the change is ignored.
-        RESTART_REQUIRED = {"openskyCredentialsPath", "displayName"}
+        RESTART_REQUIRED = {"opensky_credentials_path", "display_name"}
         
         for section_name in SETTINGS_SECTIONS:
             old_section = getattr(self, section_name)

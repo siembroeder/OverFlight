@@ -122,9 +122,9 @@ class StateFilter():
             logger.debug(f"Filtering for true track range: {settings.true_track_range}")
             states = self.filter_states_true_track_range(states)
             
-        if settings.min_vertical_Rate:
-            logger.debug(f"Filtering for minimum vertical range: {settings.min_vertical_Rate}")
-            states = [state for state in states if (state.vertical_rate is not None) and (state.vertical_rate >= settings.min_vertical_Rate)]
+        if settings.min_vertical_rate:
+            logger.debug(f"Filtering for minimum vertical range: {settings.min_vertical_rate}")
+            states = [state for state in states if (state.vertical_rate is not None) and (state.vertical_rate >= settings.min_vertical_rate)]
              
         if (settings.max_vertical_rate is not None) and (settings.max_vertical_rate > 0.0):
             logger.debug(f"Filtering for maximum vertical range: {settings.max_vertical_rate}")
@@ -142,21 +142,21 @@ class StateFilter():
             logger.debug(f"Filtering for aircraft in the air")
             states = [state for state in states if state.on_ground == False]
         
-        if settings.minBaro_altitude:
-            logger.debug(f"Filtering for minBaroAltitude: {settings.minBaro_altitude}")            
-            states = [state for state in states if (state.baro_altitude is not None) and (state.baro_altitude*3.28084 >= settings.minBaro_altitude)] # convert from meters to feet
+        if settings.min_baro_altitude:
+            logger.debug(f"Filtering for minBaroAltitude: {settings.min_baro_altitude}")            
+            states = [state for state in states if (state.baro_altitude is not None) and (state.baro_altitude*3.28084 >= settings.min_baro_altitude)] # convert from meters to feet
         
-        if (settings.maxBaro_altitude is not None) and (settings.maxBaro_altitude > 0.0):
-            logger.debug(f"Filtering for maxBaroAltitude: {settings.maxBaro_altitude}")
-            states = [state for state in states if (state.baro_altitude is not None) and (state.baro_altitude*3.28084 <= settings.maxBaro_altitude)] # convert from meters to feet   
+        if (settings.max_baro_altitude is not None) and (settings.max_baro_altitude > 0.0):
+            logger.debug(f"Filtering for maxBaroAltitude: {settings.max_baro_altitude}")
+            states = [state for state in states if (state.baro_altitude is not None) and (state.baro_altitude*3.28084 <= settings.max_baro_altitude)] # convert from meters to feet   
                  
-        if settings.minGeo_altitude:
-            logger.debug(f"Filtering for minGeoAltitude: {settings.minGeo_altitude}")
-            states = [state for state in states if (state.geo_altitude) and (state.geo_altitude*3.28084 >= settings.minGeo_altitude)] # convert from meters to feet
+        if settings.min_geo_altitude:
+            logger.debug(f"Filtering for minGeoAltitude: {settings.min_geo_altitude}")
+            states = [state for state in states if (state.geo_altitude) and (state.geo_altitude*3.28084 >= settings.min_geo_altitude)] # convert from meters to feet
 
-        if (settings.maxGeo_altitude is not None) and (settings.maxGeo_altitude > 0.0):
-            logger.debug(f"Filtering for maxGeoAltitude: {settings.maxGeo_altitude}")
-            states = [state for state in states if (state.geo_altitude) and (state.geo_altitude*3.28084 <= settings.maxGeo_altitude)] # convert from meters to feet
+        if (settings.max_geo_altitude is not None) and (settings.max_geo_altitude > 0.0):
+            logger.debug(f"Filtering for maxGeoAltitude: {settings.max_geo_altitude}")
+            states = [state for state in states if (state.geo_altitude) and (state.geo_altitude*3.28084 <= settings.max_geo_altitude)] # convert from meters to feet
         
         if settings.spi == 1:
             logger.debug(f"Filtering for spi: {settings.spi}")
