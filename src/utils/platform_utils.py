@@ -7,11 +7,11 @@ import subprocess
 
 
 
-def getUserPlatform() -> str:
+def get_user_platform() -> str:
     return platform.system().lower()
 
 
-def getSessionType() -> str:
+def get_session_type() -> str:
     if os.environ.get("WAYLAND_DISPLAY"):
         return "wayland"
     elif os.environ.get("DISPLAY"):
@@ -20,7 +20,7 @@ def getSessionType() -> str:
         raise NameError("Session not recognized")
        
 
-def getWindowManager():
+def get_window_manager():
 
     # Try wmctrl (X11)
     try:

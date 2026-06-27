@@ -76,12 +76,12 @@ class MainWindow(QMainWindow):
         self.setScreenParams()
         
         self.mover:"Mover" = Mover(self)
-        self.mover.updateDeadReckonIncrements()
+        self.mover.update_dead_reckon_increments()
         
         # Register callbacks for settings that require a MainWindow method to execute
         settings.on_change("window_theme", lambda _: self.setWindowTheme())
         settings.on_change("tooltip_fields", lambda _: self.buildTooltip())
-        settings.on_change("bbox_at_location", lambda _: self.mover.moveToLoc(self.latitude, self.longitude))
+        settings.on_change("bbox_at_location", lambda _: self.mover.move_to_loc(self.latitude, self.longitude))
                
     def setScreenParams(self):
         """
@@ -208,7 +208,7 @@ class MainWindow(QMainWindow):
         Wait for 100ms for window to open / be recognized by compositer, then move to its respective location
         """
         super().showEvent(a0)    
-        QTimer.singleShot(10, lambda:self.mover.moveToLoc(self.latitude, self.longitude)) # wait for window to spawn, then move. TODO: move first, then show.
+        QTimer.singleShot(10, lambda:self.mover.move_to_loc(self.latitude, self.longitude)) # wait for window to spawn, then move. TODO: move first, then show.
     
     def applyState(self, state: StateVector) -> None:
         """Explicitly map StateVector (except lat/lon) to MainWindow with type conversions."""
@@ -249,7 +249,7 @@ class MainWindow(QMainWindow):
         self.applyState(state)                        
         self.lastApiUpdate = time.monotonic()
         
-        self.mover.updateDeadReckonIncrements()
+        self.mover.update_dead_reckon_increments()
         self.buildTooltip() # Some values like heading or altitude (might) change every api call
         
         if self.settings.visuals.window_theme == "aircraft": # ducks use movie, don't rotate to heading

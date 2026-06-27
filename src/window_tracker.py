@@ -35,7 +35,7 @@ class WindowTracker():
     def spawn_window(self, aircraft:AircraftRecord) -> None:
         """Use spawns a window titled f\"OverFlightWindow_{state.icao24}\", also stores the  window in the windows dict with icao24 as key"""
         window = MainWindow(self.settings, aircraft)
-        window.mover.moveToLoc(window.latitude, window.longitude)
+        window.mover.move_to_loc(window.latitude, window.longitude)
         window.show()  # triggers QMainWindow.showEvent() 
         self.windows[aircraft.state.icao24] = window
 
@@ -74,7 +74,7 @@ class WindowTracker():
         """Execute dead reckon increment for every open window currently being tracked"""
         for icao24, window in list(self.windows.items()):
             if windowIsOpen(icao24):
-                window.mover.deadReckonIncrement()
+                window.mover.dead_reckon_increment()
                 
     def rebuild_filter(self):
         self.filter = StateFilter(self.settings.tracking, self.settings.open_sky_api, self.settings.setup.max_windows, self.settings.bbox_at_location)
