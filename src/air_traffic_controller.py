@@ -35,7 +35,7 @@ class AirTrafficController():
         queue = asyncio.Queue(maxsize=1)
 
         asyncio.create_task(
-            self.apiHandler.fetchStatesLoop(
+            self.apiHandler.fetch_states_loop(
                 queue,
                 self.tracker.windows,
                 self.tracker.filter,

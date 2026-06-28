@@ -14,54 +14,54 @@ class ApiHandler():
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
-        self.bboxAtLocation = self.settings.bbox_at_location
-        self.apiCallDelay   = self.settings.api.api_call_delay
+        self.bbox_at_location = self.settings.bbox_at_location
+        self.api_call_delay   = self.settings.api.api_call_delay
 
-        self.lastApiCallTimestamp = 0.0
-        self.newestStateTimestamp = 0.0
-        self.numApiCallsSkipped   = 0.0
+        self.last_api_call_timestamp = 0.0
+        self.newest_state_timestamp = 0.0
+        self.num_api_calls_skipped   = 0.0
 
-    def fetchStates(self, trackerWindows, filter:StateFilter) -> tuple[OpenSkyStates | None, list[StateVector]]:
+    def fetch_states(self, tracker_windows, filter:StateFilter) -> tuple[OpenSkyStates | None, list[StateVector]]:
         """
         Fetches and validates new states.
         Returns (accepted_states, untracked_filtered_states).
         accepted_states is None if this call should be skipped.
         untracked_filtered_states is non-empty only on too-frequent calls.
         """
-        newStates: OpenSkyStates | None = fetchStatesInBbox(self.settings.open_sky_api, self.bboxAtLocation)
-        self.lastApiCallTimestamp = time.monotonic()
+        new_states: OpenSkyStates | None = fetchStatesInBbox(self.settings.open_sky_api, self.bbox_at_location)
+        self.last_api_call_timestamp = time.monotonic()
 
         # skip to next api call if newStates empty.
-        if (newStates is None) or (newStates.states is None):
+        if (new_states is None) or (new_states.states is None):
             logger.debug("New states are empty, continuing\n")
-            self.numApiCallsSkipped += 1
+            self.num_api_calls_skipped += 1
             return None, []
         
         # skip if new timestamp older than previous timestamp
-        if newStates.time < self.newestStateTimestamp:
+        if new_states.time < self.newest_state_timestamp:
             logger.debug("New states older than previous, continuing\n")
-            self.numApiCallsSkipped += 1
+            self.num_api_calls_skipped += 1
             return None, []
         
         # skip if difference between timestamps is less than the elapsed real time. Factor 0.9 to accept decent newStates
-        if newStates.time - self.newestStateTimestamp <= 0.9 * (self.numApiCallsSkipped + 1) * self.apiCallDelay:
+        if new_states.time - self.newest_state_timestamp <= 0.9 * (self.num_api_calls_skipped + 1) * self.api_call_delay:
             logger.debug("New api call spacing too short, continuing\n")
-            self.numApiCallsSkipped += 1
-            untracked = filter.extract_untracked_states(trackerWindows, newStates.states)
+            self.num_api_calls_skipped += 1
+            untracked = filter.extract_untracked_states(tracker_windows, new_states.states)
             return None, untracked
 
-        self.newestStateTimestamp = newStates.time
-        self.numApiCallsSkipped   = 0.0
-        return newStates, []
+        self.newest_state_timestamp = new_states.time
+        self.num_api_calls_skipped   = 0.0
+        return new_states, []
 
-    async def fetchStatesLoop(self, queue: asyncio.Queue, trackerWindows, filterObj) -> None:
+    async def fetch_states_loop(self, queue: asyncio.Queue, tracker_windows, filter_obj) -> None:
         """Fetches states on a fixed interval and puts results onto the queue."""
-        assert self.apiCallDelay >= 5.0, "apiCallDelay must be at least 5.0 seconds."
+        assert self.api_call_delay >= 5.0, "apiCallDelay must be at least 5.0 seconds."
         while True:
-            result = self.fetchStates(trackerWindows, filterObj)
+            result = self.fetch_states(tracker_windows, filter_obj)
             await queue.put(result)
 
             now = time.monotonic()
-            next_allowed = self.lastApiCallTimestamp + self.apiCallDelay
+            next_allowed = self.last_api_call_timestamp + self.api_call_delay
             wait = max(0.0, next_allowed - now)
             await asyncio.sleep(wait)
