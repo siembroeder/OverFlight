@@ -69,7 +69,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.label)
         
         # Set custom Qt info
-        self.image, self.image_scale_factor = aircraft.getVisualInfo()
+        self.image, self.image_scale_factor = aircraft.get_visual_info()
         self.set_window_size()
         self.set_window_theme()
         self.build_tooltip()

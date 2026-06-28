@@ -11,7 +11,7 @@ class AircraftRecord():
     state:StateVector
     entry:Icao8643Entry
 
-    def getVisualInfo(self) -> tuple[QPixmap, float]:
+    def get_visual_info(self) -> tuple[QPixmap, float]:
         entry = self.entry
         description = entry.aircraft_description.lower()
         typecode = self.entry.typecode.upper()
