@@ -20,8 +20,8 @@ class AirTrafficController():
         self.tracker    = tracker
         
         # load dicts of aircraft data into memory
-        self.icao24_to_typecode:dict[str, str]          = Icao8643Entry.loadIcao24ToTypecode()
-        self.typecode_to_entry:dict[str, Icao8643Entry] = Icao8643Entry.loadTypecodesToIcao8643Entry()
+        self.icao24_to_typecode:dict[str, str]          = Icao8643Entry.load_icao24_to_typecode()
+        self.typecode_to_entry:dict[str, Icao8643Entry] = Icao8643Entry.load_typecodes_to_icao8643_entry()
 
     async def _dead_reckon_loop(self) -> None:
         """Continuously applies dead reckoning at the visual update interval."""

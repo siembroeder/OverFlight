@@ -61,7 +61,7 @@ class StateFilter():
         settings = self.settings
         
         if settings.model_name:
-            aircraft = [ac for ac in aircraft if ac.entry.modelFullName.lower() == settings.model_name.lower()]
+            aircraft = [ac for ac in aircraft if ac.entry.model_full_name.lower() == settings.model_name.lower()]
             
         if settings.wtc:
             aircraft = [ac for ac in aircraft if ac.entry.wtc == settings.wtc.upper()]
@@ -73,16 +73,16 @@ class StateFilter():
             aircraft = [ac for ac in aircraft if ac.entry.typecode == settings.typecode.upper()]
         
         if settings.manufacturer:
-            aircraft = [ac for ac in aircraft if ac.entry.manufacturerCode == settings.manufacturer.upper()]
+            aircraft = [ac for ac in aircraft if ac.entry.manufacturer_code == settings.manufacturer.upper()]
         
         if settings.description:
-            aircraft = [ac for ac in aircraft if ac.entry.aircraftDescription.lower() == settings.description.lower()]
+            aircraft = [ac for ac in aircraft if ac.entry.aircraft_description.lower() == settings.description.lower()]
         
         if settings.engine_count:
-            aircraft = [ac for ac in aircraft if ac.entry.engineCount == settings.engine_count]
+            aircraft = [ac for ac in aircraft if ac.entry.engine_count == settings.engine_count]
         
         if settings.engine_type:
-            aircraft = [ac for ac in aircraft if ac.entry.engineType.lower() == settings.engine_type.lower()]
+            aircraft = [ac for ac in aircraft if ac.entry.engine_type.lower() == settings.engine_type.lower()]
 
         return aircraft
          

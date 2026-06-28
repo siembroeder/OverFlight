@@ -13,7 +13,7 @@ class AircraftRecord():
 
     def getVisualInfo(self) -> tuple[QPixmap, float]:
         entry = self.entry
-        description = entry.aircraftDescription.lower()
+        description = entry.aircraft_description.lower()
         typecode = self.entry.typecode.upper()
         
         # Set defaults
@@ -61,7 +61,7 @@ class AircraftRecord():
             factor = 1.1
         
         # Filter number of engines
-        if entry.engineCount == 3:
+        if entry.engine_count == 3:
             image = QPixmap("assets/md11.png")
         
         return (image, factor)
