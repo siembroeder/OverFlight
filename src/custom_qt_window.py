@@ -146,7 +146,7 @@ class MainWindow(QMainWindow):
         
         if visuals.window_theme == "aircraft":                
             self.original_pixmap = self.image  # store original
-            self.default_pixmap = self.original_pixmap.scaled(self.label.size(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            self.defaultPixmap = self.original_pixmap.scaled(self.label.size(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
             self.update_pixmap_heading()
             
         if visuals.window_theme == "duck":
@@ -179,7 +179,7 @@ class MainWindow(QMainWindow):
         
         # resize what is currently being displayed
         if (self.settings.visuals.window_theme == "aircraft") and hasattr(self, "defaultPixmap"):
-            self.default_pixmap = self.original_pixmap.scaled(size,  # scale from original to preserve resolution
+            self.defaultPixmap = self.original_pixmap.scaled(size,  # scale from original to preserve resolution
                                                             Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
             self.update_pixmap_heading()
 
@@ -193,7 +193,7 @@ class MainWindow(QMainWindow):
         """
         if hasattr(self, "defaultPixmap") and (self.true_track is not None):
             transform = QTransform().rotate(self.true_track)
-            rotated   = self.default_pixmap.transformed(transform, Qt.TransformationMode.SmoothTransformation)
+            rotated   = self.defaultPixmap.transformed(transform, Qt.TransformationMode.SmoothTransformation)
             
             size = self.label.size()
             x = (rotated.width()  - size.width())  // 2
