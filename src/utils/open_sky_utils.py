@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from geopy.location import Location
 from geopy.geocoders import Nominatim
 
-from utils.qt_utils import getScreenGeometry
+from utils.qt_utils import get_screen_geometry
 from opensky_api import OpenSkyApi, OpenSkyStates, OpenSkyApi
 
 
@@ -44,7 +44,7 @@ def getBboxSize(locationName:str, bboxSize:str, displayName:str|None) -> tuple[f
     
     
     # Use the selected screens' aspect ratio to set the boundingbox aspect ratio
-    geom = getScreenGeometry(displayName)
+    geom = get_screen_geometry(displayName)
     factor = geom.width() / geom.height()   
     
     longitudeOffset = factor * latitudeOffset / math.cos(math.radians(latitude))

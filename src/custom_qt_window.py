@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QMainWindow, QLabel
 # Custom imports 
 from mover import Mover
 from utils.aircraft_record import AircraftRecord
-from utils.qt_utils import get_window_size, getScreenGeometry
+from utils.qt_utils import get_window_size, get_screen_geometry
 from settings import Settings, VisualsSettings, TrackingSettings
 from utils.type_hints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
 
@@ -89,7 +89,7 @@ class MainWindow(QMainWindow):
         If settings.setup.displayName == None, return the first screen from QApplication.screens()
         """
         display_name = self.settings.setup.display_name
-        geom = getScreenGeometry(display_name)
+        geom = get_screen_geometry(display_name)
         
         self.n_pixels_x     = geom.width()
         self.n_pixels_y     = geom.height()

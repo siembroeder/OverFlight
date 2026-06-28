@@ -6,7 +6,7 @@ from dataclasses import fields
 from settings import Settings
 from state_filter import StateFilter
 from custom_qt_window import MainWindow
-from utils.qt_utils import windowIsOpen
+from utils.qt_utils import window_is_open
 from utils.aircraft_record import AircraftRecord
 
 type Icao24 = str
@@ -59,7 +59,7 @@ class WindowTracker():
             state = ac.state
             icao24 = state.icao24
             if icao24 in self.windows:
-                if windowIsOpen(icao24):
+                if window_is_open(icao24):
                     self.windows[icao24].update_state(state)
                 else:
                     del self.windows[icao24]
@@ -73,7 +73,7 @@ class WindowTracker():
     def dead_reckon_windows(self):
         """Execute dead reckon increment for every open window currently being tracked"""
         for icao24, window in list(self.windows.items()):
-            if windowIsOpen(icao24):
+            if window_is_open(icao24):
                 window.mover.dead_reckon_increment()
                 
     def rebuild_filter(self):
