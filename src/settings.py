@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 from typing import Optional, ClassVar, Callable
 from dataclasses import dataclass, field, fields
 from opensky_api import OpenSkyApi, TokenManager
-from utils.open_sky_utils import getBboxSize, getBboxOffset
+from utils.open_sky_utils import get_bbox_size, get_bbox_offset
 from utils.type_hints import Seconds, Latitude, Longitude, MetersPerSecond, Meters
 
 SETTINGS_SECTIONS = ("core", "api", "setup", "tracking", "visuals")
@@ -166,12 +166,12 @@ class Settings:
             raise KeyError("Invalid configuration, use either bboxSize or the offsets, not both.")
         
         if has_bbox:
-            return getBboxSize(location, bbox_size, setup.display_name)
+            return get_bbox_size(location, bbox_size, setup.display_name)
             
         if has_lat_offset and has_lon_offset:
             if lat_offset <= 0.0 or lon_offset <= 0.0:
                 raise KeyError("longitudeOffset and latitudeOffset should both be non-zero.")
-            return getBboxOffset(location, lat_offset, lon_offset)
+            return get_bbox_offset(location, lat_offset, lon_offset)
         
         if has_lat_offset or has_lon_offset:
             raise KeyError("Both offsets should be set together.")

@@ -18,7 +18,7 @@ from opensky_api import OpenSkyApi, OpenSkyStates, OpenSkyApi
 
 
 
-def getBboxSize(locationName:str, bboxSize:str, displayName:str|None) -> tuple[float, float, float, float]:
+def get_bbox_size(location_name:str, bbox_size:str, display_name:str|None) -> tuple[float, float, float, float]:
     """
     Get boundingbox for a given size ('small', 'medium', 'large').
     ratio of lat and lon is scaled to the geometry of the screen that's connected to displayName and also corrected for latitude
@@ -26,7 +26,7 @@ def getBboxSize(locationName:str, bboxSize:str, displayName:str|None) -> tuple[f
     
     # Get the location using geopy
     geolocator:Nominatim = Nominatim(user_agent="appname")
-    location = cast(Location | None, geolocator.geocode(locationName))
+    location = cast(Location | None, geolocator.geocode(location_name))
         
     if location:
         latitude = location.latitude
@@ -35,38 +35,38 @@ def getBboxSize(locationName:str, bboxSize:str, displayName:str|None) -> tuple[f
     else:
         raise NameError("Location not found.")
 
-    latitudeOffsets = {"local": 0.05, "small": 0.10, "medium": 0.30, "large": 0.50, "veryLarge": 1, "huge": 2}
+    latitude_offsets = {"local": 0.05, "small": 0.10, "medium": 0.30, "large": 0.50, "veryLarge": 1, "huge": 2}
     
-    if bboxSize in latitudeOffsets.keys():
-        latitudeOffset = latitudeOffsets[bboxSize]
+    if bbox_size in latitude_offsets.keys():
+        latitude_offset = latitude_offsets[bbox_size]
     else:
         raise KeyError("The selected bboxSize is not \"small\", \"medium\", or \"large\"")
     
     
     # Use the selected screens' aspect ratio to set the boundingbox aspect ratio
-    geom = get_screen_geometry(displayName)
+    geom = get_screen_geometry(display_name)
     factor = geom.width() / geom.height()   
     
-    longitudeOffset = factor * latitudeOffset / math.cos(math.radians(latitude))
+    longitude_offset = factor * latitude_offset / math.cos(math.radians(latitude))
     
-    minLat:float  = latitude - latitudeOffset
-    maxLat:float  = latitude + latitudeOffset
-    minLong:float = longitude- longitudeOffset
-    maxLong:float = longitude+ longitudeOffset
+    min_lat:float  = latitude - latitude_offset
+    max_lat:float  = latitude + latitude_offset
+    min_long:float = longitude - longitude_offset
+    max_long:float = longitude + longitude_offset
     
-    return (minLat, maxLat, minLong, maxLong)
+    return (min_lat, max_lat, min_long, max_long)
 
-def getBboxOffset(locationName:str, latitudeOffset:float, longitudeOffset:float) -> tuple[float, float, float, float]:
+def get_bbox_offset(location_name:str, latitude_offset:float, longitude_offset:float) -> tuple[float, float, float, float]:
     """
     Get boundingbox for given latitude and longitude offsets. Must be a positive, non-zero float 
     """
     
-    assert latitudeOffset > 0, "Offsets should both be posive, non-zero floats."
-    assert longitudeOffset > 0,"Offsets should both be posive, non-zero floats."
+    assert latitude_offset > 0, "Offsets should both be posive, non-zero floats."
+    assert longitude_offset > 0,"Offsets should both be posive, non-zero floats."
 
     # Get the location using geopy
     geolocator:Nominatim = Nominatim(user_agent="appname")
-    location = cast(Location | None, geolocator.geocode(locationName))
+    location = cast(Location | None, geolocator.geocode(location_name))
         
     if location:
         latitude = location.latitude
@@ -75,19 +75,19 @@ def getBboxOffset(locationName:str, latitudeOffset:float, longitudeOffset:float)
     else:
         raise NameError("Location not found.")
 
-    minLat:float  = latitude - latitudeOffset
-    maxLat:float  = latitude + latitudeOffset
-    minLong:float = longitude- longitudeOffset
-    maxLong:float = longitude+ longitudeOffset
+    min_lat:float  = latitude - latitude_offset
+    max_lat:float  = latitude + latitude_offset
+    min_long:float = longitude - longitude_offset
+    max_long:float = longitude + longitude_offset
     
-    return (minLat, maxLat, minLong, maxLong)
+    return (min_lat, max_lat, min_long, max_long)
 
-def fetchStatesInBbox(api:OpenSkyApi, bbox:tuple) -> OpenSkyStates|None:
+def fetch_states_in_bbox(api:OpenSkyApi, bbox:tuple) -> OpenSkyStates|None:
     """Use the opensky_api to get all currently flying aircraft within the given boundingbox"""
     states:OpenSkyStates|None = api.get_states(bbox = bbox)
     return states
 
-def getAircraftMeta(icao24:str) -> dict:
+def get_aircraft_meta(icao24:str) -> dict:
     url:str = f"https://opensky-network.org/api/metadata/aircraft/icao/{icao24.lower().strip()}"
     response:Response = requests.get(url)
     
@@ -95,8 +95,8 @@ def getAircraftMeta(icao24:str) -> dict:
         return response.json()
     return {}
 
-def getSingleTypeCode(icao24:str) -> str:
-    meta:dict = getAircraftMeta(icao24) 
+def get_single_type_code(icao24:str) -> str:
+    meta:dict = get_aircraft_meta(icao24) 
     typecode = meta.get("typecode")
     
     if typecode:

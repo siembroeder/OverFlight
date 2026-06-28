@@ -7,7 +7,7 @@ from state_filter import StateFilter
 logger = logging.getLogger(__name__)
 
 from opensky_api import OpenSkyStates, StateVector
-from utils.open_sky_utils import fetchStatesInBbox
+from utils.open_sky_utils import fetch_states_in_bbox
 
 
 class ApiHandler():
@@ -28,7 +28,7 @@ class ApiHandler():
         accepted_states is None if this call should be skipped.
         untracked_filtered_states is non-empty only on too-frequent calls.
         """
-        new_states: OpenSkyStates | None = fetchStatesInBbox(self.settings.open_sky_api, self.bbox_at_location)
+        new_states: OpenSkyStates | None = fetch_states_in_bbox(self.settings.open_sky_api, self.bbox_at_location)
         self.last_api_call_timestamp = time.monotonic()
 
         # skip to next api call if newStates empty.
