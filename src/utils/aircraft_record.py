@@ -33,7 +33,7 @@ class AircraftRecord():
             factor = 1.1
             
         # Filter number of engines
-        if entry.engineCount == 3:
+        if entry.engine_count == 3:
             image = QPixmap("assets/md11.png")
 
         # Filter specific typecodes
