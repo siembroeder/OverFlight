@@ -6,9 +6,9 @@ from PySide6.QtWidgets import QApplication
 import logging
 logger = logging.getLogger(__name__)
 from api_handler import ApiHandler
-from utils.logging_utils import setupLogging
+from utils.logging_utils import setup_logging
 logging_level = "debug" # Set the logging level. Options : 'debug', 'info', 'warning', 'critical', 'error'
-setupLogging(logging_level)
+setup_logging(logging_level)
 
 from window_tracker import WindowTracker
 from settings import Settings

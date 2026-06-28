@@ -5,7 +5,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 
-def setupLogging(logLevel:str):
+def setup_logging(log_level:str):
     """
     AI generated logging module. 
     
@@ -15,27 +15,27 @@ def setupLogging(logLevel:str):
     """
     
     os.makedirs("logs", exist_ok=True)
-    formatterTerminal = logging.Formatter("[%(levelname)s] %(name)s: %(message)s")
-    formatterFile    = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+    formatter_terminal = logging.Formatter("[%(levelname)s] %(name)s: %(message)s")
+    formatter_file    = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
-    streamHandler = logging.StreamHandler()
-    streamHandler.setFormatter(formatterTerminal)
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(formatter_terminal)
 
-    fileHandler = RotatingFileHandler("logs/overflight.log", maxBytes=1_000_000, backupCount=3)
-    fileHandler.setFormatter(formatterFile)
+    file_handler = RotatingFileHandler("logs/overflight.log", maxBytes=1_000_000, backupCount=3)
+    file_handler.setFormatter(formatter_file)
 
-    if logLevel.lower() == "debug":
+    if log_level.lower() == "debug":
         level = logging.DEBUG
-    elif logLevel.lower() == "info":
+    elif log_level.lower() == "info":
         level = logging.INFO
-    elif logLevel.lower() == "warning":
+    elif log_level.lower() == "warning":
         level = logging.WARNING
-    elif logLevel.lower() == "error":
+    elif log_level.lower() == "error":
         level = logging.ERROR
     else:
         level = logging.INFO
 
-    logging.basicConfig(level=level, handlers=[streamHandler, fileHandler])
+    logging.basicConfig(level=level, handlers=[stream_handler, file_handler])
     
     logging.getLogger("geopy").setLevel(logging.WARNING)
     logging.getLogger("qasync").setLevel(logging.WARNING)
