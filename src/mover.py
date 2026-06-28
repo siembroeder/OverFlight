@@ -78,15 +78,15 @@ class Mover():
         min_lat, max_lat, min_lon, max_lon = self.window.settings.bbox_at_location
         
         # normalize to 0-1 and multiply with number of available pixels
-        pixel_x = int(((lon - min_lon) / (max_lon - min_lon) ) * self.window.Nxpixels)
-        pixel_y = int(((lat - min_lat)  / (max_lat - min_lat)   ) * self.window.Nypixels) # print(f"{[pixelx,pixely]=}")
+        pixel_x = int(((lon - min_lon) / (max_lon - min_lon) ) * self.window.n_pixels_x)
+        pixel_y = int(((lat - min_lat)  / (max_lat - min_lat)   ) * self.window.n_pixels_y) # print(f"{[pixelx,pixely]=}")
         
         # invert y axis
-        pixel_y = self.window.Nypixels - pixel_y    
+        pixel_y = self.window.n_pixels_y - pixel_y    
         
         # offset to selected display
-        pixel_x += self.window.screenOrigin.x()
-        pixel_y += self.window.screenOrigin.y()   
+        pixel_x += self.window.screen_origin.x()
+        pixel_y += self.window.screen_origin.y()   
          
         return pixel_x, pixel_y
 
@@ -148,7 +148,7 @@ class Mover():
         if (self.window.true_track is None) or (self.window.velocity is None):
             return
     
-        if time.monotonic() - self.window.lastApiUpdate < 0.75 * self.window.settings.visuals.update_interval:
+        if time.monotonic() - self.window.last_api_update < 0.75 * self.window.settings.visuals.update_interval:
             return  # skip to prevent jittery updates
         
         if (self.window.latitude is None) or (self.window.longitude is None):

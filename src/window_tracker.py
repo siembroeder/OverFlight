@@ -60,7 +60,7 @@ class WindowTracker():
             icao24 = state.icao24
             if icao24 in self.windows:
                 if windowIsOpen(icao24):
-                    self.windows[icao24].updateState(state)
+                    self.windows[icao24].update_state(state)
                 else:
                     del self.windows[icao24]
 

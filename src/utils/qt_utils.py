@@ -25,7 +25,7 @@ def getScreenGeometry(displayName:str|None) -> QRect:
 
     return geom
 
-def getWindowSize(windowSize:str|list) -> QSize:
+def get_window_size(windowSize:str|list) -> QSize:
     defaultSizes = {"miniature": QSize(25, 25),
                     "small":     QSize(50, 50),
                     "medium":    QSize(100, 100),
