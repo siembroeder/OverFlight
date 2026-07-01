@@ -1,10 +1,11 @@
 import time
 import asyncio
 import logging
-
-from settings import Settings
 logger = logging.getLogger(__name__)
 
+from utils.aircraft_record import AircraftRecord
+
+from settings import Settings
 from api_handler import ApiHandler
 from window_tracker import WindowTracker
 
@@ -24,7 +25,7 @@ class AirTrafficController():
 
     async def _consume_states_loop(self) -> None:
         """Consumes fetched states from the queue and updates windows."""
-        queue = asyncio.Queue(maxsize=1)
+        queue: asyncio.Queue[tuple[list[AircraftRecord] | None, bool]] = asyncio.Queue(maxsize=1)
 
         asyncio.create_task(
             self.api_handler.fetch_states_loop(queue)
