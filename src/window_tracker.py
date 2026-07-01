@@ -22,10 +22,6 @@ class WindowTracker():
     def __init__(self, settings:Settings):
         self.settings = settings
         self.windows:dict[Icao24, MainWindow] = {}
-        self.filter = StateFilter(settings.tracking, settings.open_sky_api, settings.setup.max_windows, settings.bbox_at_location)
-        
-        for f in fields(settings.tracking): # if any field in settings.tracking changes, rebuild the filter completely
-            settings.on_change(f.name, lambda _: self.rebuild_filter())
             
         # Register callback for settings that require WindowTracker method to execute
         settings.on_change("window_size", lambda _: self.close_all_windows()) # Windows are rebuild on next api call with updated windowSize
@@ -75,9 +71,6 @@ class WindowTracker():
         for icao24, window in list(self.windows.items()):
             if window_is_open(icao24):
                 window.mover.dead_reckon_increment()
-                
-    def rebuild_filter(self):
-        self.filter = StateFilter(self.settings.tracking, self.settings.open_sky_api, self.settings.setup.max_windows, self.settings.bbox_at_location)
 
     def close_all_windows(self):
         for window in self.windows.values():
