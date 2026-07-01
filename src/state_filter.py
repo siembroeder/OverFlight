@@ -297,15 +297,3 @@ class StateFilter():
                         filtered_states.append(state)
 
         return filtered_states
-
-    def extract_untracked_states(self, active_windows:dict[icao24,MainWindow],  new_states:list[StateVector]) -> list[StateVector]:
-        active_icaos = active_windows.keys()
-        
-        untracked_states = []
-        for state in new_states:
-            if not state.icao24:
-                continue
-            
-            if state.icao24 not in active_icaos:
-                untracked_states.append(state)
-        return untracked_states
