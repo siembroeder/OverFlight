@@ -25,7 +25,7 @@ class AirTrafficController():
 
     async def _dead_reckon_loop(self) -> None:
         """Continuously applies dead reckoning at the visual update interval."""
-        dt = self.tracker.settings.visuals.update_interval
+        dt = self.settings.visuals.update_interval
         while True:
             await asyncio.sleep(dt)
             self.tracker.dead_reckon_windows()
