@@ -27,21 +27,15 @@ class AirTrafficController():
         queue = asyncio.Queue(maxsize=1)
 
         asyncio.create_task(
-            self.api_handler.fetch_states_loop(
-                queue,
-                self.tracker.windows,
-            )
+            self.api_handler.fetch_states_loop(queue)
         )
 
         while True:
             self.tracker.check_new_settings()
-            accepted, untracked = await queue.get()
+            aircrafts, fresh = await queue.get()
 
-            if untracked:
-                self.tracker.update_windows(untracked, delete=False)
-
-            if accepted:
-                self.tracker.update_windows(accepted)
+            if aircrafts:
+                self.tracker.update_windows(aircrafts, fresh)
 
     async def run(self) -> None:
         async with asyncio.TaskGroup() as tg:

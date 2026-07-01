@@ -33,12 +33,12 @@ class ApiHandler():
         self.newest_state_timestamp = 0.0
         self.num_api_calls_skipped   = 0.0
 
-    def fetch_states(self, tracker_windows) -> tuple[OpenSkyStates | None, list[StateVector]]:
+    def fetch_states(self) -> tuple[OpenSkyStates | None, bool]:
         """
-        Fetches and validates new states.
-        Returns (accepted_states, untracked_filtered_states).
-        accepted_states is None if this call should be skipped.
-        untracked_filtered_states is non-empty only on too-frequent calls.
+        Fetches and validates new states. Returns new states and whether they are fresh.
+
+        :return: The new states and whether they are fresh
+        :rtype: tuple[OpenSkyStates | None, bool]
         """
         new_states: OpenSkyStates | None = fetch_states_in_bbox(self.settings.open_sky_api, self.bbox_at_location)
         self.last_api_call_timestamp = time.monotonic()
@@ -47,43 +47,40 @@ class ApiHandler():
         if (new_states is None) or (new_states.states is None):
             logger.debug("New states are empty, continuing\n")
             self.num_api_calls_skipped += 1
-            return None, []
+            return None, False
         
         # skip if new timestamp older than previous timestamp
         if new_states.time < self.newest_state_timestamp:
             logger.debug("New states older than previous, continuing\n")
             self.num_api_calls_skipped += 1
-            return None, []
+            return None, False
         
-        # skip if difference between timestamps is less than the elapsed real time. Factor 0.9 to accept decent newStates
-        if new_states.time - self.newest_state_timestamp <= 0.9 * (self.num_api_calls_skipped + 1) * self.api_call_delay:
-            logger.debug("New api call spacing too short, continuing\n")
+        # difference between timestamps is less than the elapsed real time. Factor 0.9 to accept decent newStates
+        fresh = new_states.time - self.newest_state_timestamp > 0.8 * (self.num_api_calls_skipped + 1) * self.api_call_delay
+        
+        if fresh:
+            self.newest_state_timestamp = new_states.time
+            self.num_api_calls_skipped = 0.0
+        else:
             self.num_api_calls_skipped += 1
-            untracked = self.filter.extract_untracked_states(tracker_windows, new_states.states)
-            return None, untracked
 
-        self.newest_state_timestamp = new_states.time
-        self.num_api_calls_skipped   = 0.0
-        return new_states, []
+        return new_states, fresh
 
-    async def fetch_states_loop(self, queue: asyncio.Queue, tracker_windows) -> None:
-        """Fetches states on a fixed interval and puts results onto the queue."""
+    async def fetch_states_loop(self, queue: asyncio.Queue) -> None:
+        """Fetches states on a fixed interval and puts filtered results onto the queue."""
         assert self.api_call_delay >= 5.0, "apiCallDelay must be at least 5.0 seconds."
         while True:
-            accepted, untracked = self.fetch_states(tracker_windows)
-            filtered_accepted_aircraft, filtered_untracked_aircraft = None, None
-            if accepted:
-                logger.info(f"\n\nAccepted {len(accepted.states)} new states at "
+            new_states, fresh = self.fetch_states()
+            filtered_aircrafts = None
+            if new_states:
+                logger.info(f"\n\nAccepted {len(new_states.states)} new states at "
                             f"{datetime.fromtimestamp(int(time.time()))} with timestamp: "
-                            f"{datetime.fromtimestamp(accepted.time)}\n")
+                            f"{datetime.fromtimestamp(new_states.time)}\n")
                 
-                accepted_aircraft = self.to_aircraft_records(accepted.states)
-                filtered_accepted_aircraft = self.filter.filter_aircraft(accepted_aircraft)
-                logger.debug(f"After filtering {len(filtered_accepted_aircraft)} remain.\n")
-            if untracked:
-                untracked_aircraft = self.to_aircraft_records(untracked)
-                filtered_untracked_aircraft = self.filter.filter_aircraft(untracked_aircraft)
-            await queue.put((filtered_accepted_aircraft, filtered_untracked_aircraft))
+                aircrafts = self.to_aircraft_records(new_states.states)
+                filtered_aircrafts = self.filter.filter_aircraft(aircrafts)
+                logger.debug(f"After filtering {len(filtered_aircrafts)} remain.\n")
+            await queue.put((filtered_aircrafts, fresh))
 
             now = time.monotonic()
             next_allowed = self.last_api_call_timestamp + self.api_call_delay
