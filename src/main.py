@@ -1,19 +1,19 @@
 import sys
+import logging
+logger = logging.getLogger(__name__)
 
 from PySide6 import QtAsyncio
 from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import QFileSystemWatcher
 
-import logging
-logger = logging.getLogger(__name__)
 from api_handler import ApiHandler
 from utils.logging_utils import setup_logging
-logging_level = "debug" # Set the logging level. Options : 'debug', 'info', 'warning', 'critical', 'error'
-setup_logging(logging_level)
-
-from window_tracker import WindowTracker
+from aircraft_tracker import AircraftTracker
 from settings import Settings
 from air_traffic_controller import AirTrafficController
 
+logging_level = "debug" # Set the logging level. Options : 'debug', 'info', 'warning', 'critical', 'error'
+setup_logging(logging_level)
 
 def start_application(controller:AirTrafficController):
     """
@@ -36,8 +36,11 @@ def main():
 
     settings   = Settings.build()
     api_handler = ApiHandler(settings)
-    tracker    = WindowTracker(settings)
+    tracker    = AircraftTracker(settings)
     controller = AirTrafficController(settings, api_handler, tracker)
+
+    fs_watcher = QFileSystemWatcher([settings.PATH])
+    fs_watcher.fileChanged.connect(settings.check_new_settings)
     
     app.aboutToQuit.connect(tracker.close_all_windows)
     

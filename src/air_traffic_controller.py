@@ -32,7 +32,6 @@ class AirTrafficController():
         )
 
         while True:
-            self.tracker.check_new_settings()
             aircrafts, fresh = await queue.get()
 
             if aircrafts:

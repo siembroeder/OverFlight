@@ -101,6 +101,8 @@ class Settings:
     visuals:    VisualsSettings
     
     callbacks: dict[str, list[Callable]] = field(default_factory=dict)
+
+    PATH = SETTINGS_PATH
     
     @classmethod
     def build(cls) -> "Settings":
@@ -181,7 +183,7 @@ class Settings:
     def on_change(self, key: str, func: Callable) -> None:
         """
         Registers a callback function to be triggered when a setting changes
-        Should be used in __init__ functions like in WindowTracker: settings.onChange("windowSize", lambda _: self.CloseAllWindows())
+        Should be used in __init__ functions like in AircraftTracker: settings.onChange("windowSize", lambda _: self.CloseAllWindows())
         """
         self.callbacks.setdefault(key, []).append(func)
 
@@ -215,3 +217,23 @@ class Settings:
 
         # update raw data dictionary
         self.raw = new_settings.raw
+
+    def check_new_settings(self) -> None:
+        logger.debug(f"{SETTINGS_PATH} changed: checking new contents.")
+
+        try:
+            new_raw_settings = Settings.load_settings()
+        except yaml.YAMLError as e:
+            logger.error(f"Invalid yaml settings file: {e}")
+            return
+        
+        if new_raw_settings != self.raw:
+            new_settings = Settings.build()
+            if new_settings:
+                self.apply_update(new_settings)
+                logger.debug("Settings updated.")
+                return
+        
+        logger.debug("Settings remained the same.")
+        return 
+    
