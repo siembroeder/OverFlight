@@ -4,17 +4,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 from utils.aircraft_record import AircraftRecord
-
 from settings import Settings
 from api_handler import ApiHandler
-from window_tracker import WindowTracker
+from aircraft_tracker import AircraftTracker
 
 
 class AirTrafficController():
-    def __init__(self, settings:Settings, api_handler: ApiHandler, tracker: WindowTracker):
-        self.settings   = settings
+    def __init__(self, settings:Settings, api_handler: ApiHandler, tracker: AircraftTracker):
+        self.settings  = settings
         self.api_handler = api_handler
-        self.tracker    = tracker
+        self.tracker = tracker
 
     async def _dead_reckon_loop(self) -> None:
         """Continuously applies dead reckoning at the visual update interval."""
@@ -35,7 +34,7 @@ class AirTrafficController():
             aircrafts, fresh = await queue.get()
 
             if aircrafts:
-                self.tracker.update_windows(aircrafts, fresh)
+                self.tracker.update_aircrafts(aircrafts, fresh)
 
     async def run(self) -> None:
         async with asyncio.TaskGroup() as tg:

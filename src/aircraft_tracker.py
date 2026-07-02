@@ -13,7 +13,7 @@ type Icao24 = str
 type Typecode = str
 
         
-class WindowTracker():
+class AircraftTracker():
     """
     Responsible for tracking which opensky states are being tracked, 
                 for opening and closing windows when they enter/leave the bounding box
@@ -23,7 +23,7 @@ class WindowTracker():
         self.settings = settings
         self.windows:dict[Icao24, MainWindow] = {}
             
-        # Register callback for settings that require WindowTracker method to execute
+        # Register callback for settings that require AircraftTracker method to execute
         settings.on_change("window_size", lambda _: self.close_all_windows()) # Windows are rebuild on next api call with updated windowSize
         settings.on_change("location", lambda _: self.close_all_windows())
         settings.on_change("bbox_size", lambda _: self.close_all_windows())
@@ -35,7 +35,7 @@ class WindowTracker():
         window.show()  # triggers QMainWindow.showEvent() 
         self.windows[aircraft.state.icao24] = window
 
-    def update_windows(self, new_aircraft:list[AircraftRecord], delete:bool = True) -> None:
+    def update_aircrafts(self, new_aircraft:list[AircraftRecord], delete:bool = True) -> None:
     # def updateWindows(self, newStates:list[StateVector], delete:bool = True) -> None:
         """Spawn, update, or close windows based on current aircraft states.
            The delete flag can be set to False to prevent windows from being closed""" 
@@ -75,20 +75,4 @@ class WindowTracker():
     def close_all_windows(self):
         for window in self.windows.values():
             window.close()
-        self.windows.clear()        
-                
-    def check_new_settings(self) -> bool:
-        try:
-            new_raw_settings = Settings.load_settings()
-        except yaml.YAMLError as e:
-            logger.error(f"Invalid yaml settings file: {e}")
-            return False
-        
-        if new_raw_settings != self.settings.raw:
-            new_settings = Settings.build()
-            if new_settings:
-                self.settings.apply_update(new_settings)
-                return True
-        
-        return False
-    
+        self.windows.clear()    
