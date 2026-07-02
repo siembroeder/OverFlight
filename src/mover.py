@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from custom_qt_window import MainWindow
     
+from settings import app_settings
 from utils.platform_utils import get_user_platform, get_session_type, get_window_manager
 from utils.type_hints import Meters, Degrees, Radians, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
 
@@ -75,7 +76,7 @@ class Mover():
         Convert the coordinate (lat, lon) in the boundingbox to a location on the screen (pixelx, pixely)
         """
         
-        min_lat, max_lat, min_lon, max_lon = self.window.settings.bbox_at_location
+        min_lat, max_lat, min_lon, max_lon = app_settings.bbox_at_location
         
         # normalize to 0-1 and multiply with number of available pixels
         pixel_x = int(((lon - min_lon) / (max_lon - min_lon) ) * self.window.n_pixels_x)
@@ -118,7 +119,7 @@ class Mover():
         lon:Longitude = self.window.longitude
         
         velocity:MetersPerSecond = self.window.velocity
-        distance_traveled_at_next_api_call:Meters = Meters(velocity * self.window.settings.api.api_call_delay)
+        distance_traveled_at_next_api_call:Meters = Meters(velocity * app_settings.api.api_call_delay)
         
         # Use flat earth approximation for converting from meters to degrees of lat/lon
         heading:Degrees = self.window.true_track
@@ -148,7 +149,7 @@ class Mover():
         if (self.window.true_track is None) or (self.window.velocity is None):
             return
     
-        if time.monotonic() - self.window.last_api_update < 0.75 * self.window.settings.visuals.update_interval:
+        if time.monotonic() - self.window.last_api_update < 0.75 * app_settings.visuals.update_interval:
             return  # skip to prevent jittery updates
         
         if (self.window.latitude is None) or (self.window.longitude is None):
@@ -165,9 +166,9 @@ class Mover():
     def steps(self) -> float:
         """
         Number of steps of deadreckoning in between api calls. 
-        Use @property decorator to set self.steps but let it always depend on current self.window.settings vars
+        Use @property decorator to set self.steps but let it always depend on current app_settings vars
         """
-        return self.window.settings.api.api_call_delay / self.window.settings.visuals.update_interval
+        return app_settings.api.api_call_delay / app_settings.visuals.update_interval
 
 
 

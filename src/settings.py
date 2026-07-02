@@ -1,18 +1,20 @@
 
 import os
 import yaml
-
 import logging
-logger = logging.getLogger(__name__)
-
 from typing import Optional, ClassVar, Callable
 from dataclasses import dataclass, field, fields
+
+from PySide6.QtCore import QFileSystemWatcher
+
 from opensky_api import OpenSkyApi, TokenManager
 from utils.open_sky_utils import get_bbox_size, get_bbox_offset
 from utils.type_hints import Seconds, Latitude, Longitude, MetersPerSecond, Meters
 
 SETTINGS_SECTIONS = ("core", "api", "setup", "tracking", "visuals")
 SETTINGS_PATH = "settings.yaml"
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -23,14 +25,17 @@ class CoreSettings:
     latitude_offset: Optional[Latitude] = None
     longitude_offset: Optional[Longitude] = None
 
+
 @dataclass
 class ApiSettings:
     api_call_delay: Seconds = Seconds(5.0)
+
 
 @dataclass
 class SetupSettings:
     max_windows: int = 25
     display_name: Optional[str] = None
+
 
 @dataclass
 class TrackingSettings:
@@ -67,6 +72,7 @@ class TrackingSettings:
     engine_count: Optional[int] = None
     engine_type: Optional[str] = None
 
+
 @dataclass
 class VisualsSettings:
     window_theme:str = "aircraft"
@@ -74,13 +80,6 @@ class VisualsSettings:
     update_interval:Seconds = Seconds(1.0)
     tooltip_fields:list = field(default_factory=lambda: ["callsign"])
     fallback_typecode:str = "C172"
-
-
-
-
-
-
-
 
 
 @dataclass
@@ -101,8 +100,6 @@ class Settings:
     visuals:    VisualsSettings
     
     callbacks: dict[str, list[Callable]] = field(default_factory=dict)
-
-    PATH = SETTINGS_PATH
     
     @classmethod
     def build(cls) -> "Settings":
@@ -237,3 +234,31 @@ class Settings:
         logger.debug("Settings remained the same.")
         return 
     
+class _LazySettings:
+    """
+    Proxy that defers Settings.build() until first attribute access,
+    so it isn't built until after QApplication exists (Settings needs
+    a running QCoreApplication for QFileSystemWatcher etc).
+    """
+    def __init__(self):
+        object.__setattr__(self, "_instance", None)
+        object.__setattr__(self, "_watcher", None)
+
+    def _ensure(self) -> "Settings":
+        if self._instance is None:
+            instance = Settings.build()
+            watcher = QFileSystemWatcher([SETTINGS_PATH])
+            watcher.fileChanged.connect(instance.check_new_settings)
+
+            object.__setattr__(self, "_instance", instance)
+            object.__setattr__(self, "_watcher", watcher)  # keep alive
+        return self._instance
+
+    def __getattr__(self, name):
+        return getattr(self._ensure(), name)
+
+    def __setattr__(self, name, value):
+        setattr(self._ensure(), name, value)
+
+
+app_settings = _LazySettings()

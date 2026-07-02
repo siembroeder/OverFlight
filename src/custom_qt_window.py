@@ -11,7 +11,7 @@ from PySide6.QtWidgets import QMainWindow, QLabel
 from mover import Mover
 from utils.aircraft_record import AircraftRecord
 from utils.qt_utils import get_window_size, get_screen_geometry
-from settings import Settings, VisualsSettings, TrackingSettings
+from settings import app_settings, VisualsSettings, TrackingSettings
 from utils.type_hints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
 
 class MainWindow(QMainWindow): 
@@ -47,10 +47,9 @@ class MainWindow(QMainWindow):
     position_source: int = 0
     
     
-    def __init__(self, settings:Settings, aircraft:AircraftRecord):
+    def __init__(self, aircraft:AircraftRecord):
         super().__init__()
         
-        self.settings = settings
         self.aircraft = aircraft
         
         # Extract state data, manually write self.lat/lon. All other lat/lon logic is handled by mover
@@ -79,16 +78,16 @@ class MainWindow(QMainWindow):
         self.mover.update_dead_reckon_increments()
         
         # Register callbacks for settings that require a MainWindow method to execute
-        settings.on_change("window_theme", lambda _: self.set_window_theme())
-        settings.on_change("tooltip_fields", lambda _: self.build_tooltip())
-        settings.on_change("bbox_at_location", lambda _: self.mover.move_to_loc(self.latitude, self.longitude))
+        app_settings.on_change("window_theme", lambda _: self.set_window_theme())
+        app_settings.on_change("tooltip_fields", lambda _: self.build_tooltip())
+        app_settings.on_change("bbox_at_location", lambda _: self.mover.move_to_loc(self.latitude, self.longitude))
                
     def set_screen_params(self):
         """
         Set the width, height and topLeft coordinates in pixels of the displayName from settings.setup
         If settings.setup.displayName == None, return the first screen from QApplication.screens()
         """
-        display_name = self.settings.setup.display_name
+        display_name = app_settings.setup.display_name
         geom = get_screen_geometry(display_name)
         
         self.n_pixels_x     = geom.width()
@@ -103,9 +102,9 @@ class MainWindow(QMainWindow):
         
         Default = f'callsign = {self.callsign}'
         """
-        tracking_settings:TrackingSettings = self.settings.tracking
+        tracking_settings:TrackingSettings = app_settings.tracking
         lines = []
-        for field in self.settings.visuals.tooltip_fields:
+        for field in app_settings.visuals.tooltip_fields:
             value = None
             # Check self, entry, trackingSettings for field (order matters)
             if hasattr(self, field):
@@ -142,7 +141,7 @@ class MainWindow(QMainWindow):
             Can walk to the left or right depending on if the heading broadly points left or right.
             Not rotated yet because every frame of the .gif should be rotated as you go (more difficult than eg .png) 
         """
-        visuals:VisualsSettings = self.settings.visuals
+        visuals:VisualsSettings = app_settings.visuals
         
         if visuals.window_theme == "aircraft":                
             self.original_pixmap = self.image  # store original
@@ -170,7 +169,7 @@ class MainWindow(QMainWindow):
         
         Default: 'small'
         """
-        size:QSize = get_window_size(self.settings.visuals.window_size)
+        size:QSize = get_window_size(app_settings.visuals.window_size)
         if self.image_scale_factor != 1.0:
             size = QSize(round(self.image_scale_factor * size.width()), round(self.image_scale_factor * size.height()))
 
@@ -178,12 +177,12 @@ class MainWindow(QMainWindow):
         self.setFixedSize(size)
         
         # resize what is currently being displayed
-        if (self.settings.visuals.window_theme == "aircraft") and hasattr(self, "defaultPixmap"):
+        if (app_settings.visuals.window_theme == "aircraft") and hasattr(self, "defaultPixmap"):
             self.defaultPixmap = self.original_pixmap.scaled(size,  # scale from original to preserve resolution
                                                             Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
             self.update_pixmap_heading()
 
-        elif (self.settings.visuals.window_theme == "duck") and (hasattr(self, "movie")):
+        elif (app_settings.visuals.window_theme == "duck") and (hasattr(self, "movie")):
             self.movie.setScaledSize(size)
             
     def update_pixmap_heading(self):
@@ -252,8 +251,8 @@ class MainWindow(QMainWindow):
         self.mover.update_dead_reckon_increments()
         self.build_tooltip() # Some values like heading or altitude (might) change every api call
         
-        if self.settings.visuals.window_theme == "aircraft": # ducks use movie, don't rotate to heading
+        if app_settings.visuals.window_theme == "aircraft": # ducks use movie, don't rotate to heading
             self.update_pixmap_heading()
                  
-        if (self.settings.visuals.window_theme == "duck") and self.heading_flipped(previous_heading): # for aircraft changing directions, update duck direction accordingly
+        if (app_settings.visuals.window_theme == "duck") and self.heading_flipped(previous_heading): # for aircraft changing directions, update duck direction accordingly
             self.set_window_theme()
