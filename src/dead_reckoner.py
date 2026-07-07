@@ -23,10 +23,6 @@ class DeadReckoner:
     def on_fresh_state(self, aircraft_record: AircraftRecord) -> None:
         """Call new state is received."""
         state = aircraft_record.state
-        if state.latitude is not None:
-            self.latitude = asLatitude(state.latitude)
-        if state.longitude is not None:
-            self.longitude = asLongitude(state.longitude)
         self.velocity = state.velocity
         self.true_track = state.true_track
 
