@@ -6,7 +6,7 @@ from PySide6.QtWidgets import QMainWindow
 
 from aircraft_widget import AircraftWidget
 from settings import app_settings
-from utils.aircraft_record import AircraftRecord
+from aircraft_record import AircraftRecord
 from utils.type_hints import *
 
 

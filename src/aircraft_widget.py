@@ -8,7 +8,7 @@ from PySide6.QtGui import QMovie, QTransform
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtWidgets import QWidget, QLabel
 
-from utils.aircraft_record import AircraftRecord
+from aircraft_record import AircraftRecord
 from utils.qt_utils import get_window_size
 from settings import app_settings, VisualsSettings, TrackingSettings
 from dead_reckoner import DeadReckoner

@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 from opensky_api import OpenSkyStates, StateVector
 from utils.open_sky_utils import fetch_states_in_bbox
 from utils.icao8643_utils import Icao8643Entry
-from utils.aircraft_record import AircraftRecord
+from aircraft_record import AircraftRecord
 from opensky_api import StateVector
 from settings import app_settings
 

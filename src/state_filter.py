@@ -1,16 +1,20 @@
 import time
 import logging
-logger = logging.getLogger(__name__)
-import pandas as pd
-from pandas import DataFrame
-from typing import TYPE_CHECKING
-    
-from opensky_api import StateVector, OpenSkyApi
-from utils.aircraft_record import AircraftRecord
-from FlightRadarAPI import FlightRadar24API, Flight
 
-if TYPE_CHECKING:
-    from settings import TrackingSettings
+import pandas as pd
+from opensky_api import (
+    StateVector, 
+    OpenSkyApi,
+)
+from FlightRadarAPI import (
+    FlightRadar24API, 
+    Flight,
+)
+    
+from settings import TrackingSettings
+from aircraft_record import AircraftRecord
+
+logger = logging.getLogger(__name__)
 
 
 class StateFilter():
@@ -256,7 +260,7 @@ class StateFilter():
         if not hasattr(self, "fr24api"):
             self.fr24api = FlightRadar24API()
             
-        airports:DataFrame = pd.read_csv("data/airports.csv")
+        airports:pd.DataFrame = pd.read_csv("data/airports.csv")
         flights:list[Flight] = self.fr24api.get_flights(bounds=f"{self.bbox[1]},{self.bbox[0]},{self.bbox[2]},{self.bbox[3]}") # fr24api expects north, south, west, east 
         
         icao_from_iata = airports.dropna(subset=["iata"]).set_index("iata")["icao"]

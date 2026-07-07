@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from main_window import MainWindow
-from utils.aircraft_record import AircraftRecord
+from aircraft_record import AircraftRecord
 from settings import app_settings
 from api_handler import ApiHandler
 
