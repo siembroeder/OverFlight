@@ -5,15 +5,12 @@ import pandas as pd
 from pandas import DataFrame
 from typing import TYPE_CHECKING
     
-from custom_qt_window import MainWindow
 from opensky_api import StateVector, OpenSkyApi
 from utils.aircraft_record import AircraftRecord
 from FlightRadarAPI import FlightRadar24API, Flight
 
 if TYPE_CHECKING:
     from settings import TrackingSettings
-
-type icao24 = str
 
 
 class StateFilter():

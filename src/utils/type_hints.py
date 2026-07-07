@@ -12,6 +12,8 @@ MetersPerSecond = NewType("MetersPerSecond", float)
 Latitude = NewType("Latitude", float)
 Longitude = NewType("Longitude", float)
 
+type Icao24 = str
+type Typecode = str
 
 
 # Helper functions

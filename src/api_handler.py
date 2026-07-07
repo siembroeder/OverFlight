@@ -4,7 +4,6 @@ import logging
 from dataclasses import fields
 from datetime import datetime
 
-from settings import Settings
 from state_filter import StateFilter
 logger = logging.getLogger(__name__)
 

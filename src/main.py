@@ -1,18 +1,18 @@
 import sys
 import logging
-logger = logging.getLogger(__name__)
 
 from PySide6 import QtAsyncio
 from PySide6.QtWidgets import QApplication
 
+from main_window import MainWindow
 from api_handler import ApiHandler
 from utils.logging_utils import setup_logging
-from aircraft_tracker import AircraftTracker
-from settings import Settings, app_settings
 from air_traffic_controller import AirTrafficController
 
+logger = logging.getLogger(__name__)
 logging_level = "debug" # Set the logging level. Options : 'debug', 'info', 'warning', 'critical', 'error'
 setup_logging(logging_level)
+
 
 def start_application(controller:AirTrafficController):
     """
@@ -31,13 +31,13 @@ def main():
     logger.info("Starting OverFlight\n")
     
     app:QApplication = QApplication(sys.argv)
-    app.setQuitOnLastWindowClosed(False)
+    app.setQuitOnLastWindowClosed(True)
 
+    window = MainWindow()
     api_handler = ApiHandler()
-    tracker    = AircraftTracker()
-    controller = AirTrafficController(api_handler, tracker)
+    controller = AirTrafficController(window=window, api_handler=api_handler)
 
-    app.aboutToQuit.connect(tracker.close_all_windows)
+    app.aboutToQuit.connect(window.close)
     
     start_application(controller)
 
