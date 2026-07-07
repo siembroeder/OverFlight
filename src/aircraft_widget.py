@@ -52,7 +52,7 @@ class AircraftWidget(QWidget):
         if self.reckoner.latitude is None or self.reckoner.longitude is None:
             return
 
-        pixel_x, pixel_y = qt_utils.coords_to_pixels(self.reckoner.latitude, self.reckoner.longitude, self)
+        pixel_x, pixel_y = qt_utils.coords_to_pixels(self.reckoner.latitude, self.reckoner.longitude, self._parent)
         pixel_x -= self.width() // 2
         pixel_y -= self.height() // 2
         self.move(pixel_x, pixel_y)
