@@ -7,9 +7,6 @@ from utils.type_hints import *
 
 
 class DeadReckoner:
-    """
-    
-    """
 
     def __init__(self, aircraft_record: AircraftRecord):
         state = aircraft_record.state
