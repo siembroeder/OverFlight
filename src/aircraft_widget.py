@@ -1,5 +1,7 @@
 # aircraft_widget.py
 import logging
+
+from utils import qt_utils
 logger = logging.getLogger(__name__)
 
 from PySide6.QtGui import QMovie, QTransform
@@ -37,10 +39,6 @@ class AircraftWidget(QWidget):
         self._reposition()
         self.show()
 
-    # ------------------------------------------------------------------
-    # Convenience accessors — thin passthroughs to the underlying record
-    # ------------------------------------------------------------------
-
     @property
     def state(self):
         return self.aircraft_record.state
@@ -49,22 +47,12 @@ class AircraftWidget(QWidget):
     def entry(self):
         return self.aircraft_record.entry
 
-    def _coords_to_pixels(self, lat, lon) -> tuple[int, int]:
-        min_lat, max_lat, min_lon, max_lon = app_settings.bbox_at_location
-        n_pixels_x, n_pixels_y = self._parent.width(), self._parent.height()
-
-        pixel_x = int(((lon - min_lon) / (max_lon - min_lon)) * n_pixels_x)
-        pixel_y = int(((lat - min_lat) / (max_lat - min_lat)) * n_pixels_y)
-        pixel_y = n_pixels_y - pixel_y  # invert y axis
-
-        return pixel_x, pixel_y
-
     def _reposition(self) -> None:
         """Move this widget to match the reckoner's current lat/lon, centered."""
         if self.reckoner.latitude is None or self.reckoner.longitude is None:
             return
 
-        pixel_x, pixel_y = self._coords_to_pixels(self.reckoner.latitude, self.reckoner.longitude)
+        pixel_x, pixel_y = qt_utils.coords_to_pixels(self.reckoner.latitude, self.reckoner.longitude, self)
         pixel_x -= self.width() // 2
         pixel_y -= self.height() // 2
         self.move(pixel_x, pixel_y)
