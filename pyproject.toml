@@ -16,3 +16,8 @@ dependencies = [
 
 [tool.uv.sources]
 opensky-api = { git = "https://github.com/openskynetwork/opensky-api.git", subdirectory = "python" }
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.21.0",
+]

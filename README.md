@@ -17,6 +17,11 @@ To start OverFlight, use the command `uv run src/main.py`.
 
 > **_On windows:_** For the icons to be transparent, the setting `transparency effects` under `Personalisation > Colours` must be turned off. 
 
+
+## Building the App
+
+To build the app, activate the uv environment and run `pyinstaller OverFlight.spec`.
+
 ## Prototype / Development
 
 Current functionality:

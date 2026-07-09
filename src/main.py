@@ -38,7 +38,7 @@ def main():
     api_handler = ApiHandler()
     controller = AirTrafficController(window=window, api_handler=api_handler)
 
-    tray = TrayIcon(app, window, icon_path="assets/singleIsleAircraft.png")
+    tray = TrayIcon(app, window, icon_path="assets/icon.ico")
     tray.show()
 
     app.aboutToQuit.connect(window.close)
