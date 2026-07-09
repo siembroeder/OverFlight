@@ -16,8 +16,8 @@ class MainWindow(QMainWindow):
         self.widgets: dict[Icao24, AircraftWidget] = {}
 
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool | Qt.WindowType.CoverWindow)
         self.setWindowState(Qt.WindowState.WindowMaximized)
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
         self.show()
 
     def spawn_widget(self, aircraft: AircraftRecord) -> None:

@@ -8,6 +8,7 @@ from main_window import MainWindow
 from api_handler import ApiHandler
 from utils.logging_utils import setup_logging
 from air_traffic_controller import AirTrafficController
+from tray_icon import TrayIcon
 
 logger = logging.getLogger(__name__)
 logging_level = "debug" # Set the logging level. Options : 'debug', 'info', 'warning', 'critical', 'error'
@@ -37,7 +38,12 @@ def main():
     api_handler = ApiHandler()
     controller = AirTrafficController(window=window, api_handler=api_handler)
 
+    tray = TrayIcon(app, window, icon_path="assets/singleIsleAircraft.png")
+    tray.show()
+
     app.aboutToQuit.connect(window.close)
+
+    window.show()
     
     start_application(controller)
 
