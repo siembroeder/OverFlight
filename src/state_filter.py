@@ -1,18 +1,12 @@
 import time
 import logging
-
 import pandas as pd
-from opensky_api import (
-    StateVector, 
-    OpenSkyApi,
-)
-from FlightRadarAPI import (
-    FlightRadar24API, 
-    Flight,
-)
-    
+
+from paths import resource_path
 from settings import TrackingSettings
 from aircraft_record import AircraftRecord
+from opensky_api import StateVector, OpenSkyApi
+from FlightRadarAPI import FlightRadar24API, Flight    
 
 logger = logging.getLogger(__name__)
 
@@ -28,16 +22,6 @@ class StateFilter():
         self.api:OpenSkyApi = api
         self.max_windows = max_windows
         self.bbox = bbox
-    
-    def filter_states(self, states:list[StateVector]) -> list[StateVector]:
-        
-        # states = self.applyLocalFilters(states)
-        
-        if self.settings.departure_airport or self.settings.arrival_airport:
-            states = self.apply_airport_filters(states)
-        
-
-        return states    
     
     def filter_aircraft(self, aircraft:list[AircraftRecord]) -> list[AircraftRecord]:
         
@@ -176,7 +160,6 @@ class StateFilter():
             logger.warning(f"Untested, because the dev team doesn't have access to a paid openskyapi account")
             states = [state for state in states if (state.sensors) and any(sensor in settings.sensors for sensor in state.sensors)]
             
-            
         return states        
            
     def filter_states_velocity(self, states:list[StateVector]) -> list[StateVector]:
@@ -260,7 +243,7 @@ class StateFilter():
         if not hasattr(self, "fr24api"):
             self.fr24api = FlightRadar24API()
             
-        airports:pd.DataFrame = pd.read_csv("data/airports.csv")
+        airports:pd.DataFrame = pd.read_csv(resource_path("data", "airports.csv"))
         flights:list[Flight] = self.fr24api.get_flights(bounds=f"{self.bbox[1]},{self.bbox[0]},{self.bbox[2]},{self.bbox[3]}") # fr24api expects north, south, west, east 
         
         icao_from_iata = airports.dropna(subset=["iata"]).set_index("iata")["icao"]
