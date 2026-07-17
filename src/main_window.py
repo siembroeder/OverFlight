@@ -1,14 +1,18 @@
 import logging
 logger = logging.getLogger(__name__)
+import subprocess
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QMainWindow
 
-from aircraft_widget import AircraftWidget
 from settings import app_settings
+from utils.type_hints import Icao24
+from aircraft_widget import AircraftWidget
 from aircraft_record import AircraftRecord
-from utils.type_hints import *
+from utils.qt_utils import get_screen_geometry
 
+WINDOW_TITLE = "OverFlightWindow"
+SPAWN_DELAY:int = 0
 
 class MainWindow(QMainWindow): 
     def __init__(self):
@@ -16,9 +20,43 @@ class MainWindow(QMainWindow):
         self.widgets: dict[Icao24, AircraftWidget] = {}
 
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        # self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool | Qt.WindowType.CoverWindow)
         self.setWindowState(Qt.WindowState.WindowMaximized)
+        self.setWindowTitle(WINDOW_TITLE)
+        self.setGeometry(get_screen_geometry(app_settings.setup.display_name))
+
+        global SPAWN_DELAY #TODO I don't understand the spawndelay and how it works on wayland (hyprland) 0 ms works better than 
+        self._show_mainwindow(SPAWN_DELAY)
+
+    def _show_mainwindow(self, delay:int = 400) -> None:
+        QTimer.singleShot(delay, lambda: self._move_mainwindow())
         self.show()
+
+    def _move_mainwindow(self) -> None:
+        setup = app_settings.setup
+
+        geom = get_screen_geometry(setup.display_name)
+        self.setGeometry(geom)
+
+        self.screenOrigin = geom.topLeft()
+        x = self.screenOrigin.x()
+        y = self.screenOrigin.y()
+
+        if setup.operating_system == "linux":
+            if setup.window_manager == "hyprland":
+                output = subprocess.run(['hyprctl', 'dispatch', 'movewindowpixel', f'exact {x} {y},title:{WINDOW_TITLE}'], capture_output=True, text=True)
+                message = output.stdout.strip()
+                if message != "ok":
+                    global SPAWN_DELAY
+                    logger.debug(f"Moving mainwindow with hyprland returns: {message}.\n\tDelay: {SPAWN_DELAY}, trying again")
+                    self._show_mainwindow(delay = SPAWN_DELAY) # go again to ensure spawning on correct display
+
+        elif setup.operating_system == "windows":
+            self.move(x, y)
+
+        else:
+            raise NotImplementedError("Operating system not supported.")
 
     def spawn_widget(self, aircraft: AircraftRecord) -> None:
         widget = AircraftWidget(self, aircraft)
