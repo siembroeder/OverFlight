@@ -72,13 +72,13 @@ class ApiHandler():
             new_states, fresh = self.fetch_states()
             filtered_aircrafts = None
             if new_states:
-                logger.info(f"\n\nAccepted {len(new_states.states)} new states at "
+                logger.info(f"\n\tAccepted {len(new_states.states)} new states at "
                             f"{datetime.fromtimestamp(int(time.time()))} with timestamp: "
-                            f"{datetime.fromtimestamp(new_states.time)}\n")
+                            f"{datetime.fromtimestamp(new_states.time)}")
                 
                 aircrafts = self.to_aircraft_records(new_states.states)
                 filtered_aircrafts = self.filter.filter_aircraft(aircrafts)
-                logger.debug(f"After filtering {len(filtered_aircrafts)} remain.\n")
+                logger.debug(f"After filtering {len(filtered_aircrafts)} remain.")
             await queue.put((filtered_aircrafts, fresh))
 
             now = time.monotonic()
