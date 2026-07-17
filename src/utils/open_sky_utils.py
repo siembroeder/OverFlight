@@ -1,14 +1,7 @@
-
-
-import csv
 import math
-from typing import cast
-import logging
-logger = logging.getLogger(__name__)
 import requests
-import pandas as pd
+from typing import cast
 from requests import Response
-from dataclasses import dataclass
 
 from geopy.location import Location
 from geopy.geocoders import Nominatim
@@ -16,6 +9,8 @@ from geopy.geocoders import Nominatim
 from utils.qt_utils import get_screen_geometry
 from opensky_api import OpenSkyApi, OpenSkyStates, OpenSkyApi
 
+import logging
+logger = logging.getLogger(__name__)
 
 
 def get_bbox_size(location_name:str, bbox_size:str, display_name:str|None) -> tuple[float, float, float, float]:
@@ -25,7 +20,7 @@ def get_bbox_size(location_name:str, bbox_size:str, display_name:str|None) -> tu
     """
     
     # Get the location using geopy
-    geolocator:Nominatim = Nominatim(user_agent="appname")
+    geolocator:Nominatim = Nominatim(user_agent="OverFlight")
     location = cast(Location | None, geolocator.geocode(location_name))
         
     if location:
@@ -65,7 +60,7 @@ def get_bbox_offset(location_name:str, latitude_offset:float, longitude_offset:f
     assert longitude_offset > 0,"Offsets should both be posive, non-zero floats."
 
     # Get the location using geopy
-    geolocator:Nominatim = Nominatim(user_agent="appname")
+    geolocator:Nominatim = Nominatim(user_agent="OverFlight")
     location = cast(Location | None, geolocator.geocode(location_name))
         
     if location:
@@ -104,20 +99,3 @@ def get_single_type_code(icao24:str) -> str:
 
     return ""
 
-# type Icao24 = str
-# type Typecode = str
-# def getAllTypeCodes(icao24s:list[str]) -> dict[Icao24, Typecode]:
-#     icao24_df = pd.read_csv("data/icao24_typecode_aircraft.csv")
-#     typecode_from_icao24 = icao24_df.set_index("icao24")["typecode"]
-
-#     typecodes = {}
-#     for icao24 in icao24s:
-#         try:
-#             typecode = typecode_from_icao24[icao24]
-#         except:
-#             typecode = getSingleTypeCode(icao24)
-            
-#         if typecode:
-#             typecodes.update({icao24:typecode})
-            
-#     return typecodes
