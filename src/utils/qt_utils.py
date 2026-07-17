@@ -2,10 +2,6 @@ from PySide6.QtCore import QRect, QSize
 from PySide6.QtWidgets import QApplication, QWidget
 
 
-def window_is_open(icao24:str) -> bool:
-    title = f"OverFlightWindow_{icao24}"
-    return any((w.windowTitle() == title) and w.isVisible() for w in QApplication.topLevelWidgets())
-
 def get_screen_geometry(display_name:str|None) -> QRect:
     if display_name == "all":
         screen = QApplication.primaryScreen()
@@ -19,8 +15,11 @@ def get_screen_geometry(display_name:str|None) -> QRect:
         # set to first screen if not displayName, elif match to displayName, else None.
         screen = next((screen for screen in QApplication.screens() if (not display_name) or (screen.name() == display_name)), None) 
         
+        if (screen is None) and (display_name is not None):
+            raise NameError("display_name not found, check if you set it correctly")
+
         if screen is None:
-            raise ValueError("No screen found. Set the displayName.")
+            raise ValueError("No screen found. Set the display_name.")
         
         geom = screen.availableGeometry()
 
