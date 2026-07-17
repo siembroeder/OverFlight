@@ -90,12 +90,13 @@ class ApiHandler():
 
         records = []
         for state in states:
+            typecode = None
             try:
                 typecode = self.icao24_to_typecode.get(state.icao24) or fallback_typecode
                 entry    = self.typecode_to_entry[typecode]
                 records.append(AircraftRecord(state=state, entry=entry))
             except:
-                logger.debug("Skipping state to record because of error.")
+                logger.debug(f"Skipping typecode: {typecode} state to record because of error.")
                 continue
 
         return records
