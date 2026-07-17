@@ -1,12 +1,16 @@
+import os
+import sys
 import webbrowser
 
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QSystemTrayIcon, QMenu, QApplication
 
+from main_window import MainWindow, SPAWN_DELAY
 
 class TrayIcon(QSystemTrayIcon):
-    def __init__(self, app:QApplication, window, icon_path: str, parent=None):
+    def __init__(self, app:QApplication, window:MainWindow, icon_path: str, parent=None):
         super().__init__(QIcon(icon_path), parent)
+        self.app = app
         self.window = window
         self.setToolTip("OverFlight") # TODO: add the version 
 
@@ -19,6 +23,10 @@ class TrayIcon(QSystemTrayIcon):
         debug_action = QAction("Debug", self)
         debug_action.triggered.connect(self._show_terminal)
         menu.addAction(debug_action)
+
+        restart_action = QAction("Restart", self)
+        restart_action.triggered.connect(self._restart)
+        menu.addAction(restart_action)
 
         quit_action = QAction("Quit", self)
         quit_action.triggered.connect(app.quit)
@@ -39,10 +47,14 @@ class TrayIcon(QSystemTrayIcon):
             self._show_window()
 
     def _show_window(self):
-        self.window.show()
+        self.window._show_mainwindow(delay=SPAWN_DELAY)
 
     def _open_repository(self):
         webbrowser.open("https://github.com/siembroeder/OverFlight")
+
+    def _restart(self):
+        self.app.quit()
+        os.execv(sys.executable, [sys.executable] + sys.argv)
 
     def _show_terminal(self):
         # TODO: Implement
