@@ -50,10 +50,10 @@ def get_credentials_path(custom_credentials_path:str|None = None) -> str:
 
     return _find_config_file(   #TODO: change this to also allow unauthenticated users when out of credit protocol for unauthenticated users has been made
         ["credentials.json", ".credentials.json"], 
-        "No credentials file found in your ~/.config/overflight directory or your custom path")
+        f"No credentials file found in {user_config_dir(APPNAME)} directory or your custom path")
 
 
 def get_settings_path(filename = "settings.yaml") -> str:
     return _find_config_file(
         [filename], 
-        "No settings.yaml file found in your ~/.config/overflight directory")
+        f"No settings.yaml file found in {user_config_dir(APPNAME)} directory")
