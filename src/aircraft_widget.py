@@ -1,17 +1,17 @@
 # aircraft_widget.py
 import logging
 
-from utils import qt_utils
 logger = logging.getLogger(__name__)
 
 from PySide6.QtGui import QMovie, QTransform
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtWidgets import QWidget, QLabel
 
-from aircraft_record import AircraftRecord
-from utils.qt_utils import get_window_size
-from settings import app_settings, VisualsSettings, TrackingSettings
+from paths import resource_path
 from dead_reckoner import DeadReckoner
+from aircraft_record import AircraftRecord
+from utils.qt_utils import get_window_size, coords_to_pixels
+from settings import app_settings, VisualsSettings, TrackingSettings
 
 
 class AircraftWidget(QWidget):
@@ -24,6 +24,7 @@ class AircraftWidget(QWidget):
         self.reckoner = DeadReckoner(aircraft_record)
 
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        # self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         self.label = QLabel(self)
 
         self.image, self.image_scale_factor = aircraft_record.entry.get_visual_info()
@@ -52,7 +53,7 @@ class AircraftWidget(QWidget):
         if self.reckoner.latitude is None or self.reckoner.longitude is None:
             return
 
-        pixel_x, pixel_y = qt_utils.coords_to_pixels(self.reckoner.latitude, self.reckoner.longitude, self._parent)
+        pixel_x, pixel_y = coords_to_pixels(self.reckoner.latitude, self.reckoner.longitude, self._parent)
         pixel_x -= self.width() // 2
         pixel_y -= self.height() // 2
         self.move(pixel_x, pixel_y)
@@ -111,9 +112,9 @@ class AircraftWidget(QWidget):
         if visuals.window_theme == "duck":
             true_track = self.state.true_track
             if true_track is not None and 0.0 <= true_track <= 180.0:
-                self.movie = QMovie("assets/duck-right.gif")
+                self.movie = QMovie(str(resource_path("assets", "duck-right.gif")))
             else:
-                self.movie = QMovie("assets/duck-left.gif")
+                self.movie = QMovie(str(resource_path("assets", "duck-left.gif")))
 
             self.movie.setScaledSize(self.label.size())
             self.label.setMovie(self.movie)
