@@ -1,18 +1,21 @@
 import sys
-import logging
 
 from PySide6 import QtAsyncio
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QSystemTrayIcon
 
+from tray_icon import TrayIcon
+from paths import resource_path
 from main_window import MainWindow
 from api_handler import ApiHandler
-from utils.logging_utils import setup_logging
+from utils.logging_utils import setup_logging, install_global_exception_handler
 from air_traffic_controller import AirTrafficController
-from tray_icon import TrayIcon
 
+import logging
+from utils.logging_utils import install_global_exception_handler
 logger = logging.getLogger(__name__)
 logging_level = "debug" # Set the logging level. Options : 'debug', 'info', 'warning', 'critical', 'error'
 setup_logging(logging_level)
+install_global_exception_handler(logger)
 
 
 def start_application(controller:AirTrafficController):
@@ -38,8 +41,11 @@ def main():
     api_handler = ApiHandler()
     controller = AirTrafficController(window=window, api_handler=api_handler)
 
-    tray = TrayIcon(app, window, icon_path="assets/icon.ico")
-    tray.show()
+    if QSystemTrayIcon.isSystemTrayAvailable():
+        tray = TrayIcon(app, window, icon_path=str(resource_path("assets", "trayicon.png")))
+        tray.show()
+    else:
+        logger.debug("No system tray available")
 
     app.aboutToQuit.connect(window.close)
 
