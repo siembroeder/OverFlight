@@ -57,7 +57,6 @@ class Icao8643Entry():
         """Load icao24 to typecode dict, 500k lines but two columns."""
         path = resource_path("data", "icao24_typecode_aircraft.csv")
         with open(path, encoding="utf-8") as f:
-        # with open("data/icao24_typecode_aircraft.csv", encoding="utf-8") as f:
             reader = csv.reader(f)
             return dict(reader)
 
@@ -66,7 +65,6 @@ class Icao8643Entry():
         """Load typecode to Icao8643Entry dict from icao_8643.csv."""
         path = resource_path("data", "icao_8643.csv")
         with open(path, encoding="utf-8") as f:
-        # with open("data/icao_8643.csv", encoding="utf-8") as f:
             return {row["Designator"].strip().upper(): cls(model_full_name       = row["ModelFullName"],
                                                            wtc                 = row["WTC"],
                                                            wtg                 = row["WTG"],
@@ -105,54 +103,3 @@ class Icao8643Entry():
 
         image = QPixmap(AIRCRAFT_DIR / file)
         return image, factor
-
-
-        # # Set defaults
-        # factor = 1.0
-        # image = QPixmap("assets/aircraft/A321.png")
-
-        # # Filter wtc
-        # if self.wtc == "L":
-        #     image = QPixmap("assets/aircraft/C172.png")
-        #     factor = 0.5
-            
-        # if self.wtc == "M":
-        #     pass # default settings
-        
-        # if self.wtc == "H":
-        #     image = QPixmap("assets/aircraft/B777.png")
-        #     factor = 1.1
-            
-        # # Filter number of engines
-        # if self.engine_count == 3:
-        #     image = QPixmap("assets/aircraft/md11.png")
-
-        # # Filter specific typecodes
-        # if typecode.startswith("B74"):
-        #     image = QPixmap("assets/aircraft/B747.png")
-        #     factor = 1.2
-            
-        # if typecode.startswith("B73"):
-        #     image = QPixmap("assets/aircraft/B737.png")
-            
-        # if typecode in ["a318", "a319", "a320", "a321"]:
-        #     image = QPixmap("assets/aircraft/A321.png")
-            
-        # if typecode == "A388":
-        #     image = QPixmap("assets/aircraft/A380.png")
-        #     factor = 1.4
-            
-        # if typecode == "C172":
-        #     image = QPixmap("assets/aircraft/C172.png")
-        #     factor = 0.5
-            
-        # # Filter descriptions
-        # if description == "helicopter":
-        #     image = QPixmap("assets/aircraft/helicopter.png")
-        #     factor = 0.7
-            
-        # if description == "glider":
-        #     image = QPixmap("assets/aircraft/glider.png")
-        #     factor = 0.6
-                
-        # return (image, factor)
