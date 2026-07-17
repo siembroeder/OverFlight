@@ -1,5 +1,4 @@
 
-import os
 import yaml
 import logging
 from typing import Optional, ClassVar, Callable
@@ -7,21 +6,22 @@ from dataclasses import dataclass, field, fields
 
 from PySide6.QtCore import QFileSystemWatcher
 
+from paths import resource_path, get_credentials_path, get_settings_path
 from opensky_api import OpenSkyApi, TokenManager
 from utils.open_sky_utils import get_bbox_size, get_bbox_offset
+from utils.platform_utils import get_operating_system, get_window_manager
 from utils.type_hints import Seconds, Latitude, Longitude, MetersPerSecond, Meters
 
 SETTINGS_SECTIONS = ("core", "api", "setup", "tracking", "visuals")
-SETTINGS_PATH = "settings.yaml"
+SETTINGS_PATH = get_settings_path(filename = "settings.yaml")
 
 logger = logging.getLogger(__name__)
-
 
 @dataclass
 class CoreSettings:
     bbox_size: Optional[str]
     location: str = "Schiphol"
-    opensky_credentials_path: str = ".credentials.json"
+    opensky_credentials_path: str = str(resource_path(".credentials.json"))
     latitude_offset: Optional[Latitude] = None
     longitude_offset: Optional[Longitude] = None
 
@@ -35,6 +35,8 @@ class ApiSettings:
 class SetupSettings:
     max_windows: int = 25
     display_name: Optional[str] = None
+    operating_system: str = get_operating_system()
+    window_manager: str|None = get_window_manager()
 
 
 @dataclass
@@ -136,18 +138,9 @@ class Settings:
     
     @staticmethod
     def get_open_sky_api(custom_credentials_path:str) -> OpenSkyApi:
-        credentials_paths = ["credentials.json", ".credentials.json", custom_credentials_path]
-
-        # Look for credential files in OverFlight/ directory (not in subdirectories)
-        for file in credentials_paths:
-            if os.path.isfile(file):
-                try:
-                    return OpenSkyApi(token_manager=TokenManager.from_json_file(file))
-                except(FileNotFoundError, ValueError, OSError):
-                    pass
-        
-        # If no credential files found, use anonymous opensky account, less credits and rate limited to 10 seconds  
-        return OpenSkyApi()
+        file = get_credentials_path(custom_credentials_path)
+        api = OpenSkyApi(token_manager=TokenManager.from_json_file(file))
+        return api
 
     @staticmethod
     def get_bbox(core:CoreSettings, setup:SetupSettings) -> tuple[float, float, float, float]:
@@ -164,10 +157,10 @@ class Settings:
         if has_bbox and (has_lon_offset or has_lat_offset):
             raise KeyError("Invalid configuration, use either bboxSize or the offsets, not both.")
         
-        if has_bbox:
+        if has_bbox and isinstance(bbox_size, str):
             return get_bbox_size(location, bbox_size, setup.display_name)
             
-        if has_lat_offset and has_lon_offset:
+        if isinstance(lat_offset, float) and isinstance(lon_offset, float):
             if lat_offset <= 0.0 or lon_offset <= 0.0:
                 raise KeyError("longitudeOffset and latitudeOffset should both be non-zero.")
             return get_bbox_offset(location, lat_offset, lon_offset)
@@ -235,6 +228,14 @@ class Settings:
         return 
     
 class _LazySettings:
+    open_sky_api: ClassVar[OpenSkyApi]
+    bbox_at_location: tuple
+
+    core:       CoreSettings
+    api:        ApiSettings
+    setup:      SetupSettings
+    tracking:   TrackingSettings
+    visuals:    VisualsSettings
     """
     Proxy that defers Settings.build() until first attribute access,
     so it isn't built until after QApplication exists (Settings needs
@@ -252,6 +253,8 @@ class _LazySettings:
 
             object.__setattr__(self, "_instance", instance)
             object.__setattr__(self, "_watcher", watcher)  # keep alive
+
+        assert self._instance is not None
         return self._instance
 
     def __getattr__(self, name):
