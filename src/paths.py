@@ -37,6 +37,10 @@ def resource_path(*parts:str|Path) -> Path:
 
 def _find_config_file(filenames:list[str], not_found_msg:str) -> str:
     for file in filenames:
+        # if the fullpath name is passed in the list, return that immediately. eg to use settings.yaml when executing uv run src/main.py from the repo.
+        if os.path.isfile(file):
+            return file
+
         fullpath = os.path.join(user_config_dir(APPNAME), file)
         if os.path.isfile(fullpath):
             return fullpath
