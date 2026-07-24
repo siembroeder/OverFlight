@@ -5,17 +5,17 @@ from PySide6.QtWidgets import QApplication
 
 import logging
 logger = logging.getLogger(__name__)
-from ApiHandler import ApiHandler
-from utils.LoggingUtils import setupLogging
-loggingLevel = "debug" # Set the logging level. Options : 'debug', 'info', 'warning', 'critical', 'error'
-setupLogging(loggingLevel)
+from api_handler import ApiHandler
+from utils.logging_utils import setup_logging
+logging_level = "debug" # Set the logging level. Options : 'debug', 'info', 'warning', 'critical', 'error'
+setup_logging(logging_level)
 
-from WindowTracker import WindowTracker
-from Settings import Settings
-from AirTrafficController import AirTrafficController
+from window_tracker import WindowTracker
+from settings import Settings
+from air_traffic_controller import AirTrafficController
 
 
-def startOverflightApplication(controller:AirTrafficController):
+def start_application(controller:AirTrafficController):
     """
     Runs the asynchronous Qt application using a asyncio loop to ensure it runs forever
     """
@@ -35,13 +35,13 @@ def main():
     app.setQuitOnLastWindowClosed(False)
 
     settings   = Settings.build()
-    apiHandler = ApiHandler(settings)
+    api_handler = ApiHandler(settings)
     tracker    = WindowTracker(settings)
-    controller = AirTrafficController(settings, apiHandler, tracker)
+    controller = AirTrafficController(settings, api_handler, tracker)
     
-    app.aboutToQuit.connect(tracker.CloseAllWindows)
+    app.aboutToQuit.connect(tracker.close_all_windows)
     
-    startOverflightApplication(controller)
+    start_application(controller)
 
 if __name__ == "__main__":
     main()

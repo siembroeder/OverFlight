@@ -7,10 +7,10 @@ import subprocess
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from CustomQtWindow import MainWindow
+    from custom_qt_window import MainWindow
     
-from utils.PlatformUtils import getUserPlatform, getSessionType, getWindowManager
-from utils.TypeHints import Meters, Degrees, Radians, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
+from utils.platform_utils import get_user_platform, get_session_type, get_window_manager
+from utils.type_hints import Meters, Degrees, Radians, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
 
 
 class Mover():
@@ -27,28 +27,28 @@ class Mover():
         
     def __init__(self, window:"MainWindow"):
         self.window = window
-        self.systemDependentMover = self.determineMover()
+        self.system_dependent_mover = self.determine_mover()
         
         # values used for deadreckoning 
-        self.dlatStep = Latitude(0.0)
-        self.dlonStep = Longitude(0.0)
+        self.d_step_lat = Latitude(0.0)
+        self.d_step_lon = Longitude(0.0)
       
-    def determineMover(self):
+    def determine_mover(self):
         """
         Selects the sub-Mover class corresponding to the user's specs
         """
-        userPlatform = getUserPlatform()
+        user_platform = get_user_platform()
         
-        if "windows" in userPlatform:
+        if "windows" in user_platform:
             return WindowsMover()
             
-        elif "linux" in userPlatform:
-            self.userSession  = getSessionType() 
-            if self.userSession == "x11":
+        elif "linux" in user_platform:
+            self.user_session  = get_session_type() 
+            if self.user_session == "x11":
                 return X11Mover()
             
-            elif self.userSession == "wayland":     
-                wm = getWindowManager().lower()
+            elif self.user_session == "wayland":     
+                wm = get_window_manager().lower()
 
                 if "hyprland" in wm:
                     return HyprlandMover()
@@ -68,79 +68,79 @@ class Mover():
             raise NotImplementedError("Your operating system is not supported")
                         
     def move(self, x:int, y:int):
-        return self.systemDependentMover.move(x, y, self.window)
+        return self.system_dependent_mover.move(x, y, self.window)
 
-    def coordsToPixels(self, lat:Latitude, lon:Longitude) -> tuple[int, int]:
+    def coords_to_pixels(self, lat:Latitude, lon:Longitude) -> tuple[int, int]:
         """ 
         Convert the coordinate (lat, lon) in the boundingbox to a location on the screen (pixelx, pixely)
         """
         
-        minLat, maxLat, minLon, maxLon = self.window.settings.bboxAtLocation
+        min_lat, max_lat, min_lon, max_lon = self.window.settings.bbox_at_location
         
         # normalize to 0-1 and multiply with number of available pixels
-        pixelx = int(((lon - minLon) / (maxLon - minLon) ) * self.window.Nxpixels)
-        pixely = int(((lat - minLat)  / (maxLat - minLat)   ) * self.window.Nypixels) # print(f"{[pixelx,pixely]=}")
+        pixel_x = int(((lon - min_lon) / (max_lon - min_lon) ) * self.window.n_pixels_x)
+        pixel_y = int(((lat - min_lat)  / (max_lat - min_lat)   ) * self.window.n_pixels_y) # print(f"{[pixelx,pixely]=}")
         
         # invert y axis
-        pixely = self.window.Nypixels - pixely    
+        pixel_y = self.window.n_pixels_y - pixel_y    
         
         # offset to selected display
-        pixelx += self.window.screenOrigin.x()
-        pixely += self.window.screenOrigin.y()   
+        pixel_x += self.window.screen_origin.x()
+        pixel_y += self.window.screen_origin.y()   
          
-        return pixelx, pixely
+        return pixel_x, pixel_y
 
-    def moveToLoc(self, latitude:Latitude|None, longitude:Longitude|None) -> None:
+    def move_to_loc(self, latitude:Latitude|None, longitude:Longitude|None) -> None:
         """Move self.window to coordinate (lat, lon) that's mapped to screen and center the image"""
         
         if (latitude is None) or (longitude is None):
             return
         
-        pixelx, pixely = self.coordsToPixels(latitude, longitude)
+        pixel_x, pixel_y = self.coords_to_pixels(latitude, longitude)
     
         # Center image
-        pixelx = int(pixelx - (self.window.width() / 2))
-        pixely = int(pixely - (self.window.height()/ 2))
+        pixel_x = int(pixel_x - (self.window.width() / 2))
+        pixel_y = int(pixel_y - (self.window.height()/ 2))
         
-        self.move(pixelx, pixely)         # print(f"Moving {self.callsign} to {self.pixelx}, {self.pixely}")        
+        self.move(pixel_x, pixel_y)
 
-    def calculatePositionAtNextApiCall(self) -> tuple[Latitude, Longitude]:
+    def calculate_position_at_next_api_call(self) -> tuple[Latitude, Longitude]:
 
         if (self.window.velocity is None) or (self.window.true_track is None):
-            logger.warning("velocity or true_track (heading) not defined")
+            logger.warning("velocity or true_track (heading) not defined.")
             return (Latitude(0.0), Longitude(0.0))
         
         if (self.window.latitude is None) or (self.window.longitude is None):
-            logger.warning("Latitude or Longitude not defined")
+            logger.warning("latitude or longitude not defined.")
             return (Latitude(0.0), Longitude(0.0))
         
         lat:Latitude = self.window.latitude 
         lon:Longitude = self.window.longitude
         
         velocity:MetersPerSecond = self.window.velocity
-        distanceTraveledAtNextApiCall:Meters = Meters(velocity * self.window.settings.api.apiCallDelay)
+        distance_traveled_at_next_api_call:Meters = Meters(velocity * self.window.settings.api.api_call_delay)
         
         # Use flat earth approximation for converting from meters to degrees of lat/lon
         heading:Degrees = self.window.true_track
-        headingRadians:Radians = Radians(math.radians(heading))
-        dlatNextCall:Latitude = Latitude((distanceTraveledAtNextApiCall * math.cos(headingRadians)) / 111_320)
-        dlonNextCall:Longitude = Longitude((distanceTraveledAtNextApiCall * math.sin(headingRadians)) / (111_320 * math.cos(math.radians(lat))))
+        heading_radians:Radians = Radians(math.radians(heading))
+        d_lat_next_call:Latitude = Latitude((distance_traveled_at_next_api_call * math.cos(heading_radians)) / 111_320)
+        d_lon_next_call:Longitude = Longitude((distance_traveled_at_next_api_call * math.sin(heading_radians)) / (111_320 * math.cos(math.radians(lat))))
         
-        nextPosition= (Latitude(lat+dlatNextCall), Longitude(lon+dlonNextCall))
-        return nextPosition
+        next_position = (Latitude(lat+d_lat_next_call), Longitude(lon+d_lon_next_call))
+        return next_position
     
-    def updateDeadReckonIncrements(self):
+    def update_dead_reckon_increments(self):
         
         if (self.window.latitude is None) or (self.window.longitude is None):
             return
         
-        nextLat, nextLon = self.calculatePositionAtNextApiCall()
+        next_lat, next_lon = self.calculate_position_at_next_api_call()
         
         # update deadreckoning increments
-        self.dlatStep:Latitude = Latitude((nextLat - self.window.latitude) / self.steps)
-        self.dlonStep:Longitude = Longitude((nextLon - self.window.longitude) / self.steps)
+        self.d_step_lat:Latitude = Latitude((next_lat - self.window.latitude) / self.steps)
+        self.d_step_lon:Longitude = Longitude((next_lon - self.window.longitude) / self.steps)
             
-    def deadReckonIncrement(self):
+    def dead_reckon_increment(self):
         """
         Move self.window to next step in deadreckoning process
         """
@@ -148,17 +148,17 @@ class Mover():
         if (self.window.true_track is None) or (self.window.velocity is None):
             return
     
-        if time.monotonic() - self.window.lastApiUpdate < 0.75 * self.window.settings.visuals.updateInterval:
+        if time.monotonic() - self.window.last_api_update < 0.75 * self.window.settings.visuals.update_interval:
             return  # skip to prevent jittery updates
         
         if (self.window.latitude is None) or (self.window.longitude is None):
             return
   
         # increment lat and lon
-        self.window.latitude = asLatitude(self.window.latitude + self.dlatStep)
-        self.window.longitude= asLongitude(self.window.longitude + self.dlonStep)
+        self.window.latitude = asLatitude(self.window.latitude + self.d_step_lat)
+        self.window.longitude= asLongitude(self.window.longitude + self.d_step_lon)
            
-        self.moveToLoc(self.window.latitude, self.window.longitude)
+        self.move_to_loc(self.window.latitude, self.window.longitude)
 
 
     @property
@@ -167,7 +167,7 @@ class Mover():
         Number of steps of deadreckoning in between api calls. 
         Use @property decorator to set self.steps but let it always depend on current self.window.settings vars
         """
-        return self.window.settings.api.apiCallDelay / self.window.settings.visuals.updateInterval
+        return self.window.settings.api.api_call_delay / self.window.settings.visuals.update_interval
 
 
 

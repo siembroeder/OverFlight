@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from PySide6.QtGui import QPixmap
 
 from opensky_api import StateVector
-from utils.Icao8643Utils import Icao8643Entry
+from utils.icao8643_utils import Icao8643Entry
 
 @dataclass
 class AircraftRecord():
@@ -11,9 +11,9 @@ class AircraftRecord():
     state:StateVector
     entry:Icao8643Entry
 
-    def getVisualInfo(self) -> tuple[QPixmap, float]:
+    def get_visual_info(self) -> tuple[QPixmap, float]:
         entry = self.entry
-        description = entry.aircraftDescription.lower()
+        description = entry.aircraft_description.lower()
         typecode = self.entry.typecode.upper()
         
         # Set defaults
@@ -33,7 +33,7 @@ class AircraftRecord():
             factor = 1.1
             
         # Filter number of engines
-        if entry.engineCount == 3:
+        if entry.engine_count == 3:
             image = QPixmap("assets/md11.png")
 
         # Filter specific typecodes
@@ -63,6 +63,22 @@ class AircraftRecord():
         if description == "glider":
             image = QPixmap("assets/glider.png")
             factor = 0.6
+        
+        # Filter wtc
+        if entry.wtc == "L":
+            image = QPixmap("assets/C172.png")
+            factor = 0.5
+            
+        if entry.wtc == "M":
+            pass # default settings
+        
+        if entry.wtc == "H":
+            image = QPixmap("assets/B777.png")
+            factor = 1.1
+        
+        # Filter number of engines
+        if entry.engine_count == 3:
+            image = QPixmap("assets/md11.png")
         
         return (image, factor)
 

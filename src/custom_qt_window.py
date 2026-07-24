@@ -8,11 +8,11 @@ from PySide6.QtCore import Qt, QTimer, QSize
 from PySide6.QtWidgets import QMainWindow, QLabel
 
 # Custom imports 
-from Mover import Mover
-from utils.AircraftRecord import AircraftRecord
-from utils.QtUtils import getWindowSize, getScreenGeometry
-from Settings import Settings, VisualsSettings, TrackingSettings
-from utils.TypeHints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
+from mover import Mover
+from utils.aircraft_record import AircraftRecord
+from utils.qt_utils import get_window_size, get_screen_geometry
+from settings import Settings, VisualsSettings, TrackingSettings
+from utils.type_hints import Meters, Degrees, Seconds, MetersPerSecond, Latitude, Longitude, asLatitude, asLongitude
 
 class MainWindow(QMainWindow): 
     """
@@ -55,10 +55,10 @@ class MainWindow(QMainWindow):
         
         # Extract state data, manually write self.lat/lon. All other lat/lon logic is handled by mover
         state = aircraft.state
-        self.applyState(state)
+        self.apply_state(state)
         self.latitude = asLatitude(state.latitude)
         self.longitude= asLongitude(state.longitude)
-        self.lastApiUpdate = time.monotonic()        
+        self.last_api_update = time.monotonic()        
         
         # Set basic Qt info
         self.setWindowTitle(f"OverFlightWindow_{state.icao24}")
@@ -69,33 +69,33 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.label)
         
         # Set custom Qt info
-        self.image, self.imageScaleFactor = aircraft.getVisualInfo()
-        self.setWindowSize()
-        self.setWindowTheme()
-        self.buildTooltip()
-        self.setScreenParams()
+        self.image, self.image_scale_factor = aircraft.get_visual_info()
+        self.set_window_size()
+        self.set_window_theme()
+        self.build_tooltip()
+        self.set_screen_params()
         
         self.mover:"Mover" = Mover(self)
-        self.mover.updateDeadReckonIncrements()
+        self.mover.update_dead_reckon_increments()
         
         # Register callbacks for settings that require a MainWindow method to execute
-        settings.onChange("windowTheme", lambda _: self.setWindowTheme())
-        settings.onChange("tooltipFields", lambda _: self.buildTooltip())
-        settings.onChange("bboxAtLocation", lambda _: self.mover.moveToLoc(self.latitude, self.longitude))
+        settings.on_change("window_theme", lambda _: self.set_window_theme())
+        settings.on_change("tooltip_fields", lambda _: self.build_tooltip())
+        settings.on_change("bbox_at_location", lambda _: self.mover.move_to_loc(self.latitude, self.longitude))
                
-    def setScreenParams(self):
+    def set_screen_params(self):
         """
         Set the width, height and topLeft coordinates in pixels of the displayName from settings.setup
         If settings.setup.displayName == None, return the first screen from QApplication.screens()
         """
-        displayName = self.settings.setup.displayName
-        geom = getScreenGeometry(displayName)
+        display_name = self.settings.setup.display_name
+        geom = get_screen_geometry(display_name)
         
-        self.Nxpixels     = geom.width()
-        self.Nypixels     = geom.height()
-        self.screenOrigin = geom.topLeft()
+        self.n_pixels_x     = geom.width()
+        self.n_pixels_y     = geom.height()
+        self.screen_origin = geom.topLeft()
          
-    def buildTooltip(self) -> None:
+    def build_tooltip(self) -> None:
         """
         Set the string that's shown when a mouse hovers over the window.
         Taken from self.settings.visuals.tooltipFields. 
@@ -103,17 +103,17 @@ class MainWindow(QMainWindow):
         
         Default = f'callsign = {self.callsign}'
         """
-        trackingSettings:TrackingSettings = self.settings.tracking
+        tracking_settings:TrackingSettings = self.settings.tracking
         lines = []
-        for field in self.settings.visuals.tooltipFields:
+        for field in self.settings.visuals.tooltip_fields:
             value = None
             # Check self, entry, trackingSettings for field (order matters)
             if hasattr(self, field):
                 value = getattr(self, field)
             elif hasattr(self.aircraft.entry, field):
                 value = getattr(self.aircraft.entry, field)
-            elif hasattr(trackingSettings, field):
-                value = getattr(trackingSettings, field)
+            elif hasattr(tracking_settings, field):
+                value = getattr(tracking_settings, field)
             
             if value is None:
                 continue # if field isn't found, don't show it in the tooltip
@@ -129,7 +129,7 @@ class MainWindow(QMainWindow):
         tooltip = "\n".join(lines)    
         self.setToolTip(tooltip)   
 
-    def setWindowTheme(self):
+    def set_window_theme(self):
         """
         Sets the image that shown on the window. can be a still image like .jpg or .png (etc) or movie like .gif
         Currently supports two themes: 'aircraft' and 'duck'.
@@ -144,12 +144,12 @@ class MainWindow(QMainWindow):
         """
         visuals:VisualsSettings = self.settings.visuals
         
-        if visuals.windowTheme == "aircraft":                
-            self.originalPixmap = self.image  # store original
-            self.defaultPixmap = self.originalPixmap.scaled(self.label.size(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
-            self.updatePixmapHeading()
+        if visuals.window_theme == "aircraft":                
+            self.original_pixmap = self.image  # store original
+            self.defaultPixmap = self.original_pixmap.scaled(self.label.size(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            self.update_pixmap_heading()
             
-        if visuals.windowTheme == "duck":
+        if visuals.window_theme == "duck":
             if self.true_track is not None:
                 if (self.true_track >= 0.0) and (self.true_track <= 180.0): 
                     self.movie = QMovie("assets/duck-right.gif")
@@ -162,7 +162,7 @@ class MainWindow(QMainWindow):
             self.label.setMovie(self.movie)
             self.movie.start()        
 
-    def setWindowSize(self):
+    def set_window_size(self):
         """
         Sets the dimensions of the window and displayed image.
         Unique logic per theme.
@@ -170,23 +170,23 @@ class MainWindow(QMainWindow):
         
         Default: 'small'
         """
-        size:QSize = getWindowSize(self.settings.visuals.windowSize)
-        if self.imageScaleFactor != 1.0:
-            size = QSize(round(self.imageScaleFactor * size.width()), round(self.imageScaleFactor * size.height()))
+        size:QSize = get_window_size(self.settings.visuals.window_size)
+        if self.image_scale_factor != 1.0:
+            size = QSize(round(self.image_scale_factor * size.width()), round(self.image_scale_factor * size.height()))
 
         self.label.setFixedSize(size)
         self.setFixedSize(size)
         
         # resize what is currently being displayed
-        if (self.settings.visuals.windowTheme == "aircraft") and hasattr(self, "defaultPixmap"):
-            self.defaultPixmap = self.originalPixmap.scaled(size,  # scale from original to preserve resolution
+        if (self.settings.visuals.window_theme == "aircraft") and hasattr(self, "defaultPixmap"):
+            self.defaultPixmap = self.original_pixmap.scaled(size,  # scale from original to preserve resolution
                                                             Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
-            self.updatePixmapHeading()
+            self.update_pixmap_heading()
 
-        elif (self.settings.visuals.windowTheme == "duck") and (hasattr(self, "movie")):
+        elif (self.settings.visuals.window_theme == "duck") and (hasattr(self, "movie")):
             self.movie.setScaledSize(size)
             
-    def updatePixmapHeading(self):
+    def update_pixmap_heading(self):
         """
         Rotates the image in the direction of self.heading
         Can be used for any theme that uses a still image and maybe in the future also for movies.
@@ -208,9 +208,9 @@ class MainWindow(QMainWindow):
         Wait for 100ms for window to open / be recognized by compositer, then move to its respective location
         """
         super().showEvent(a0)    
-        QTimer.singleShot(10, lambda:self.mover.moveToLoc(self.latitude, self.longitude)) # wait for window to spawn, then move. TODO: move first, then show.
+        QTimer.singleShot(10, lambda:self.mover.move_to_loc(self.latitude, self.longitude)) # wait for window to spawn, then move. TODO: move first, then show.
     
-    def applyState(self, state: StateVector) -> None:
+    def apply_state(self, state: StateVector) -> None:
         """Explicitly map StateVector (except lat/lon) to MainWindow with type conversions."""
 
         self.icao24             = state.icao24
@@ -230,30 +230,30 @@ class MainWindow(QMainWindow):
         self.position_source    = state.position_source
         self.category           = state.category
 
-    def headingFlipped(self, previousHeading:Degrees|None) -> bool:
-        if previousHeading is None:
+    def heading_flipped(self, previous_heading:Degrees|None) -> bool:
+        if previous_heading is None:
             return False
             
-        currentHeading  = self.true_track
+        current_heading  = self.true_track
         
-        if previousHeading is None or currentHeading is None:
+        if previous_heading is None or current_heading is None:
             return False
         
-        return (previousHeading // 180) != (currentHeading // 180)        
+        return (previous_heading // 180) != (current_heading // 180)        
 
-    def updateState(self, state:StateVector) -> None:
+    def update_state(self, state:StateVector) -> None:
         """Redefine window properties when new a state becomes available"""
-        previousHeading = self.true_track
+        previous_heading = self.true_track
         
         # update window with new state
-        self.applyState(state)                        
-        self.lastApiUpdate = time.monotonic()
+        self.apply_state(state)                        
+        self.last_api_update = time.monotonic()
         
-        self.mover.updateDeadReckonIncrements()
-        self.buildTooltip() # Some values like heading or altitude (might) change every api call
+        self.mover.update_dead_reckon_increments()
+        self.build_tooltip() # Some values like heading or altitude (might) change every api call
         
-        if self.settings.visuals.windowTheme == "aircraft": # ducks use movie, don't rotate to heading
-            self.updatePixmapHeading()
+        if self.settings.visuals.window_theme == "aircraft": # ducks use movie, don't rotate to heading
+            self.update_pixmap_heading()
                  
-        if (self.settings.visuals.windowTheme == "duck") and self.headingFlipped(previousHeading): # for aircraft changing directions, update duck direction accordingly
-            self.setWindowTheme()
+        if (self.settings.visuals.window_theme == "duck") and self.heading_flipped(previous_heading): # for aircraft changing directions, update duck direction accordingly
+            self.set_window_theme()
