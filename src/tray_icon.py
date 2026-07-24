@@ -32,6 +32,10 @@ class TrayIcon(QSystemTrayIcon):
         quit_action.triggered.connect(app.quit)
         menu.addAction(quit_action)
 
+        toggle_mouse_action = QAction("Toggle mouse Wayland", self)
+        toggle_mouse_action.triggered.connect(self._toggle_mouse)
+        menu.addAction(toggle_mouse_action)
+
         self.setContextMenu(menu)
         self.activated.connect(self._on_activated)
 
@@ -59,3 +63,6 @@ class TrayIcon(QSystemTrayIcon):
     def _show_terminal(self):
         # TODO: Implement
         pass
+
+    def _toggle_mouse(self) -> None:
+        self.window._toggle_click_through()
