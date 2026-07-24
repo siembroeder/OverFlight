@@ -3,7 +3,7 @@ from PyInstaller.utils.hooks import collect_dynamic_libs
 
 binaries = []
 binaries += collect_dynamic_libs('ssl')
-
+binaries += [('native/build/libwlhelper.so', '.')]
 
 a = Analysis(
     ['src/main.py'],
@@ -45,6 +45,6 @@ coll = COLLECT(
     a.datas,
     strip=False,
     upx=True,
-    upx_exclude=[],
+    upx_exclude=['libwlhelper.so'],
     name='OverFlight',
 )
