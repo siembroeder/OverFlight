@@ -1,10 +1,13 @@
 import os
 import sys
+import platform
 import webbrowser
+import subprocess
 
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QSystemTrayIcon, QMenu, QApplication
 
+from paths import get_settings_path
 from main_window import MainWindow, SPAWN_DELAY
 
 class TrayIcon(QSystemTrayIcon):
@@ -32,6 +35,10 @@ class TrayIcon(QSystemTrayIcon):
         quit_action.triggered.connect(app.quit)
         menu.addAction(quit_action)
 
+        open_settings_action = QAction("Open settings", self)
+        open_settings_action.triggered.connect(self._open_settings)
+        menu.addAction(open_settings_action)
+
         self.setContextMenu(menu)
         self.activated.connect(self._on_activated)
 
@@ -55,6 +62,17 @@ class TrayIcon(QSystemTrayIcon):
     def _restart(self):
         self.app.quit()
         os.execv(sys.executable, [sys.executable] + sys.argv)
+
+    def _open_settings(self, ):
+        path = get_settings_path()
+        system = platform.system()
+    
+        if system == "Windows" and hasattr(os, "startfile"):
+            os.startfile(path)
+        elif system == "Linux":
+            subprocess.run(["xdg-open", path])
+        else:
+            raise NotImplementedError("Opening the settings file from the trayicon isn't supported for your operating system.")
 
     def _show_terminal(self):
         # TODO: Implement
