@@ -12,7 +12,6 @@ from aircraft_record import AircraftRecord
 from utils.qt_utils import get_screen_geometry
 
 WINDOW_TITLE = "OverFlightWindow"
-SPAWN_DELAY:int = 0
 
 class MainWindow(QMainWindow): 
     def __init__(self):
@@ -26,10 +25,9 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(WINDOW_TITLE)
         self.setGeometry(get_screen_geometry(app_settings.setup.display_name))
 
-        global SPAWN_DELAY #TODO I don't understand the spawndelay and how it works on wayland (hyprland) 0 ms works better than 
-        self._show_mainwindow(SPAWN_DELAY)
+        self._show_mainwindow()
 
-    def _show_mainwindow(self, delay:int = 400) -> None:
+    def _show_mainwindow(self, delay:int = 0) -> None:
         QTimer.singleShot(delay, lambda: self._move_mainwindow())
         self.show()
 
@@ -47,10 +45,6 @@ class MainWindow(QMainWindow):
             if setup.window_manager == "hyprland":
                 output = subprocess.run(['hyprctl', 'dispatch', 'movewindowpixel', f'exact {x} {y},title:{WINDOW_TITLE}'], capture_output=True, text=True)
                 message = output.stdout.strip()
-                if message != "ok":
-                    global SPAWN_DELAY
-                    logger.debug(f"Moving mainwindow with hyprland returns: {message}.\n\tDelay: {SPAWN_DELAY}, trying again")
-                    self._show_mainwindow(delay = SPAWN_DELAY) # go again to ensure spawning on correct display
 
         elif setup.operating_system == "windows":
             self.move(x, y)

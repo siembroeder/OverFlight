@@ -8,7 +8,7 @@ from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QSystemTrayIcon, QMenu, QApplication
 
 from paths import get_settings_path
-from main_window import MainWindow, SPAWN_DELAY
+from main_window import MainWindow
 
 class TrayIcon(QSystemTrayIcon):
     def __init__(self, app:QApplication, window:MainWindow, icon_path: str, parent=None):
@@ -54,7 +54,7 @@ class TrayIcon(QSystemTrayIcon):
             self._show_window()
 
     def _show_window(self):
-        self.window._show_mainwindow(delay=SPAWN_DELAY)
+        self.window._show_mainwindow()
 
     def _open_repository(self):
         webbrowser.open("https://github.com/siembroeder/OverFlight")
