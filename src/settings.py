@@ -181,28 +181,29 @@ class Settings:
         """Executes the registered callbacks for each field that changed values in newSetings"""
         
         # Some fields can not be changed during runtime, if they're changed the change is ignored.
-        RESTART_REQUIRED = {"opensky_credentials_path", "display_name"}
+        RESTART_REQUIRED = {"opensky_credentials_path", "display_name"} # TODO: remove display name and test the callback in MainWindow.__init__()
         
         for section_name in SETTINGS_SECTIONS:
             old_section = getattr(self, section_name)
             new_section = getattr(new_settings, section_name)
             
             for field in fields(old_section):
-                if field.name in RESTART_REQUIRED:
-                    continue
                 old_val = getattr(old_section, field.name)
                 new_val = getattr(new_section, field.name)
                 if old_val == new_val:
                     continue
+                if field.name in RESTART_REQUIRED and old_val != new_val:
+                    logger.warning(f"Detected a change in {field.name}, this setting can't be changed while the app is running. Please restart OverFlight.")
+                    continue
                 
-                # Set the new value in the oldSection and execute the callback
+                # Set the new value in the old_section and execute the callback
                 setattr(old_section, field.name, new_val)
                 for callback in self.callbacks.get(field.name, []):
                     callback(new_val)
 
         if new_settings.bbox_at_location != self.bbox_at_location:
             self.bbox_at_location = new_settings.bbox_at_location
-            for cb in self.callbacks.get("bboxAtLocation", []):
+            for cb in self.callbacks.get("bbox_at_location", []):
                 cb(new_settings.bbox_at_location)
 
         # update raw data dictionary
@@ -216,7 +217,7 @@ class Settings:
         except yaml.YAMLError as e:
             logger.error(f"Invalid yaml settings file: {e}")
             return
-        
+
         if new_raw_settings != self.raw:
             new_settings = Settings.build()
             if new_settings:

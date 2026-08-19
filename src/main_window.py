@@ -27,6 +27,10 @@ class MainWindow(QMainWindow):
 
         self._show_mainwindow()
 
+        app_settings.on_change("bbox_at_location", lambda _ : self.close_all_widgets())
+        app_settings.on_change("display_name", lambda _ : self._move_mainwindow())
+
+
     def _show_mainwindow(self, delay:int = 0) -> None:
         QTimer.singleShot(delay, lambda: self._move_mainwindow())
         self.show()
@@ -72,3 +76,8 @@ class MainWindow(QMainWindow):
     def dead_reckon_widgets(self) -> None:
         for widget in self.widgets.values():
             widget.dead_reckon_increment()
+
+    def close_all_widgets(self,):
+        for widget in list(self.widgets.values()):
+            widget.close()
+        self.widgets.clear()

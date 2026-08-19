@@ -32,9 +32,9 @@ class AircraftWidget(QWidget):
         self._set_window_theme()
         self._build_tooltip()
 
+        # TODO: memory leak here since callbacks are never removed from Settings.callbacks.
         app_settings.on_change("window_theme", lambda _: self._set_window_theme())
         app_settings.on_change("tooltip_fields", lambda _: self._build_tooltip())
-        app_settings.on_change("bbox_at_location", lambda _: self._reposition())
         app_settings.on_change("window_size", lambda _: self._set_window_size())
 
         self._reposition()
