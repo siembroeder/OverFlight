@@ -9,6 +9,7 @@ dependencies = [
     "geopy>=2.4.1",
     "opensky-api",
     "pandas>=3.0.2",
+    "platformdirs>=4.10.0",
     "pyside6>=6.11.1",
     "pyyaml>=6.0.3",
     "wmctrl>=0.5",
@@ -16,3 +17,8 @@ dependencies = [
 
 [tool.uv.sources]
 opensky-api = { git = "https://github.com/openskynetwork/opensky-api.git", subdirectory = "python" }
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.21.0",
+]

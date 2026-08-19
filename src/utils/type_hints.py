@@ -1,6 +1,4 @@
-
 from typing import NewType
-
 
 # Custom types
 Meters = NewType("Meters", float)
@@ -12,6 +10,8 @@ MetersPerSecond = NewType("MetersPerSecond", float)
 Latitude = NewType("Latitude", float)
 Longitude = NewType("Longitude", float)
 
+type Icao24 = str
+type Typecode = str
 
 
 # Helper functions
@@ -20,4 +20,3 @@ def asLatitude(value: float | None) -> Latitude | None:
 
 def asLongitude(value: float | None) -> Longitude | None:
     return Longitude(value) if value is not None else None
-

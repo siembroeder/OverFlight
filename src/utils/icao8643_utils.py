@@ -3,6 +3,44 @@ import logging
 logger = logging.getLogger(__name__)
 from dataclasses import dataclass
 
+from PySide6.QtGui import QPixmap
+
+from paths import resource_path
+
+AIRCRAFT_DIR = resource_path("assets", "aircraft")
+
+DEFAULT_VISUALS = ("A321.png", 1.0)
+
+WTC_VISUALS = {
+    "L": ("C172.png", 0.5),
+    "M": DEFAULT_VISUALS,
+    "H": ("B777.png", 1.2)
+}
+
+ENGINE_COUNT_VISUALS = {
+    "3": ("md11.png", 1.0)
+}
+
+TYPECODE_VISUALS = {
+    "A388": ("A380.png", 1.4),
+    "C172": ("C172.png", 0.5),
+    "A318": ("A321.png", 1.0),
+    "A319": ("A321.png", 1.0),
+    "A320": ("A321.png", 1.0),
+    "A321": ("A321.png", 1.0),
+}
+
+TYPECODE_PREFIX_VISUALS = {
+    "B74": ("B747.png", 1.2),
+    "B73": ("B737.png", 1.0)
+}
+
+DESCRIPTION_VISUALS = {
+    "glider": ("glider.png", 0.6),
+    "helicopter": ("helicopter.png", 0.7)
+}
+
+
 @dataclass
 class Icao8643Entry():
     model_full_name:str
@@ -17,14 +55,16 @@ class Icao8643Entry():
     @classmethod
     def load_icao24_to_typecode(cls) -> dict[str, str]:
         """Load icao24 to typecode dict, 500k lines but two columns."""
-        with open("data/icao24_typecode_aircraft.csv", encoding="utf-8") as f:
+        path = resource_path("data", "icao24_typecode_aircraft.csv")
+        with open(path, encoding="utf-8") as f:
             reader = csv.reader(f)
             return dict(reader)
 
     @classmethod
     def load_typecodes_to_icao8643_entry(cls) -> dict[str, "Icao8643Entry"]:
         """Load typecode to Icao8643Entry dict from icao_8643.csv."""
-        with open("data/icao_8643.csv", encoding="utf-8") as f:
+        path = resource_path("data", "icao_8643.csv")
+        with open(path, encoding="utf-8") as f:
             return {row["Designator"].strip().upper(): cls(model_full_name       = row["ModelFullName"],
                                                            wtc                 = row["WTC"],
                                                            wtg                 = row["WTG"],
@@ -35,3 +75,31 @@ class Icao8643Entry():
                                                            engine_type          = row["EngineType"])
                                                            for row in csv.DictReader(f)
                                                            }
+    
+    def get_visual_info(self) -> tuple[QPixmap, float]:
+        """
+        Order matters: later checks overwrite earlier checks
+        """
+        description = self.aircraft_description.lower()
+        typecode = self.typecode.upper()
+        
+        file, factor = DEFAULT_VISUALS
+
+        if self.wtc in WTC_VISUALS:
+            file, factor = WTC_VISUALS[self.wtc]
+
+        if self.engine_count in ENGINE_COUNT_VISUALS:
+            file, factor = ENGINE_COUNT_VISUALS[self.engine_count]
+
+        if description in DESCRIPTION_VISUALS:
+            file, factor = DESCRIPTION_VISUALS[description]
+
+        for prefix, visual in TYPECODE_PREFIX_VISUALS.items():
+            if typecode.startswith(prefix):
+                file, factor = visual
+
+        if typecode in TYPECODE_VISUALS:
+            file, factor = TYPECODE_VISUALS[typecode]
+
+        image = QPixmap(AIRCRAFT_DIR / file)
+        return image, factor

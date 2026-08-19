@@ -4,6 +4,8 @@ uv.lock
 .venv/
 .vscode/
 __pycache__/
+build/
+dist/
 
 logs/*
 

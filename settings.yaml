@@ -12,9 +12,9 @@ setup:
 
 visuals:
     window_theme: aircraft
-    window_size: small
+    window_size: miniature
     update_interval: 1.0
-    tooltip_fields: [callsign, icao24, true_track, typecode, kaas]
+    tooltip_fields: [callsign, icao24, true_track, typecode]
 
 tracking:
     icao24:
