@@ -9,6 +9,7 @@ from main_window import MainWindow
 from api_handler import ApiHandler
 from utils.logging_utils import setup_logging, install_global_exception_handler
 from air_traffic_controller import AirTrafficController
+from settings.settings_window import SettingsWindow
 
 import logging
 from utils.logging_utils import install_global_exception_handler
@@ -41,8 +42,13 @@ def main():
     api_handler = ApiHandler()
     controller = AirTrafficController(window=window, api_handler=api_handler)
 
+    icon_path = str(resource_path("assets", "trayicon.png"))
+
+    settings_window = SettingsWindow(icon_path=icon_path)
+    # settings_window.hide()
+
     if QSystemTrayIcon.isSystemTrayAvailable():
-        tray = TrayIcon(app, window, icon_path=str(resource_path("assets", "trayicon.png")))
+        tray = TrayIcon(app, window, settings_window, icon_path=icon_path)
         tray.show()
     else:
         logger.debug("No system tray available")

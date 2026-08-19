@@ -9,12 +9,14 @@ from PySide6.QtWidgets import QSystemTrayIcon, QMenu, QApplication
 
 from paths import get_settings_path
 from main_window import MainWindow, SPAWN_DELAY
+from settings.settings_window import SettingsWindow
 
 class TrayIcon(QSystemTrayIcon):
-    def __init__(self, app:QApplication, window:MainWindow, icon_path: str, parent=None):
+    def __init__(self, app:QApplication, window:MainWindow, settings_window:SettingsWindow, icon_path: str, parent=None):
         super().__init__(QIcon(icon_path), parent)
         self.app = app
         self.window = window
+        self.settings_window = settings_window
         self.setToolTip("OverFlight") # TODO: add the version 
 
         menu = QMenu()
@@ -64,15 +66,17 @@ class TrayIcon(QSystemTrayIcon):
         os.execv(sys.executable, [sys.executable] + sys.argv)
 
     def _open_settings(self, ):
-        path = get_settings_path()
-        system = platform.system()
+        self.settings_window.show()
+
+        # path = get_settings_path()
+        # system = platform.system()
     
-        if system == "Windows" and hasattr(os, "startfile"):
-            os.startfile(path)
-        elif system == "Linux":
-            subprocess.run(["xdg-open", path])
-        else:
-            raise NotImplementedError("Opening the settings file from the trayicon isn't supported for your operating system.")
+        # if system == "Windows" and hasattr(os, "startfile"):
+        #     os.startfile(path)
+        # elif system == "Linux":
+        #     subprocess.run(["xdg-open", path])
+        # else:
+        #     raise NotImplementedError("Opening the settings file from the trayicon isn't supported for your operating system.")
 
     def _show_terminal(self):
         # TODO: Implement
