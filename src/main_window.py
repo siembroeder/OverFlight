@@ -5,7 +5,7 @@ import subprocess
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QMainWindow
 
-from settings import app_settings
+from settings.settings import app_settings
 from utils.type_hints import Icao24
 from aircraft_widget import AircraftWidget
 from aircraft_record import AircraftRecord

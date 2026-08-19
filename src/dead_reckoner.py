@@ -1,7 +1,7 @@
 import math
 import time
 
-from settings import app_settings
+from settings.settings import app_settings
 from aircraft_record import AircraftRecord
 from utils.type_hints import *
 

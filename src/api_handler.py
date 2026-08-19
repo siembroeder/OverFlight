@@ -12,7 +12,7 @@ from utils.open_sky_utils import fetch_states_in_bbox
 from utils.icao8643_utils import Icao8643Entry
 from aircraft_record import AircraftRecord
 from opensky_api import StateVector
-from settings import app_settings
+from settings.settings import app_settings
 
 
 class ApiHandler():

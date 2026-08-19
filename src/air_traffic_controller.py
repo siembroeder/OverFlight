@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from settings import app_settings
+from settings.settings import app_settings
 from main_window import MainWindow
 from api_handler import ApiHandler
 from aircraft_record import AircraftRecord

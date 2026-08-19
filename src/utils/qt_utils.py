@@ -43,7 +43,7 @@ def get_window_size(window_size:str|list) -> QSize:
     return default_sizes[window_size] 
 
 def coords_to_pixels(lat: float, lon: float, parent: QWidget) -> tuple[int, int]:
-    from settings import app_settings
+    from settings.settings import app_settings
 
     min_lat, max_lat, min_lon, max_lon = app_settings.bbox_at_location
     n_pixels_x, n_pixels_y = parent.width(), parent.height()

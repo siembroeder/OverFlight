@@ -11,7 +11,7 @@ from paths import resource_path
 from dead_reckoner import DeadReckoner
 from aircraft_record import AircraftRecord
 from utils.qt_utils import get_window_size, coords_to_pixels
-from settings import app_settings, VisualsSettings, TrackingSettings
+from settings.settings import app_settings, VisualsSettings, TrackingSettings
 
 
 class AircraftWidget(QWidget):

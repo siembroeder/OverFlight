@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 
 from paths import resource_path
-from settings import TrackingSettings
+from settings.settings import TrackingSettings
 from aircraft_record import AircraftRecord
 from opensky_api import StateVector, OpenSkyApi
 from FlightRadarAPI import FlightRadar24API, Flight    
