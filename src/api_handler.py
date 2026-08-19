@@ -8,7 +8,7 @@ from state_filter import StateFilter
 logger = logging.getLogger(__name__)
 
 from opensky_api import OpenSkyStates, StateVector
-from utils.open_sky_utils import fetch_states_in_bbox
+from utils.open_sky_utils import get_states_in_bbox_and_credits # fetch_states_in_bbox,
 from utils.icao8643_utils import Icao8643Entry
 from aircraft_record import AircraftRecord
 from opensky_api import StateVector
@@ -39,12 +39,13 @@ class ApiHandler():
         :return: The new states and whether they are fresh
         :rtype: tuple[OpenSkyStates | None, bool]
         """
-        new_states: OpenSkyStates | None = fetch_states_in_bbox(app_settings.open_sky_api, self.bbox_at_location)
+        new_states, remaining_credits = get_states_in_bbox_and_credits(app_settings.open_sky_api, self.bbox_at_location)
+        # new_states: OpenSkyStates | None = fetch_states_in_bbox(app_settings.open_sky_api, self.bbox_at_location)
         self.last_api_call_timestamp = time.monotonic()
 
         # skip to next api call if newStates empty.
         if (new_states is None) or (new_states.states is None):
-            logger.debug("New states are empty, continuing\n")
+            logger.debug(f"New states are empty, remaining credits: {remaining_credits}, continuing\n")
             self.num_api_calls_skipped += 1
             return None, False
         
@@ -72,7 +73,7 @@ class ApiHandler():
             new_states, fresh = self.fetch_states()
             filtered_aircrafts = None
             if new_states:
-                logger.info(f"\n\tAccepted {len(new_states.states)} new states at "
+                logger.info(f"\tAccepted {len(new_states.states)} new states at "
                             f"{datetime.fromtimestamp(int(time.time()))} with timestamp: "
                             f"{datetime.fromtimestamp(new_states.time)}")
                 
