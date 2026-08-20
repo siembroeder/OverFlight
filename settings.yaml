@@ -4,10 +4,10 @@ core:
     bbox_size: large
 
 api:
-    api_call_delay: 5.0
+    api_call_delay: 10
 
 setup:
-    max_windows: 1000
+    max_windows: 20
     display_name: 
 
 visuals:

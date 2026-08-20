@@ -28,7 +28,7 @@ class CoreSettings:
 
 @dataclass
 class ApiSettings:
-    api_call_delay: Seconds = Seconds(5.0)
+    api_call_delay: int = 5
 
 
 @dataclass
@@ -125,7 +125,7 @@ class Settings:
             
             # if not an authenticated user, set ratelimiting to 10 seconds if not already.
             if (cls.open_sky_api._token_manager is None) and (api.api_call_delay < 10.0):
-                api.api_call_delay = Seconds(10.0)
+                api.api_call_delay = 10
     
         bbox_at_location = cls.get_bbox(core, setup)
 
