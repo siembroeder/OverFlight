@@ -2,7 +2,7 @@ import logging
 logger = logging.getLogger(__name__)
 import subprocess
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow
 
 from settings import app_settings
@@ -10,6 +10,7 @@ from utils.type_hints import Icao24
 from aircraft_widget import AircraftWidget
 from aircraft_record import AircraftRecord
 from utils.qt_utils import get_screen_geometry
+from utils.platform_utils import poll_until_window_ready_hyprland, move_window_hyprland
 
 WINDOW_TITLE = "OverFlightWindow"
 
@@ -30,10 +31,13 @@ class MainWindow(QMainWindow):
         app_settings.on_change("bbox_at_location", lambda _ : self.close_all_widgets())
         app_settings.on_change("display_name", lambda _ : self._move_mainwindow())
 
-
-    def _show_mainwindow(self, delay:int = 0) -> None:
-        QTimer.singleShot(delay, lambda: self._move_mainwindow())
+    def _show_mainwindow(self) -> None:
         self.show()
+
+        if app_settings.setup.operating_system == "linux" and app_settings.setup.window_manager == "hyprland":
+            poll_until_window_ready_hyprland(elapsed_ms=0, execute_when_ready=self._move_mainwindow)
+        else:
+            self._move_mainwindow()
 
     def _move_mainwindow(self) -> None:
         setup = app_settings.setup
@@ -45,10 +49,8 @@ class MainWindow(QMainWindow):
         x = self.screenOrigin.x()
         y = self.screenOrigin.y()
 
-        if setup.operating_system == "linux":
-            if setup.window_manager == "hyprland":
-                output = subprocess.run(['hyprctl', 'dispatch', 'movewindowpixel', f'exact {x} {y},title:{WINDOW_TITLE}'], capture_output=True, text=True)
-                message = output.stdout.strip()
+        if setup.operating_system == "linux" and setup.window_manager == "hyprland":
+            move_window_hyprland(x, y, WINDOW_TITLE)
 
         elif setup.operating_system == "windows":
             self.move(x, y)
