@@ -1,13 +1,12 @@
 import math
 import requests
 from typing import cast
-from requests import Response
 
 from geopy.location import Location
 from geopy.geocoders import Nominatim
 
 from utils.qt_utils import get_screen_geometry
-from opensky_api import OpenSkyApi, OpenSkyStates, OpenSkyApi
+from opensky_api import OpenSkyApi, OpenSkyStates, OpenSkyApi, TokenManager
 
 import logging
 logger = logging.getLogger(__name__)
@@ -77,25 +76,39 @@ def get_bbox_offset(location_name:str, latitude_offset:float, longitude_offset:f
     
     return (min_lat, max_lat, min_long, max_long)
 
-def fetch_states_in_bbox(api:OpenSkyApi, bbox:tuple) -> OpenSkyStates|None:
-    """Use the opensky_api to get all currently flying aircraft within the given boundingbox"""
-    states:OpenSkyStates|None = api.get_states(bbox = bbox)
-    return states
 
-def get_aircraft_meta(icao24:str) -> dict:
-    url:str = f"https://opensky-network.org/api/metadata/aircraft/icao/{icao24.lower().strip()}"
-    response:Response = requests.get(url)
+def get_states_in_bbox_and_credits(api:OpenSkyApi, bbox:tuple) -> tuple[OpenSkyStates|None, int]:
     
-    if response.status_code == 200:
-        return response.json()
-    return {}
+    tm = api._token_manager
+    resp = None
+    remaining_credits = -1
 
-def get_single_type_code(icao24:str) -> str:
-    meta:dict = get_aircraft_meta(icao24) 
-    typecode = meta.get("typecode")
+    # Copied code from the opensky_api.OpenSkyApi class. This allows us acces to the request headers.
+    params = {"extended": True}
+
+    if len(bbox) == 4:
+        OpenSkyApi._check_lat(bbox[0])
+        OpenSkyApi._check_lat(bbox[1])
+        OpenSkyApi._check_lon(bbox[2])
+        OpenSkyApi._check_lon(bbox[3])
+
+        params["lamin"] = bbox[0]
+        params["lamax"] = bbox[1]
+        params["lomin"] = bbox[2]
+        params["lomax"] = bbox[3]
+    elif len(bbox) > 0:
+        raise ValueError(
+            "Invalid bounding box! Must be [min_latitude, max_latitude, min_longitude, max_longitude]."
+        )
+
+    if isinstance(tm, TokenManager):
+        resp = requests.get("https://opensky-network.org/api/states/all", headers={"Authorization": f"Bearer {tm.get_token()}"}, params=params)       
+
+    elif tm is None:
+        resp = requests.get("https://opensky-network.org/api/states/all", params = params)
     
-    if typecode:
-        return typecode
+    resp.raise_for_status()
+    remaining_credits = int(resp.headers.get("X-Rate-Limit-Remaining", -1))
+    states = OpenSkyStates(resp.json())
 
-    return ""
-
+    return states, remaining_credits
