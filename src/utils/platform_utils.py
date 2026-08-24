@@ -2,6 +2,9 @@ import os
 import json
 import platform
 import subprocess
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from main_window import MainWindow
 
 from PySide6.QtCore import QTimer
 
@@ -12,7 +15,6 @@ WINDOW_READY_TIMEOUT_MS = 5000
 def get_operating_system() -> str:
     return platform.system().lower()
 
-
 def get_session_type() -> str:
     if os.environ.get("WAYLAND_DISPLAY"):
         return "wayland"
@@ -21,7 +23,6 @@ def get_session_type() -> str:
     else:
         raise NameError("Session not recognized")
        
-
 def get_window_manager() -> str|None:
 
     # Try wmctrl (X11)
@@ -63,17 +64,22 @@ def move_window_hyprland(x, y, title):
     else:
         raise ValueError("Only .conf and .lua hyprland backends are supported.")
 
-def poll_until_window_ready_hyprland(elapsed_ms: int, execute_when_ready) -> bool|None:
-    if is_window_mapped() or elapsed_ms >= WINDOW_READY_TIMEOUT_MS:
+def poll_until_window_ready_hyprland(elapsed_ms: int, execute_when_ready, window:MainWindow):
+    if is_window_mapped("title", window.windowTitle()) or elapsed_ms >= WINDOW_READY_TIMEOUT_MS:
         execute_when_ready()
     else:
         QTimer.singleShot(
             WINDOW_READY_POLL_INTERVAL_MS,
-            lambda: poll_until_window_ready_hyprland(elapsed_ms + WINDOW_READY_POLL_INTERVAL_MS, execute_when_ready),
+            lambda: poll_until_window_ready_hyprland(elapsed_ms + WINDOW_READY_POLL_INTERVAL_MS, execute_when_ready, window),
         )
 
-def is_window_mapped() -> bool:
-    from settings import app_settings
+def is_window_mapped(field_name:str, field_value:str) -> bool:
+    """ 
+    field_name: eg class, pid
+    field_value: eg Alacritty, 94499 
+    """
+
+    from settings.settings import app_settings # Import here to prevent circular import
     setup = app_settings.setup
     if setup.operating_system != "linux" or setup.window_manager != "hyprland":
         return True  # not applicable on this platform, assume ready
@@ -84,5 +90,4 @@ def is_window_mapped() -> bool:
     except json.JSONDecodeError:
         return False
 
-    pid = os.getpid()
-    return any(c.get("pid") == pid and c.get("mapped") for c in clients)
+    return any(c.get(field_name) == field_value and c.get("mapped") for c in clients)

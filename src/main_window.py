@@ -1,6 +1,5 @@
 import logging
 logger = logging.getLogger(__name__)
-import subprocess
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow
@@ -35,7 +34,7 @@ class MainWindow(QMainWindow):
         self.show()
 
         if app_settings.setup.operating_system == "linux" and app_settings.setup.window_manager == "hyprland":
-            poll_until_window_ready_hyprland(elapsed_ms=0, execute_when_ready=self._move_mainwindow)
+            poll_until_window_ready_hyprland(elapsed_ms=0, execute_when_ready=self._move_mainwindow, window=self)
         else:
             self._move_mainwindow()
 
