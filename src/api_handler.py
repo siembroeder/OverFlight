@@ -46,8 +46,8 @@ class ApiHandler():
             self.num_api_calls_skipped += 1
             return None, False
         
-        # skip if new timestamp older than previous timestamp
-        if new_states.time < self.newest_state_timestamp:
+        # skip if new timestamp older than previous timestamp, if bbox_changed all widgets are closed -> accept the first new states
+        if new_states.time < self.newest_state_timestamp and not app_settings.bbox_updated:
             logger.debug("New states older than previous, continuing\n")
             self.num_api_calls_skipped += 1
             return None, False
@@ -60,6 +60,9 @@ class ApiHandler():
             self.num_api_calls_skipped = 0.0
         else:
             self.num_api_calls_skipped += 1
+
+        if app_settings.bbox_updated:
+            app_settings.bbox_updated = False 
 
         return new_states, fresh
 

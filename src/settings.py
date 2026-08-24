@@ -1,4 +1,4 @@
-
+import time
 import yaml
 import logging
 from typing import Optional, ClassVar, Callable
@@ -102,7 +102,10 @@ class Settings:
     visuals:    VisualsSettings
     
     callbacks: dict[str, list[Callable]] = field(default_factory=dict)
-    
+
+    bbox_updated: bool = False
+    last_settings_check_timestamp: float = 0.0
+
     @classmethod
     def build(cls) -> "Settings":
         settings = cls.load_settings()
@@ -210,7 +213,11 @@ class Settings:
         self.raw = new_settings.raw
 
     def check_new_settings(self) -> None:
+        if time.perf_counter() - self.last_settings_check_timestamp < 0.1:
+            return # skip double fire of QFileSystemWatcher.fileChanged
+
         logger.debug(f"{SETTINGS_PATH} changed: checking new contents.")
+        self.last_settings_check_timestamp = time.perf_counter()
 
         try:
             new_raw_settings = Settings.load_settings()
@@ -222,6 +229,7 @@ class Settings:
             new_settings = Settings.build()
             if new_settings:
                 self.apply_update(new_settings)
+                self.bbox_updated = True
                 logger.debug("Settings updated.")
                 return
         
@@ -237,6 +245,8 @@ class _LazySettings:
     setup:      SetupSettings
     tracking:   TrackingSettings
     visuals:    VisualsSettings
+    bbox_updated: bool
+    time_since_last_new_settings_check:float
     """
     Proxy that defers Settings.build() until first attribute access,
     so it isn't built until after QApplication exists (Settings needs
