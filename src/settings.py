@@ -181,7 +181,7 @@ class Settings:
         """Executes the registered callbacks for each field that changed values in newSetings"""
         
         # Some fields can not be changed during runtime, if they're changed the change is ignored.
-        RESTART_REQUIRED = {"opensky_credentials_path", "display_name"} # TODO: remove display name and test the callback in MainWindow.__init__()
+        RESTART_REQUIRED = {"opensky_credentials_path"}
         
         for section_name in SETTINGS_SECTIONS:
             old_section = getattr(self, section_name)
