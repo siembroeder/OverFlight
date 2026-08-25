@@ -128,7 +128,9 @@ class AircraftWidget(QWidget):
         
         Default: 'small'
         """
-        size: QSize = get_window_size(app_settings.visuals.window_size)
+        size: QSize = get_window_size(app_settings.visuals.window_size, app_settings.setup.display_name)
+
+        # Some aircraft typecodes are scaled, eg larger for A380
         if self.image_scale_factor != 1.0:
             size = QSize(round(self.image_scale_factor * size.width()), round(self.image_scale_factor * size.height()))
 
