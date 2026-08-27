@@ -25,22 +25,27 @@ def get_screen_geometry(display_name:str|None) -> QRect:
 
     return geom
 
-def get_window_size(window_size:str|list) -> QSize:
-    default_sizes = {"miniature": QSize(25, 25),
-                    "small":     QSize(50, 50),
-                    "medium":    QSize(100, 100),
-                    "large":     QSize(200, 200),
-                    "comicallyLarge": QSize(500, 500)}
+def get_window_size(window_size:str|list, display_name:str|None) -> QSize:  
+    default_sizes = {"miniature": 25,
+                    "small": 50,
+                    "medium": 100,
+                    "large": 200,
+                    "comicallyLarge": 500}
+
+    nypixels = get_screen_geometry(display_name).height()
+    factor = nypixels / 1080
     
     if isinstance(window_size, list):
-        if len(window_size) == 2:
-            return QSize(window_size[0], window_size[1])
-        raise IndexError("imageSize should have exactly 2 items")
-    
-    if window_size not in default_sizes.keys():
-        window_size = "small"
+        if len(window_size) != 2:
+            raise IndexError("window_size should have exactly 2 items, or use one of the defaults: 'miniature', 'small', 'medium', 'large', 'comicallyLarge'.")
 
-    return default_sizes[window_size] 
+        if (window_size[0] <= 0) or (window_size[1] <= 0):
+            raise ValueError("window_size should be a positive, non-zero integer.")
+
+        return QSize(window_size[0], window_size[1])
+
+    size = int(factor * default_sizes.get(window_size, default_sizes["small"]))
+    return QSize(size, size)
 
 def coords_to_pixels(lat: float, lon: float, parent: QWidget) -> tuple[int, int]:
     from settings import app_settings
