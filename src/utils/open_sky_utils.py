@@ -1,6 +1,7 @@
 import math
 import requests
 from typing import cast
+from datetime import timedelta
 
 from geopy.location import Location
 from geopy.geocoders import Nominatim
@@ -112,3 +113,11 @@ def get_states_in_bbox_and_credits(api:OpenSkyApi, bbox:tuple) -> tuple[OpenSkyS
     states = OpenSkyStates(resp.json())
 
     return states, remaining_credits
+
+
+def calculate_remaining_daily_overflight_time(remaining_credits:int, api_call_credit_cost:int, update_interval:float):
+    remaining_calls = remaining_credits // api_call_credit_cost
+    leftover_seconds= int(remaining_calls * update_interval)
+
+    formatted_leftover_time = timedelta(seconds = leftover_seconds)
+    return formatted_leftover_time

@@ -8,8 +8,9 @@ from state_filter import StateFilter
 logger = logging.getLogger(__name__)
 
 from opensky_api import OpenSkyStates, StateVector
-from utils.open_sky_utils import get_states_in_bbox_and_credits # fetch_states_in_bbox,
+from utils.open_sky_utils import get_states_in_bbox_and_credits, calculate_remaining_daily_overflight_time # fetch_states_in_bbox,
 from utils.icao8643_utils import Icao8643Entry
+
 from aircraft_record import AircraftRecord
 from opensky_api import StateVector
 from settings import app_settings
@@ -28,6 +29,8 @@ class ApiHandler():
         self.last_api_call_timestamp = 0.0
         self.newest_state_timestamp = 0.0
         self.num_api_calls_skipped   = 0.0
+        
+        self.remaining_credits = -1
 
     def fetch_states(self) -> tuple[OpenSkyStates | None, bool]:
         """
@@ -39,6 +42,12 @@ class ApiHandler():
         new_states, remaining_credits = get_states_in_bbox_and_credits(app_settings.open_sky_api, app_settings.bbox_at_location)
         # new_states: OpenSkyStates | None = fetch_states_in_bbox(app_settings.open_sky_api, self.bbox_at_location)
         self.last_api_call_timestamp = time.monotonic()
+
+        if self.remaining_credits != -1: #TODO: when updating settings should be reset to -1
+            credit_cost = self.remaining_credits - remaining_credits
+            leftover_time = calculate_remaining_daily_overflight_time(remaining_credits, credit_cost, app_settings.api.api_call_delay)
+            logger.info(f"You can use OverFlight for: {leftover_time}.")
+        self.remaining_credits = remaining_credits
 
         # skip to next api call if newStates empty.
         if (new_states is None) or (new_states.states is None):
